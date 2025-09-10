@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Map, Table, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Map, Table, Menu, X } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggleSidebar, activeMenu, onMenuChange }) => {
   const menuItems = [
@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, toggleSidebar, activeMenu, onMenuChange }) => {
           )}
         </div>
         <button className="toggle-btn" onClick={toggleSidebar}>
-          {isOpen ? <ChevronLeft size={20} /> : <ChevronRight color='black' size={30} />}
+          {isOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 

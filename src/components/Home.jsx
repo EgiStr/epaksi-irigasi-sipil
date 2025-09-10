@@ -117,7 +117,7 @@ const Home = ({ onNavigate }) => {
   ];
 
   return (
-    <div className="home-dashboard">
+    <div className="px-2 md:px-0">
       <div className="dashboard-header">
         <h2>Dashboard Overview</h2>
         <p>Ringkasan sistem irigasi Way Rarem</p>
@@ -146,7 +146,7 @@ const Home = ({ onNavigate }) => {
       <div className="map-preview-full">
         <div className="content-card map-preview-card">
           <div className="card-header">
-            <h3>🗺️ Peta Irigasi Way Rarem</h3>
+            <h3 className='text-sm md:text-xl'>🗺️ Peta Irigasi Way Rarem</h3>
             <button 
               className="view-full-btn"
               onClick={() => onNavigate && onNavigate('peta')}>
@@ -182,15 +182,15 @@ const Home = ({ onNavigate }) => {
           <div className="system-stats">
             <div className="system-stat">
               <span className="stat-label">Status Sistem:</span>
-              <span className="stat-value online">Online</span>
+              <span className="text-sm text-green-500 font-semibold">Online</span>
             </div>
             <div className="system-stat">
               <span className="stat-label">Boundary:</span>
-              <span className="stat-value">Lampung Utara & Tulang Bawang Barat</span>
+              <span className="text-sm">Lampung Utara & Tulang Bawang Barat</span>
             </div>
             <div className="system-stat">
               <span className="stat-label">Daerah Irigasi:</span>
-              <span className="stat-value">Way Rarem</span>
+              <span className="text-sm">Way Rarem</span>
             </div>
           </div>
         </div>

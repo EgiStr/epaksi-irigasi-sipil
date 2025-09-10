@@ -94,7 +94,7 @@ const TableDaerahIrigasi = () => {
   };
 
   return (
-    <div className="table-container">
+    <div className="px-2 md:px-0">
       <div className="table-header">
         <div className="header-title">
           <h2>Tabel Daerah Irigasi Way Rarem</h2>

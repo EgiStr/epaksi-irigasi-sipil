@@ -7,6 +7,14 @@ const Layout = ({ children, activeMenu, onMenuChange }) => {
 
   return (
     <div className="layout">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-backdrop md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       <Sidebar 
         isOpen={sidebarOpen} 
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
@@ -14,14 +22,14 @@ const Layout = ({ children, activeMenu, onMenuChange }) => {
         onMenuChange={onMenuChange}
       />
       <div className={`main-content ${!sidebarOpen ? 'sidebar-closed' : ''}`}>
-        <header className="header z-50">
+        <header className="header">
           <button 
-            className="menu-toggle"
+            className="menu-toggle md:hidden"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            <span className="hamburger"></span>
-            <span className="hamburger"></span>
-            <span className="hamburger"></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
           <div className="header-title">
             <h1>🌊 Sistem Informasi Irigasi Way Rarem</h1>
