@@ -385,6 +385,35 @@
   overflow: hidden;
 }
 
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-title h1 {
+    font-size: 1.3rem;
+  }
+  
+  .table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .data-table {
+    min-width: 700px;
+  }
+  
+  /* Tablet sidebar adjustments */
+  .sidebar.open {
+    width: 70%;
+    max-width: 600px;
+  }
+}
+
 @media (max-width: 768px) {
   .map-preview-container {
     height: 250px;
@@ -791,11 +820,13 @@
 
 .data-table th,
 .data-table td {
-  padding: 1rem;
+  padding: 0.5rem 0.75rem;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
   word-wrap: break-word;
+  font-size: 0.8rem;
 }
+
 
 .data-table th {
   background: #f9fafb;

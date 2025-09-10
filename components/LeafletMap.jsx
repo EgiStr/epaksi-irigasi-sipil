@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import dataIrigasi from '../data_irigasi.json';
+
+// Import ikon leaflet
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
+// Fix untuk ikon default leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
@@ -48,45 +50,12 @@ const FIELD_LABELS = {
 
 const PRIORITY_FIELDS = ['n_di', 'nama', 'nomenklatu', 'n_aset', 'saluran', 'k_di', 'k_aset', 'ELEVATION'];
 
-const IrigasiMap = () => {
-  const [geoJsonData, setGeoJsonData] = useState(null);
-  const [boundaryData, setBoundaryData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+const LeafletMap = ({ geoJsonData, boundaryData }) => {
   // Memoize kategori untuk menghindari re-calculation
   const categories = useMemo(() => {
     if (!geoJsonData?.features) return [];
     return [...new Set(geoJsonData.features.map(f => f.properties?.source_layer))];
   }, [geoJsonData]);
-
-  // Load data 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        
-        // Set data irigasi langsung (sudah di-import)
-        setGeoJsonData(dataIrigasi);
-        
-        // Load boundary data
-        const boundaryResponse = await fetch('/rbi.json.geojson');
-        if (boundaryResponse.ok) {
-          const boundaryJson = await boundaryResponse.json();
-          if (boundaryJson.features?.length > 0) {
-            setBoundaryData(boundaryJson);
-          }
-        }
-      } catch (err) {
-        console.error('Error loading data:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
 
   // Optimized style functions
   const getFeatureStyle = useCallback((feature) => {
@@ -229,43 +198,8 @@ const IrigasiMap = () => {
     return map;
   }, [geoJsonData, categories]);
 
-  // Loading state
-  if (loading) {
-    return (
-      <div style={{ 
-        height: '80vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        fontSize: '18px'
-      }}>
-        ⏳ Memuat data peta...
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div style={{ 
-        height: '80vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        flexDirection: 'column',
-        fontSize: '16px',
-        color: '#d32f2f'
-      }}>
-        Error: {error}
-        <div style={{ fontSize: '14px', marginTop: '8px', color: '#666' }}>
-          Pastikan file data tersedia
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ height: '80vh', minHeight: '500px', width: '100%', position: 'relative' }}>
+    <div style={{ height: '80vh', minHeight: '640px', width: '100%', position: 'relative' }}>
       {/* Status info panel */}
       <div style={{
         position: 'absolute',
@@ -402,4 +336,4 @@ const IrigasiMap = () => {
   );
 };
 
-export default IrigasiMap;
+export default LeafletMap;

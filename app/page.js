@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import Layout from './components/Layout';
-import Home from './components/Home';
-import IrigasiMap from './components/IrigasiMap';
-import TableDaerahIrigasi from './components/TableDaerahIrigasi';
-import './App.css';
+'use client'
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+import React, { useState } from 'react'
+import Layout from '../components/Layout'
+import Home from '../components/Home'
+import IrigasiMap from '../components/IrigasiMap'
+import TableDaerahIrigasi from '../components/TableDaerahIrigasi'
+
+export default function Page() {
+  const [currentPage, setCurrentPage] = useState('home')
 
   const renderContent = () => {
     switch(currentPage) {
       case 'home':
-        return <Home onNavigate={setCurrentPage} />;
+        return <Home onNavigate={setCurrentPage} />
       case 'peta':
         return (
           <div style={{ 
@@ -25,13 +26,13 @@ function App() {
           }}>
             <IrigasiMap />
           </div>
-        );
+        )
       case 'tabel':
-        return <TableDaerahIrigasi />;
+        return <TableDaerahIrigasi />
       default:
-        return <Home onNavigate={setCurrentPage} />;
+        return <Home onNavigate={setCurrentPage} />
     }
-  };
+  }
 
   return (
     <Layout 
@@ -40,7 +41,5 @@ function App() {
     >
       {renderContent()}
     </Layout>
-  );
+  )
 }
-
-export default App;

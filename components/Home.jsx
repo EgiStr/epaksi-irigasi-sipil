@@ -1,12 +1,14 @@
 import React, { useMemo } from 'react';
 import { BarChart3, Map, Users, Droplets, TrendingUp, MapPin } from 'lucide-react';
 import IrigasiMap from './IrigasiMap';
-import dataIrigasi from '../data_irigasi.json';
+import { useIrigasiData } from '../hooks/useIrigasiData';
 
 const Home = ({ onNavigate }) => {
+  const { geoJsonData } = useIrigasiData();
+  
   // Calculate real statistics from data_irigasi.json
   const statistics = useMemo(() => {
-    if (!dataIrigasi?.features) {
+    if (!geoJsonData?.features) {
       return {
         totalDaerahIrigasi: 0,
         bangunanIrigasi: 0,
@@ -17,7 +19,7 @@ const Home = ({ onNavigate }) => {
       };
     }
 
-    const features = dataIrigasi.features;
+    const features = geoJsonData.features;
     
     // Count features by source layer category
     const bangunanIrigasi = features.filter(f => 
@@ -54,7 +56,7 @@ const Home = ({ onNavigate }) => {
       areaLayanan: Math.round(totalAreaLayanan), // Total hectares served
       bendung: bendung
     };
-  }, []);
+  }, [geoJsonData]);
 
   const stats = [
     {
