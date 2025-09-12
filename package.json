@@ -3,20 +3,27 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev"
   },
   "dependencies": {
+    "@mapbox/togeojson": "^0.16.2",
     "@prisma/client": "^6.15.0",
+    "@xmldom/xmldom": "^0.8.11",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.543.0",
     "next": "^15.5.2",
     "prisma": "^6.15.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-leaflet": "^5.0.0"
+    "react-leaflet": "^5.0.0",
+    "togeojson": "^0.16.0",
+    "xmldom": "^0.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

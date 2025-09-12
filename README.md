@@ -23,8 +23,9 @@ Aplikasi web untuk manajemen dan visualisasi data sistem irigasi berbasis Next.j
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm atau yarn
+- PostgreSQL dengan PostGIS extension
 
 ### Installation
 
@@ -42,23 +43,111 @@ npm install
 3. **Setup database**
 ```bash
 # Generate Prisma client
-npx prisma generate
+npm run db:generate
 
-# Run migrations
-npx prisma migrate dev --name init
+# Push schema to database
+npm run db:push
 
-# Seed database (optional)
-node prisma/seed.js
+# (Opsional) Run migrations
+npm run db:migrate
 ```
 
-4. **Start development server**
+4. **Migrate existing data** (jika ada data lama)
+```bash
+npm run migrate
+```
+
+5. **Start development server**
 ```bash
 npm run dev
 ```
 
-5. **Open browser**
+6. **Open browser**
 ```
 http://localhost:3000
+```
+
+## 📤 Upload Data KML
+
+Aplikasi ini mendukung upload file KML untuk menambahkan layer geospatial baru:
+
+### Cara Upload KML:
+
+1. **Buka aplikasi** di browser
+2. **Klik tombol Upload** (ikon ⬆️) di LayerPanel
+3. **Pilih file KML** dari komputer Anda
+4. **Isi informasi layer**:
+   - Nama layer (wajib)
+   - Kategori (Irigasi, Boundary, Infrastruktur, dll)
+   - Deskripsi (opsional)
+5. **Klik Upload** untuk memproses file
+
+### Format KML yang Didukung:
+
+- File dengan ekstensi `.kml`
+- MIME type: `application/vnd.google-earth.kml+xml`
+- Berisi geometry: Point, LineString, Polygon, MultiGeometry
+- Mendukung description HTML dengan tabel data
+
+### Layer yang Tersedia:
+
+- **Batas Wilayah** (2 fitur) - Boundary RBI
+- **Bangunan_Irigasi WR** (1342 fitur) - Bangunan irigasi
+- **Bangunan.kml** (274 fitur) - Bangunan dari KML
+- **Bendung WR** (1 fitur) - Bendung
+- **Jaringan Irigasi WR** (1713 fitur) - Jaringan irigasi
+
+## 🔄 Migrasi Data
+
+Untuk memindahkan data existing dari file JSON ke database:
+
+### Jalankan Migration:
+
+```bash
+npm run migrate
+```
+
+### Yang dilakukan migration:
+
+1. **Membaca file existing**:
+   - `public/data_irigasi.json` - Data irigasi
+   - `public/rbi.json.geojson` - Data boundary
+
+2. **Membuat layer otomatis** berdasarkan kategori:
+   - Boundary layer dari RBI
+   - Irrigation layers berdasarkan `source_layer`
+
+3. **Insert features** dalam batch untuk performa optimal
+
+4. **Mapping properties** dari format lama ke baru
+
+### Struktur Database Setelah Migration:
+
+```sql
+-- Layers table
+CREATE TABLE layers (
+  id SERIAL PRIMARY KEY,
+  layer_id VARCHAR UNIQUE,
+  name VARCHAR NOT NULL,
+  category VARCHAR,
+  style JSONB DEFAULT '{}',
+  z_index INTEGER DEFAULT 0,
+  visible BOOLEAN DEFAULT true,
+  opacity FLOAT DEFAULT 1.0,
+  feature_count INTEGER DEFAULT 0
+);
+
+-- Features table
+CREATE TABLE features (
+  id VARCHAR PRIMARY KEY,
+  feature_id VARCHAR UNIQUE,
+  name VARCHAR,
+  type VARCHAR,
+  scheme VARCHAR,
+  source_layer VARCHAR,
+  props JSONB,
+  geom GEOMETRY(GEOMETRY, 4326)
+);
 ```
 
 ## 📁 Project Structure

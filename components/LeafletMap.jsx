@@ -50,17 +50,37 @@ const FIELD_LABELS = {
 
 const PRIORITY_FIELDS = ['n_di', 'nama', 'nomenklatu', 'n_aset', 'saluran', 'k_di', 'k_aset', 'ELEVATION'];
 
-const LeafletMap = ({ geoJsonData, boundaryData }) => {
+const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => {
   // Memoize kategori untuk menghindari re-calculation
   const categories = useMemo(() => {
     if (!geoJsonData?.features) return [];
-    return [...new Set(geoJsonData.features.map(f => f.properties?.source_layer))];
+    return [...new Set(geoJsonData.features.map(f => f.properties?.sourceLayer).filter(Boolean))];
   }, [geoJsonData]);
+
+  // Generate dynamic colors for source layers
+  const generateLayerColor = useCallback((sourceLayer, index) => {
+    const colors = [
+      { color: "#FF0000", fillColor: "#FF4444" }, // Red
+      { color: "#0000FF", fillColor: "#4444FF" }, // Blue  
+      { color: "#00FF00", fillColor: "#44FF44" }, // Green
+      { color: "#FFA500", fillColor: "#FFB84D" }, // Orange
+      { color: "#800080", fillColor: "#B347B3" }, // Purple
+      { color: "#FF1493", fillColor: "#FF69B4" }, // Deep Pink
+      { color: "#20B2AA", fillColor: "#48D1CC" }, // Light Sea Green
+      { color: "#FFD700", fillColor: "#FFEF4D" }, // Gold
+      { color: "#DC143C", fillColor: "#F56565" }, // Crimson
+      { color: "#4169E1", fillColor: "#6B8BFF" }  // Royal Blue
+    ];
+    
+    // Use predefined colors or generate based on index
+    return colors[index % colors.length] || { color: "#999999", fillColor: "#CCCCCC" };
+  }, []);
 
   // Optimized style functions
   const getFeatureStyle = useCallback((feature) => {
-    const category = feature.properties?.source_layer;
-    const colorConfig = MAP_CONFIG.colors[category] || { color: "#999999", fillColor: "#CCCCCC" };
+    const sourceLayer = feature.properties?.sourceLayer;
+    const categoryIndex = categories.indexOf(sourceLayer);
+    const colorConfig = generateLayerColor(sourceLayer, categoryIndex);
     const geomType = feature.geometry?.type;
     
     const baseStyle = {
@@ -72,7 +92,7 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
     };
 
     return geomType === "Point" ? { ...baseStyle, radius: 8 } : baseStyle;
-  }, []);
+  }, [categories, generateLayerColor]);
 
   const pointToLayer = useCallback((feature, latlng) => {
     const style = getFeatureStyle(feature);
@@ -107,15 +127,19 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
   const buildPopupContent = useCallback((props, detailData) => {
     let content = '<div style="font-family: Arial, sans-serif; max-width: 380px;">';
     
-    // Header
-    if (props.source_layer) {
-      const categoryColor = MAP_CONFIG.colors[props.source_layer]?.color || "#333";
-      content += `<h3 style="margin: 0 0 12px 0; color: ${categoryColor}; font-size: 16px; font-weight: bold; border-bottom: 2px solid ${categoryColor}; padding-bottom: 6px;">${props.source_layer}</h3>`;
+    // Header with sourceLayer
+    if (props.sourceLayer) {
+      const categoryIndex = categories.indexOf(props.sourceLayer);
+      const categoryColor = generateLayerColor(props.sourceLayer, categoryIndex)?.color || "#333";
+      content += `<h3 style="margin: 0 0 12px 0; color: ${categoryColor}; font-size: 16px; font-weight: bold; border-bottom: 2px solid ${categoryColor}; padding-bottom: 6px;">${props.sourceLayer}</h3>`;
     }
     
-    // Main info
+    // Main info - use database fields
     const infoFields = [
-      { key: 'Name', label: '📍 Nama', prop: props.Name },
+      { key: 'name', label: '📍 Nama', prop: props.name },
+      { key: 'featureId', label: '🆔 Feature ID', prop: props.featureId },
+      { key: 'type', label: '🏷️ Tipe', prop: props.type },
+      { key: 'scheme', label: '📋 Skema', prop: props.scheme },
       { key: 'NAMOBJ', label: '🗺️ Wilayah', prop: props.NAMOBJ },
       { key: 'WADMKK', label: '🏛️ Kabupaten', prop: props.WADMKK }
     ];
@@ -129,7 +153,9 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
     
     // Detail data
     if (Object.keys(detailData).length > 0) {
-      content += `<div style="margin: 12px 0; padding: 10px; background: #f1f3f4; border-radius: 6px; border-left: 4px solid ${MAP_CONFIG.colors[props.source_layer]?.color || '#333'};">`;
+      const categoryIndex = categories.indexOf(props.sourceLayer);
+      const categoryColor = generateLayerColor(props.sourceLayer, categoryIndex)?.color || '#333';
+      content += `<div style="margin: 12px 0; padding: 10px; background: #f1f3f4; border-radius: 6px; border-left: 4px solid ${categoryColor};">`;
       content += `<div style="font-weight: bold; margin-bottom: 8px; color: #2c3e50;">📋 Detail Informasi:</div>`;
       
       PRIORITY_FIELDS.forEach(field => {
@@ -147,7 +173,7 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
     }
     
     return content + '</div>';
-  }, []);
+  }, [categories, generateLayerColor]);
 
   // Optimized event handler
   const onEachFeature = useCallback((feature, layer) => {
@@ -186,7 +212,7 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
     const map = {};
     categories.forEach(category => {
       const filteredFeatures = geoJsonData.features.filter(
-        feature => feature.properties?.source_layer === category
+        feature => feature.properties?.sourceLayer === category
       );
       if (filteredFeatures.length > 0) {
         map[category] = {
@@ -213,8 +239,28 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
         fontSize: '12px',
         fontWeight: '500'
       }}>
-        <div>📊 Irigasi: {geoJsonData?.features?.length || 0}</div>
-        <div>🗺️ Boundary: {boundaryData?.features?.length || 0}</div>
+        <div>📊 Menampilkan: {geoJsonData?.features?.length || 0} features</div>
+        {layersData && (
+          <div>�️ Total Database: {layersData.totalFeatures} features</div>
+        )}
+        <div>�🗺️ Boundary: {boundaryData?.features?.length || 0}</div>
+        {onDataReload && (
+          <button 
+            onClick={onDataReload}
+            style={{
+              marginTop: '4px',
+              padding: '4px 8px',
+              fontSize: '11px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '3px',
+              cursor: 'pointer'
+            }}
+          >
+            🔄 Refresh
+          </button>
+        )}
       </div>
       
       <MapContainer
@@ -273,21 +319,35 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
             </LayersControl.Overlay>
           )}
 
-          {/* Irrigation layers (foreground) */}
-          {Object.entries(layerDataMap).map(([category, layerData]) => (
-            <LayersControl.Overlay 
-              key={category} 
-              name={`${category.replace('Way Rarem', 'WR')} (${layerData.features.length})`}
-              checked={true}
-            >
-              <GeoJSON
-                data={layerData}
-                style={getFeatureStyle}
-                pointToLayer={pointToLayer}
-                onEachFeature={onEachFeature}
-              />
-            </LayersControl.Overlay>
-          ))}
+          {/* Irrigation layers (foreground) - using sourceLayer from database */}
+          {Object.entries(layerDataMap).map(([sourceLayer, layerData]) => {
+            // Format layer name for display
+            const formatLayerName = (name) => {
+              return name
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase())
+                .replace('Way Rarem', 'WR');
+            };
+            
+            const displayName = formatLayerName(sourceLayer);
+            const featureCount = layerData.features.length;
+            
+            return (
+              <LayersControl.Overlay 
+                key={sourceLayer} 
+                name={`${displayName} (${featureCount})`}
+                checked={true}
+              >
+                <GeoJSON
+                  key={`${sourceLayer}-${featureCount}`} // Force re-render when data changes
+                  data={layerData}
+                  style={getFeatureStyle}
+                  pointToLayer={pointToLayer}
+                  onEachFeature={onEachFeature}
+                />
+              </LayersControl.Overlay>
+            );
+          })}
         </LayersControl>
       </MapContainer>
       
@@ -318,19 +378,26 @@ const LeafletMap = ({ geoJsonData, boundaryData }) => {
           </div>
         )}
         
-        {Object.entries(MAP_CONFIG.colors).map(([category, colorConfig]) => 
-          layerDataMap[category] && (
-            <div key={category} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+        {Object.entries(layerDataMap).map(([sourceLayer, layerData]) => {
+          const categoryIndex = categories.indexOf(sourceLayer);
+          const colorConfig = generateLayerColor(sourceLayer, categoryIndex);
+          const displayName = sourceLayer
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase())
+            .replace('Way Rarem', 'WR');
+          
+          return (
+            <div key={sourceLayer} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
               <div style={{
                 width: '12px', height: '12px',
                 backgroundColor: colorConfig.fillColor,
                 border: `1px solid ${colorConfig.color}`,
                 marginRight: '6px'
               }}></div>
-              {category.replace('Way Rarem', 'WR')}
+              {displayName} ({layerData.features.length})
             </div>
-          )
-        )}
+          );
+        })}
       </div>
     </div>
   );

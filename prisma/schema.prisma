@@ -9,23 +9,83 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model DaerahIrigasi {
-  id            Int      @id @default(autoincrement())
-  nama          String
-  kecamatan     String
-  desa          String
-  luasLahan     Float
-  jenisIrigasi  String
-  kondisi       String
-  tahunBangun   Int?
-  latitude      Float?
-  longitude     Float?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(VIEWER)
+  org       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  surveys   Survey[]
+  
+  @@map("users")
+}
 
-  @@map("daerah_irigasi")
+model Feature {
+  id          String   @id @default(cuid())
+  featureId   String   @unique @map("feature_id")
+  name        String?
+  type        String?
+  scheme      String?  // 'utama' | 'tersier' | null
+  sourceLayer String   @map("source_layer")
+  props       Json?
+  geom        Unsupported("geometry(GEOMETRY,4326)")?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  surveys     Survey[]
+  
+  @@map("features")
+  @@index([sourceLayer])
+}
+
+model Survey {
+  id          String   @id @default(cuid())
+  featureId   String   @map("feature_id")
+  scheme      String
+  values      Json     @map("values")
+  scoreTotal  Float?   @map("score_total")
+  scoreClass  String?  @map("score_class") // 'A' | 'B' | 'C' | 'D'
+  scoreDetail Json?    @map("score_detail")
+  configId    Int?     @map("config_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt
+  createdBy   String   @map("created_by")
+  
+  feature     Feature  @relation(fields: [featureId], references: [featureId], onDelete: Cascade)
+  config      Config?  @relation(fields: [configId], references: [id])
+  user        User     @relation(fields: [createdBy], references: [id])
+  
+  @@map("surveys")
+  @@index([featureId])
+  @@index([scheme])
+  @@index([scoreClass])
+  @@index([createdAt])
+}
+
+model Config {
+  id        Int      @id @default(autoincrement())
+  scheme    String
+  json      Json
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt
+  
+  surveys   Survey[]
+  
+  @@map("configs")
+  @@index([scheme])
+  @@index([active])
+}
+
+enum Role {
+  ADMIN
+  SURVEYOR
+  VIEWER
 }
