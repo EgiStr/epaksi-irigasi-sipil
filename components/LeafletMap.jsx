@@ -1,7 +1,9 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import SurveyModal from './SurveyModal';
+import { useSurveyData } from '../hooks/useSurveyData';
 
 // Import ikon leaflet
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -51,6 +53,59 @@ const FIELD_LABELS = {
 const PRIORITY_FIELDS = ['n_di', 'nama', 'nomenklatu', 'n_aset', 'saluran', 'k_di', 'k_aset', 'ELEVATION'];
 
 const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => {
+  // State for survey modal
+  const [isSurveyModalOpen, setIsSurveyModalOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState(null);
+  
+  // Survey visualization controls
+  const [showSurveyLayer, setShowSurveyLayer] = useState(true);
+  const [surveyFilter, setSurveyFilter] = useState('all'); // 'all', 'surveyed', 'not-surveyed', 'quality-A', 'quality-B', 'quality-C', 'quality-D'
+  
+  // Survey data hook
+  const {
+    surveys,
+    loading: surveyLoading,
+    getSurveyForFeature,
+    getQualityClass,
+    getFeatureQualityColor,
+    reloadSurveys,
+    getStatistics
+  } = useSurveyData();
+
+  // Function to open survey modal
+  const openSurveyForFeature = useCallback((featureId) => {
+    
+    // Find feature by ID
+    const targetFeature = geoJsonData?.features?.find(f => f.properties?.featureId === featureId);
+    
+    if (targetFeature) {
+      setSelectedFeature(targetFeature);
+      setIsSurveyModalOpen(true);
+    } else {
+      console.error('Feature not found with ID:', featureId);
+    }
+  }, [geoJsonData]);
+
+  // Setup global function
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.openSurveyModal = openSurveyForFeature;
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete window.openSurveyModal;
+      }
+    };
+  }, [openSurveyForFeature]);
+
+  // Debug state changes
+  useEffect(() => {
+  }, [isSurveyModalOpen]);
+  
+  useEffect(() => {
+  }, [selectedFeature]);
+
   // Memoize kategori untuk menghindari re-calculation
   const categories = useMemo(() => {
     if (!geoJsonData?.features) return [];
@@ -79,9 +134,24 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
   // Optimized style functions
   const getFeatureStyle = useCallback((feature) => {
     const sourceLayer = feature.properties?.sourceLayer;
+    const featureId = feature.properties?.featureId;
     const categoryIndex = categories.indexOf(sourceLayer);
-    const colorConfig = generateLayerColor(sourceLayer, categoryIndex);
     const geomType = feature.geometry?.type;
+    
+    // Check if this feature has a survey score and survey layer is visible
+    const surveyColor = (featureId && showSurveyLayer) ? getFeatureQualityColor(featureId) : null;
+    
+    let colorConfig;
+    if (surveyColor && surveyColor !== '#6b7280') {
+      // Use survey-based color if available (excluding gray/no survey)
+      colorConfig = {
+        color: surveyColor,
+        fillColor: surveyColor
+      };
+    } else {
+      // Use default layer colors
+      colorConfig = generateLayerColor(sourceLayer, categoryIndex);
+    }
     
     const baseStyle = {
       color: colorConfig.color,
@@ -92,7 +162,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     };
 
     return geomType === "Point" ? { ...baseStyle, radius: 8 } : baseStyle;
-  }, [categories, generateLayerColor]);
+  }, [categories, getFeatureQualityColor, showSurveyLayer]);
 
   const pointToLayer = useCallback((feature, latlng) => {
     const style = getFeatureStyle(feature);
@@ -123,8 +193,8 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     }
   }, []);
 
-  // Optimized popup content builder
-  const buildPopupContent = useCallback((props, detailData) => {
+  // Optimized popup content builder with survey button
+  const buildPopupContent = useCallback((props, detailData, feature) => {
     let content = '<div style="font-family: Arial, sans-serif; max-width: 380px;">';
     
     // Header with sourceLayer
@@ -171,9 +241,53 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       });
       content += `</div>`;
     }
+
+    // Add survey info and button for irrigation features (exclude boundary features)
+    const isIrrigationFeature = props.featureId && !props.NAMOBJ && !props.WADMKK;
+    if (isIrrigationFeature) {
+      // Check if survey exists
+      const existingSurvey = getSurveyForFeature(props.featureId);
+      
+      if (existingSurvey) {
+        // Display existing survey info
+        const qualityColor = getFeatureQualityColor(props.featureId);
+        content += `<div style="margin: 12px 0; padding: 10px; background: #f0f9ff; border-radius: 6px; border: 1px solid ${qualityColor};">`;
+        content += `<div style="font-weight: bold; color: #1e40af; margin-bottom: 6px;">📊 Hasil Survey</div>`;
+        content += `<div style="display: flex; justify-content: space-between; align-items: center;">`;
+        content += `<div>`;
+        content += `<div style="font-size: 13px; color: #374151;">Skor: <strong>${existingSurvey.scoreTotal?.toFixed(1) || 'N/A'}</strong></div>`;
+        content += `<div style="font-size: 13px; color: ${qualityColor}; font-weight: bold;">Kelas: ${existingSurvey.scoreClass || 'N/A'}</div>`;
+        content += `<div style="font-size: 11px; color: #6b7280;">Skema: ${existingSurvey.scheme}</div>`;
+        content += `</div>`;
+        content += `<div style="width: 20px; height: 20px; background: ${qualityColor}; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.2);"></div>`;
+        content += `</div>`;
+        content += `<div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Survey: ${new Date(existingSurvey.createdAt).toLocaleDateString('id-ID')}</div>`;
+        content += `</div>`;
+        
+        // Update survey button
+        content += `<div style="margin: 8px 0; padding: 8px; background: #fff3cd; border-radius: 6px; text-align: center; border: 1px solid #ffc107;">`;
+        content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
+                      style="background: #ffc107; color: #212529; border: none; padding: 6px 12px; border-radius: 4px; 
+                             cursor: pointer; font-weight: 500; font-size: 12px;">
+                      🔄 Update Survey
+                    </button>`;
+        content += `<div style="font-size: 11px; color: #856404; margin-top: 4px;">Perbarui penilaian irigasi ini</div>`;
+        content += `</div>`;
+      } else {
+        // No survey yet - show create button
+        content += `<div style="margin: 12px 0; padding: 10px; background: #e3f2fd; border-radius: 6px; text-align: center; border: 1px solid #2196f3;">`;
+        content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
+                      style="background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
+                             cursor: pointer; font-weight: 500; font-size: 13px;">
+                      📋 Buat Survey Penilaian
+                    </button>`;
+        content += `<div style="font-size: 11px; color: #666; margin-top: 4px;">Klik untuk menilai kualitas irigasi ini</div>`;
+        content += `</div>`;
+      }
+    }
     
     return content + '</div>';
-  }, [categories, generateLayerColor]);
+  }, [categories, generateLayerColor, getSurveyForFeature, getFeatureQualityColor]);
 
   // Optimized event handler
   const onEachFeature = useCallback((feature, layer) => {
@@ -181,7 +295,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     
     const props = feature.properties;
     const detailData = parseHTMLDescription(props.Description);
-    const popupContent = buildPopupContent(props, detailData);
+    const popupContent = buildPopupContent(props, detailData, feature);
     
     layer.bindPopup(popupContent, {
       maxWidth: 420,
@@ -201,9 +315,61 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       mouseout: function() {
         const isBoundary = props.NAMOBJ || props.WADMKK;
         this.setStyle(isBoundary ? MAP_CONFIG.boundaryStyle : getFeatureStyle(feature));
+      },
+      // Add click event for direct survey access (alternative to popup button)
+      click: function(e) {
+        const isIrrigationFeature = props.featureId && !props.NAMOBJ && !props.WADMKK;
+        
+        // If Ctrl/Cmd key is pressed, open survey directly
+        if (e.originalEvent.ctrlKey || e.originalEvent.metaKey) {
+          e.originalEvent.preventDefault();
+          if (isIrrigationFeature) {
+            openSurveyForFeature(props.featureId);
+          }
+        }
+        // Otherwise, let the popup open normally
       }
     });
-  }, [parseHTMLDescription, buildPopupContent, getFeatureStyle]);
+  }, [parseHTMLDescription, buildPopupContent, getFeatureStyle, geoJsonData, openSurveyForFeature]);
+
+  // Filter features based on survey status
+  const getFilteredFeatures = useCallback((features) => {
+    if (!showSurveyLayer || surveyFilter === 'all') {
+      return features;
+    }
+
+    return features.filter(feature => {
+      const featureId = feature.properties?.featureId;
+      if (!featureId) return surveyFilter === 'all';
+
+      const survey = getSurveyForFeature(featureId);
+      const hasSurvey = !!survey;
+      const score = survey?.scoreTotal || 0;
+
+      switch (surveyFilter) {
+        case 'surveyed':
+          return hasSurvey;
+        case 'not-surveyed':
+          return !hasSurvey;
+        case 'baik':
+          return hasSurvey && score >= 80;
+        case 'sedang':
+          return hasSurvey && score >= 50 && score < 80;
+        case 'buruk':
+          return hasSurvey && score < 50;
+        case 'quality-A':
+          return hasSurvey && survey.scoreClass === 'A';
+        case 'quality-B':
+          return hasSurvey && survey.scoreClass === 'B';
+        case 'quality-C':
+          return hasSurvey && survey.scoreClass === 'C';
+        case 'quality-D':
+          return hasSurvey && survey.scoreClass === 'D';
+        default:
+          return true;
+      }
+    });
+  }, [showSurveyLayer, surveyFilter, getSurveyForFeature]);
 
   // Memoized layer data calculations
   const layerDataMap = useMemo(() => {
@@ -211,9 +377,11 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     
     const map = {};
     categories.forEach(category => {
-      const filteredFeatures = geoJsonData.features.filter(
+      const categoryFeatures = geoJsonData.features.filter(
         feature => feature.properties?.sourceLayer === category
       );
+      const filteredFeatures = getFilteredFeatures(categoryFeatures);
+      
       if (filteredFeatures.length > 0) {
         map[category] = {
           ...geoJsonData,
@@ -222,46 +390,150 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       }
     });
     return map;
-  }, [geoJsonData, categories]);
+  }, [geoJsonData, categories, getFilteredFeatures]);
+
+  // Calculate statistics based on all features
+  const statistics = useMemo(() => {
+    if (!geoJsonData?.features) return { total: 0, surveyed: 0, qualityBreakdown: {}, classCounts: {}, averageScore: 0 };
+    
+    const totalFeatures = geoJsonData.features.length;
+    return getStatistics(totalFeatures);
+  }, [geoJsonData?.features, getStatistics]);
 
   return (
     <div style={{ height: '80vh', minHeight: '640px', width: '100%', position: 'relative' }}>
-      {/* Status info panel */}
+    
+      {/* Survey Filter Controls */}
       <div style={{
         position: 'absolute',
         top: '10px',
         left: '10px',
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        padding: '8px 12px',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        padding: '12px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
         zIndex: 1000,
-        fontSize: '12px',
-        fontWeight: '500'
+        fontSize: '13px',
+        fontWeight: '500',
+        minWidth: '240px'
       }}>
-        <div>📊 Menampilkan: {geoJsonData?.features?.length || 0} features</div>
-        {layersData && (
-          <div>�️ Total Database: {layersData.totalFeatures} features</div>
-        )}
-        <div>�🗺️ Boundary: {boundaryData?.features?.length || 0}</div>
-        {onDataReload && (
-          <button 
-            onClick={onDataReload}
-            style={{
-              marginTop: '4px',
-              padding: '4px 8px',
-              fontSize: '11px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '3px',
-              cursor: 'pointer'
-            }}
-          >
-            🔄 Refresh
-          </button>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#1f2937' }}>
+          📊 Filter Survey
+        </div>
+        
+        <div style={{ marginBottom: '8px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={showSurveyLayer}
+              onChange={(e) => setShowSurveyLayer(e.target.checked)}
+              style={{ marginRight: '6px' }}
+            />
+            Tampilkan Layer Survey
+          </label>
+        </div>
+
+        {showSurveyLayer && (
+          <div>
+            <div style={{ marginBottom: '6px', fontSize: '12px', color: '#666' }}>Status Survey:</div>
+            <select
+              value={surveyFilter}
+              onChange={(e) => setSurveyFilter(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                border: '1px solid #d1d5db',
+                fontSize: '12px'
+              }}
+            >
+              <option value="all">Semua</option>
+              <option value="surveyed">Sudah Disurvei</option>
+              <option value="not-surveyed">Belum Disurvei</option>
+              <option value="baik">Kualitas Baik (≥80)</option>
+              <option value="sedang">Kualitas Sedang (50-79)</option>
+              <option value="buruk">Kualitas Buruk (&lt;50)</option>
+            </select>
+            
+            {/* Survey Statistics */}
+            <div style={{ marginTop: '8px', padding: '6px', backgroundColor: '#f8f9fa', borderRadius: '4px', fontSize: '11px' }}>
+              <div>Total Features: {statistics.total}</div>
+              <div>Tersurvei: {statistics.surveyed} ({statistics.total > 0 ? Math.round((statistics.surveyed / statistics.total) * 100) : 0}%)</div>
+              <div>Rata-rata Skor: {statistics.averageScore?.toFixed(1) || 'N/A'}</div>
+            </div>
+          </div>
         )}
       </div>
+
+      {/* Survey Statistics Panel - moved to right side */}
+      {statistics.total > 0 && showSurveyLayer && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          padding: '10px 12px',
+          borderRadius: '6px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          fontSize: '12px',
+          fontWeight: '500',
+          minWidth: '180px'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>
+            📈 Statistik Kualitas
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ backgroundColor: '#10b981', width: '12px', height: '12px', borderRadius: '2px' }}></span>
+              <span>Baik: {statistics.qualityBreakdown?.baik || 0}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ backgroundColor: '#f59e0b', width: '12px', height: '12px', borderRadius: '2px' }}></span>
+              <span>Sedang: {statistics.qualityBreakdown?.sedang || 0}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ backgroundColor: '#ef4444', width: '12px', height: '12px', borderRadius: '2px' }}></span>
+              <span>Buruk: {statistics.qualityBreakdown?.buruk || 0}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Survey Statistics Panel */}
+      {statistics.total > 0 && !showSurveyLayer && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          padding: '10px 12px',
+          borderRadius: '6px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          fontSize: '12px',
+          fontWeight: '500',
+          minWidth: '180px'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>
+            📋 Statistik Survey ({statistics.total})
+          </div>
+          <div style={{ marginBottom: '4px', color: '#374151' }}>
+            Rata-rata: <strong>{statistics.averageScore}</strong>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '11px' }}>
+            <div style={{ color: '#22c55e' }}>A: {statistics.classCounts.A}</div>
+            <div style={{ color: '#eab308' }}>B: {statistics.classCounts.B}</div>
+            <div style={{ color: '#f97316' }}>C: {statistics.classCounts.C}</div>
+            <div style={{ color: '#ef4444' }}>D: {statistics.classCounts.D}</div>
+          </div>
+          {surveyLoading && (
+            <div style={{ marginTop: '4px', fontSize: '10px', color: '#6b7280' }}>
+              🔄 Memuat data survey...
+            </div>
+          )}
+        </div>
+      )}
       
       <MapContainer
         center={MAP_CONFIG.center}
@@ -398,7 +670,81 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
             </div>
           );
         })}
+        
+        {/* Survey Status Legend */}
+        {showSurveyLayer && (
+          <>
+            <div style={{ 
+              borderTop: '1px solid #e5e7eb', 
+              marginTop: '8px', 
+              paddingTop: '6px',
+              fontWeight: 'bold',
+              fontSize: '10px'
+            }}>
+              Status Survey:
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
+              <div style={{
+                width: '12px', height: '12px',
+                backgroundColor: '#10b981',
+                border: '1px solid #059669',
+                marginRight: '6px'
+              }}></div>
+              Baik (≥80)
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
+              <div style={{
+                width: '12px', height: '12px',
+                backgroundColor: '#f59e0b',
+                border: '1px solid #d97706',
+                marginRight: '6px'
+              }}></div>
+              Sedang (50-79)
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
+              <div style={{
+                width: '12px', height: '12px',
+                backgroundColor: '#ef4444',
+                border: '1px solid #dc2626',
+                marginRight: '6px'
+              }}></div>
+              Buruk (&lt;50)
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
+              <div style={{
+                width: '12px', height: '12px',
+                backgroundColor: '#6b7280',
+                border: '1px solid #4b5563',
+                marginRight: '6px'
+              }}></div>
+              Belum Disurvei
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Survey Modal */}
+      <SurveyModal
+        isOpen={isSurveyModalOpen}
+        onClose={() => {
+          setIsSurveyModalOpen(false);
+        }}
+        featureData={selectedFeature}
+        onSurveySubmit={(result) => {
+          
+          // Reload survey data to update map styling
+          reloadSurveys();
+          
+          // Optionally trigger data reload to show updated scores
+          if (onDataReload) {
+            onDataReload();
+          }
+          
+          // Show success message (you can enhance this with a toast notification)
+        }}
+      />
+      
+      
     </div>
   );
 };
