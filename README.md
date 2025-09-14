@@ -580,15 +580,13 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## 📞 Support & Contact
 
 ### **Technical Support**
-- **GitHub Issues**: [Repository Issues](https://github.com/Happy-Syahrul-Ramadhan/sipil-irigasi/issues)
-- **Documentation**: [Wiki Pages](https://github.com/Happy-Syahrul-Ramadhan/sipil-irigasi/wiki)
-- **Email**: support@wayrarem.id
+- **GitHub Issues**: [Repository Issues](https://github.com/EgiStr/epaksi-irigasi-sipil/issues)
 
 ### **Project Information**
 - **Version**: v1.0.0
 - **Status**: Active Development
 - **Last Updated**: September 2025
-- **Maintainer**: Happy Syahrul Ramadhan
+- **Maintainer**: Eggi Satria | Happy Syahrul Ramadhan
 
 ---
 
