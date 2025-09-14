@@ -371,7 +371,7 @@ const UserManagement = () => {
                   Last Login
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
+                  Organisasi
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -428,7 +428,7 @@ const UserManagement = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.department}
+                      {user.org || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
@@ -532,18 +532,46 @@ const UserFormModal = ({ title, user, onSave, onClose, currentUserRole }) => {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
+    password: '', // Add password field
     role: user?.role || 'VIEWER',
-    department: user?.department || '',
-    phone: user?.phone || ''
+    org: user?.org || '' // Change from department to org to match API
   })
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    // Validate required fields
     if (!formData.name || !formData.email || !formData.role) {
       alert('Mohon lengkapi semua field yang wajib diisi')
       return
     }
-    onSave(formData)
+    
+    // For new users, password is required
+    if (!user && !formData.password) {
+      alert('Password wajib diisi untuk pengguna baru')
+      return
+    }
+    
+    // Validate password length for new users
+    if (!user && formData.password && formData.password.length < 6) {
+      alert('Password minimal 6 karakter')
+      return
+    }
+    
+    // Prepare data for API
+    const submitData = {
+      name: formData.name,
+      email: formData.email,
+      role: formData.role,
+      org: formData.org || null
+    }
+    
+    // Only include password for new users or when password is provided
+    if (!user || formData.password) {
+      submitData.password = formData.password
+    }
+    
+    onSave(submitData)
   }
 
   const availableRoles = Object.keys(ROLE_HIERARCHY).filter(role => 
@@ -585,6 +613,24 @@ const UserFormModal = ({ title, user, onSave, onClose, currentUserRole }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password {!user && '*'} {user && '(Kosongkan jika tidak ingin mengubah)'}
+            </label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={user ? "Masukkan password baru..." : "Minimal 6 karakter"}
+              required={!user} // Required only for new users
+              minLength={6}
+            />
+            {formData.password && formData.password.length < 6 && (
+              <p className="text-red-500 text-xs mt-1">Password minimal 6 karakter</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Role *
             </label>
             <select
@@ -601,27 +647,14 @@ const UserFormModal = ({ title, user, onSave, onClose, currentUserRole }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Department
+              Organisasi
             </label>
             <input
               type="text"
-              value={formData.department}
-              onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+              value={formData.org}
+              onChange={(e) => setFormData(prev => ({ ...prev, org: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g., Teknik Irigasi"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              No. Telepon
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="+62812-3456-7890"
+              placeholder="e.g., Dinas Pengairan, Kementerian PUPR"
             />
           </div>
 
@@ -708,7 +741,7 @@ const UserDetailModal = ({ user, onClose }) => {
                 )}
                 <div className="flex items-center gap-2">
                   <span className="w-4 h-4 text-gray-400">🏢</span>
-                  <span>{user.department}</span>
+                  <span>{user.org || 'Tidak ada organisasi'}</span>
                 </div>
               </div>
             </div>

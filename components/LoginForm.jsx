@@ -31,13 +31,33 @@ export default function LoginForm() {
       if (result?.error) {
         setError(result.error)
       } else if (result?.ok) {
-        // Get fresh session and redirect
-        const session = await getSession()
-        if (session?.user?.role === 'ADMIN') {
-          router.push('/')
-          router.refresh()
+        // Wait a bit for session to sync, then get fresh session
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        let session = null
+        let attempts = 0
+        const maxAttempts = 10
+        
+        // Retry getting session until it's available or max attempts reached
+        while (!session && attempts < maxAttempts) {
+          session = await getSession()
+          if (!session) {
+            await new Promise(resolve => setTimeout(resolve, 200))
+            attempts++
+          }
+        }
+        
+        if (session?.user) {
+          // Check if user has admin role or higher
+          const userRole = session.user.role
+          if (['ADMIN', 'SUPERADMIN'].includes(userRole)) {
+            // Force a hard navigation to ensure session is properly loaded
+            window.location.href = '/'
+          } else {
+            setError('Anda tidak memiliki akses administrator')
+          }
         } else {
-          setError('Anda tidak memiliki akses admin')
+          setError('Gagal mendapatkan informasi pengguna')
         }
       }
     } catch (error) {
@@ -155,20 +175,6 @@ export default function LoginForm() {
                 </span>
               )}
             </button>
-          </div>
-
-          {/* Default Credentials Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">
-              Kredensial Default Administrator:
-            </h3>
-            <div className="text-sm text-blue-700">
-              <p><strong>Email:</strong> admin@sipil-irigasi.com</p>
-              <p><strong>Password:</strong> admin123</p>
-            </div>
-            <p className="text-xs text-blue-600 mt-2">
-              ⚠️ Harap ganti password setelah login pertama
-            </p>
           </div>
         </form>
       </div>
