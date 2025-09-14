@@ -20,7 +20,7 @@ export async function GET(request, { params }) {
       )
     }
 
-    const { id } = params
+    const { id } = await params
     
     const user = await prisma.user.findUnique({
       where: { id },
@@ -65,7 +65,7 @@ export async function PUT(request, { params }) {
       )
     }
 
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { email, password, name, role, org, status } = body
 
@@ -175,7 +175,7 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Cegah admin menghapus dirinya sendiri
     if (id === session.user.id) {

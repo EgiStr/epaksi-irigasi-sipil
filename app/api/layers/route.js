@@ -9,7 +9,7 @@ import { hasPermission, PERMISSIONS } from '../../../lib/permissions'
  */
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+        const session = await getServerSession(authOptions)
     
     if (!session || !hasPermission(session.user.role, PERMISSIONS.LAYER_VIEW)) {
       return NextResponse.json(

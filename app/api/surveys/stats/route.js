@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]/route';
 import { hasPermission, PERMISSIONS } from '../../../../lib/permissions';
 import { prisma } from '../../../../lib/prisma';
 
@@ -12,7 +13,7 @@ import { prisma } from '../../../../lib/prisma';
  */
 export async function GET(request) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session || !hasPermission(session.user.role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json(

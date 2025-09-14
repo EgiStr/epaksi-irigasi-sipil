@@ -36,14 +36,22 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
     try {
       let configData = null;
       
+      
       // Try to load from database first
       const response = await fetch(`/api/survey-configs?scheme=${surveyType}`);
       
       if (response.ok) {
-        const config = await response.json();
-        configData = config.json;
+        const configs = await response.json();
+        // Take the first active config for the scheme
+        if (configs && configs.length > 0) {
+          configData = configs[0].json;
+        }
       } else {
-        // Fallback to static config files
+        console.warn(`Failed to load config from database: ${response.status}, falling back to static files`);
+      }
+      
+      // Fallback to static config files if database config not found
+      if (!configData) {
         const configResponse = await fetch(`/config/survey-${surveyType}.json`);
         if (!configResponse.ok) {
           throw new Error(`Failed to load survey config: ${configResponse.status}`);
@@ -51,25 +59,37 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         configData = await configResponse.json();
       }
       
+      // Validate config structure
+      if (!configData || typeof configData !== 'object') {
+        throw new Error('Invalid config data structure');
+      }
+      
+      if (!configData.categories || !Array.isArray(configData.categories)) {
+        console.error('Config validation failed - missing categories:', configData);
+        throw new Error('Config missing categories array');
+      }
+      
       setSurveyConfig(configData);
       
       // Initialize form values with appropriate defaults based on field type
       const initialValues = {};
-      configData.categories?.forEach(category => {
-        category.subs?.forEach(sub => {
-          // Set appropriate default values based on field type
-          switch (sub.type) {
-            case 'boolean':
-              initialValues[sub.key] = null; // No selection initially
-              break;
-            case 'ordinal':
-            case 'persentase':
-            case 'numerik':
-            default:
-              initialValues[sub.key] = '';
-              break;
-          }
-        });
+      configData.categories.forEach(category => {
+        if (category.subs && Array.isArray(category.subs)) {
+          category.subs.forEach(sub => {
+            // Set appropriate default values based on field type
+            switch (sub.type) {
+              case 'boolean':
+                initialValues[sub.key] = null; // No selection initially
+                break;
+              case 'ordinal':
+              case 'persentase':
+              case 'numerik':
+              default:
+                initialValues[sub.key] = '';
+                break;
+            }
+          });
+        }
       });
       setFormValues(initialValues);
       setErrors({});
@@ -201,6 +221,17 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
       return;
     }
 
+    // Validate required data
+    if (!featureData?.properties?.featureId) {
+      setErrors({ general: 'Data feature tidak valid - featureId tidak ditemukan' });
+      return;
+    }
+
+    if (!surveyConfig?.scheme) {
+      setErrors({ general: 'Konfigurasi survey tidak valid - scheme tidak ditemukan' });
+      return;
+    }
+
     // Check if score calculation is needed and available
     const hasFormValues = Object.values(formValues).some(v => {
       // Consider non-null, non-undefined, and non-empty string as valid values
@@ -218,29 +249,45 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
 
     setIsSubmitting(true);
     try {
+      const surveyData = {
+        featureId: featureData.properties.featureId,
+        scheme: surveyConfig.scheme,
+        values: formValues
+      };
+
+
       // Save survey to database using API
       const response = await fetch('/api/surveys', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          featureId: featureData.properties.featureId,
-          scheme: surveyConfig.scheme,
-          values: formValues
-        }),
+        body: JSON.stringify(surveyData),
       });
 
-      const result = await response.json();
+      
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse response as JSON:', parseError);
+        throw new Error('Server mengembalikan response yang tidak valid');
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Gagal menyimpan survey');
+        console.error('Survey API error response:', result);
+        throw new Error(result.error || `HTTP ${response.status}: Gagal menyimpan survey`);
       }
       
+      // Validate response structure
+      if (!result.survey) {
+        console.error('Invalid response structure - missing survey:', result);
+        throw new Error('Response tidak valid - data survey tidak ditemukan');
+      }
+
       // Call the callback with the result
       onSurveySubmit({
         ...result.survey,
-        isUpdate: result.survey.isUpdate || false,
         message: result.survey.isUpdate ? 'Survey berhasil diperbarui' : 'Survey berhasil disimpan'
       });
 
@@ -474,10 +521,10 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
                   <div className="space-y-4">
                     <div className="bg-blue-50 p-3 rounded-md">
                       <h3 className="font-medium text-blue-900">
-                        {surveyConfig.categories[activeTab].label}
+                        {surveyConfig.categories[activeTab]?.label}
                       </h3>
                       <p className="text-sm text-blue-700 mt-1">
-                        Bobot: {surveyConfig.categories[activeTab].weight}% dari total skor
+                        Bobot: {surveyConfig.categories[activeTab]?.weight}% dari total skor
                       </p>
                     </div>
 
@@ -524,8 +571,8 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
                   </button>
                   
                   <button
-                    onClick={() => setActiveTab(Math.min(surveyConfig.categories.length - 1, activeTab + 1))}
-                    disabled={activeTab === surveyConfig.categories.length - 1}
+                    onClick={() => setActiveTab(Math.min((surveyConfig.categories?.length || 1) - 1, activeTab + 1))}
+                    disabled={activeTab === (surveyConfig.categories?.length || 1) - 1}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Selanjutnya

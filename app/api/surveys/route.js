@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]/route';
 import { prisma } from '../../../lib/prisma';
 import { hasPermission, PERMISSIONS } from '../../../lib/permissions';
 import { calculateTotalScore, validateSurveyValues } from '../../../lib/scoring/engine';
@@ -15,7 +16,7 @@ import { calculateTotalScore, validateSurveyValues } from '../../../lib/scoring/
  */
 export async function GET(request) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session || !hasPermission(session.user.role, PERMISSIONS.SURVEY_VIEW)) {
       return NextResponse.json(
@@ -120,7 +121,7 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session || !hasPermission(session.user.role, PERMISSIONS.SURVEY_MANAGE)) {
       return NextResponse.json(
@@ -199,8 +200,26 @@ export async function POST(request) {
     // Calculate score
     const scoreResult = calculateTotalScore(values, config.json);
 
-    // Create dummy user for now (in real app, get from JWT token)
-    const dummyUserId = 'system'; // TODO: Replace with actual user from auth
+    
+
+    let userId = session.user?.id;
+    
+    // Fallback: try to find user by email if ID not in session
+    if (!userId && session.user?.email) {
+      const userRecord = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true }
+      });
+      userId = userRecord?.id;
+    }
+
+    if (!userId) {
+      console.error('Cannot determine user ID for survey creation');
+      return NextResponse.json(
+        { error: 'ID pengguna tidak ditemukan dalam session' },
+        { status: 400 }
+      );
+    }
 
     // Create or update survey
     const existingSurvey = await prisma.survey.findFirst({
@@ -241,7 +260,7 @@ export async function POST(request) {
           scoreClass: scoreResult.qualityClass,
           scoreDetail: scoreResult,
           configId: config.id,
-          createdBy: dummyUserId
+          createdBy: userId
         },
         include: {
           feature: {

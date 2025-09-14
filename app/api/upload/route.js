@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
+import { authOptions } from '../auth/[...nextauth]/route'
 import { hasPermission, PERMISSIONS } from '../../../lib/permissions'
 import { prisma } from '../../../lib/prisma'
 import * as togeojson from '@mapbox/togeojson'
@@ -22,7 +23,7 @@ import {
  */
 export async function POST(request) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session || !hasPermission(session.user.role, PERMISSIONS.UPLOAD_FILE)) {
       return NextResponse.json(

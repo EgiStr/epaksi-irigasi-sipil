@@ -15,6 +15,7 @@ import {
   FileText,
   MapPin
 } from 'lucide-react'
+import FileUpload from '../FileUpload'
 
 const FeatureManagement = () => {
   const { data: session } = useSession()
@@ -22,12 +23,14 @@ const FeatureManagement = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [editingFeature, setEditingFeature] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [filterScheme, setFilterScheme] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20)
+  const [pagination, setPagination] = useState(null)
 
   // Form states
   const [formData, setFormData] = useState({
@@ -45,16 +48,29 @@ const FeatureManagement = () => {
   const fetchFeatures = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/features?page=${currentPage}&limit=${itemsPerPage}`)
+      setError(null)
+      
+      // Use management format for admin table
+      const response = await fetch(`/api/features?format=management&page=${currentPage}&limit=${itemsPerPage}`)
+      
       if (response.ok) {
         const data = await response.json()
-        // Ensure data is always an array
-        const featuresArray = Array.isArray(data) ? data : (data.features || [])
-        setFeatures(featuresArray)
+        console.log('Features API response:', data)
+        
+        // Validate response structure
+        if (data.features && Array.isArray(data.features)) {
+          setFeatures(data.features)
+          setPagination(data.pagination)
+        } else {
+          console.error('Invalid response structure:', data)
+          throw new Error('Format response tidak valid dari server')
+        }
       } else {
-        throw new Error('Failed to fetch features')
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP ${response.status}: Gagal mengambil data features`)
       }
     } catch (err) {
+      console.error('Error fetching features:', err)
       setError(err.message)
       setFeatures([]) // Set empty array on error
     } finally {
@@ -74,7 +90,7 @@ const FeatureManagement = () => {
       }
 
       const method = editingFeature ? 'PUT' : 'POST'
-      const url = editingFeature ? `/api/features/${editingFeature.id}` : '/api/features'
+      const url = editingFeature ? `/api/features/${editingFeature.featureId}` : '/api/features'
       
       const response = await fetch(url, {
         method,
@@ -136,6 +152,18 @@ const FeatureManagement = () => {
   const resetForm = () => {
     setFormData({ name: '', type: '', scheme: '', sourceLayer: '', props: '{}' })
     setEditingFeature(null)
+  }
+
+  // Handle upload success
+  const handleUploadSuccess = async (result) => {
+    setIsUploadModalOpen(false)
+    await fetchFeatures() // Refresh features list
+    alert(`Upload berhasil! ${result.summary.inserted} features baru ditambahkan, ${result.summary.updated} features diupdate.`)
+  }
+
+  // Handle upload error  
+  const handleUploadError = (error) => {
+    alert(`Upload gagal: ${error}`)
   }
 
   // Ensure features is always an array before filtering
@@ -215,6 +243,14 @@ const FeatureManagement = () => {
             <Plus className="w-4 h-4" />
             Tambah Feature
           </button>
+
+          <button
+            onClick={() => setIsUploadModalOpen(true)}
+            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <Upload className="w-4 h-4" />
+            Upload File
+          </button>
           
           <button
             onClick={() => window.open('/api/features?format=export', '_blank')}
@@ -235,7 +271,9 @@ const FeatureManagement = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Total Features</p>
-              <p className="text-xl font-semibold text-gray-900">{features.length}</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {pagination?.total || features.length}
+              </p>
             </div>
           </div>
         </div>
@@ -272,8 +310,10 @@ const FeatureManagement = () => {
               <Filter className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Filtered</p>
-              <p className="text-xl font-semibold text-gray-900">{filteredFeatures.length}</p>
+              <p className="text-sm text-gray-600">Current Page</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {filteredFeatures.length} of {pagination?.total || features.length}
+              </p>
             </div>
           </div>
         </div>
@@ -308,7 +348,10 @@ const FeatureManagement = () => {
                   Source Layer
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Updated
+                  Surveys
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Last Updated
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -318,7 +361,7 @@ const FeatureManagement = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredFeatures.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
                     {searchTerm || filterType !== 'all' || filterScheme !== 'all' 
                       ? 'Tidak ada feature yang sesuai filter' 
                       : 'Belum ada feature'}
@@ -356,8 +399,19 @@ const FeatureManagement = () => {
                         {feature.sourceLayer}
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {feature.surveyCount || 0} survey{(feature.surveyCount || 0) !== 1 ? 's' : ''}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(feature.updatedAt).toLocaleDateString('id-ID')}
+                      {new Date(feature.updatedAt).toLocaleDateString('id-ID', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
@@ -369,7 +423,7 @@ const FeatureManagement = () => {
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(feature.id)}
+                          onClick={() => handleDelete(feature.featureId)}
                           className="text-red-600 hover:text-red-900 p-1 rounded transition-colors"
                           title="Hapus feature"
                         >
@@ -384,6 +438,96 @@ const FeatureManagement = () => {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(Math.min(pagination.totalPages, currentPage + 1))}
+              disabled={currentPage === pagination.totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing{' '}
+                <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span>
+                {' '}to{' '}
+                <span className="font-medium">
+                  {Math.min(currentPage * itemsPerPage, pagination.total)}
+                </span>
+                {' '}of{' '}
+                <span className="font-medium">{pagination.total}</span>
+                {' '}results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                
+                {/* Page Numbers */}
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (pagination.totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= pagination.totalPages - 2) {
+                    pageNum = pagination.totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        currentPage === pageNum
+                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setCurrentPage(Math.min(pagination.totalPages, currentPage + 1))}
+                  disabled={currentPage === pagination.totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="sr-only">Next</span>
+                  <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal for Create/Edit */}
       {isModalOpen && (
@@ -489,6 +633,46 @@ const FeatureManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                Upload Features dari File KML/GeoJSON
+              </h3>
+              <button
+                onClick={() => setIsUploadModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                Upload file KML atau GeoJSON untuk menambahkan features secara bulk. 
+                File akan diproses dan features akan ditambahkan ke database.
+              </p>
+            </div>
+
+            <FileUpload 
+              onUploadSuccess={handleUploadSuccess}
+              onUploadError={handleUploadError}
+            />
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setIsUploadModalOpen(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}

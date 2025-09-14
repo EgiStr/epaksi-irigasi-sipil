@@ -47,9 +47,6 @@ const Layout = ({ children }) => {
           
           {/* Admin Info & Logout */}
           <div className="header-actions">
-            <div className="header-badge">
-              📍 Daerah Irigasi Way Rarem, Lampung
-            </div>
             {session && (
               <div className="admin-info">
                 <div className="user-info">
