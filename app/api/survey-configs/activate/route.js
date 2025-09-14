@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
 import { prisma } from '../../../../lib/prisma';
+import { hasPermission, PERMISSIONS } from '../../../../lib/permissions';
 
 /**
  * POST /api/survey-configs/activate - Activate a specific configuration
  */
 export async function POST(request) {
   try {
+    const session = await getServerSession()
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.CONFIG_MANAGE)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk mengaktifkan konfigurasi survei.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json();
     const { configId, scheme } = body;
 

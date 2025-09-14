@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { hasPermission, PERMISSIONS } from '../../../lib/permissions'
 import { prisma } from '../../../lib/prisma'
 import * as togeojson from '@mapbox/togeojson'
 import { DOMParser } from '@xmldom/xmldom'
@@ -20,6 +22,14 @@ import {
  */
 export async function POST(request) {
   try {
+    const session = await getServerSession()
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.UPLOAD_FILE)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk upload file.' },
+        { status: 403 }
+      )
+    }
     const formData = await request.formData()
     const file = formData.get('file')
     

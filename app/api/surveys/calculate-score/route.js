@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { hasPermission, PERMISSIONS } from '../../../../lib/permissions';
 import { calculateTotalScore } from '../../../../lib/scoring/engine.js';
 import fs from 'fs';
 import path from 'path';
 
 export async function POST(request) {
   try {
+    const session = await getServerSession()
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.SURVEY_CALCULATE)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk menghitung skor survei.' },
+        { status: 403 }
+      )
+    }
+
     const { surveyType, values } = await request.json();
 
     // Validate input

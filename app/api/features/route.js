@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '../auth/[...nextauth]/route'
 import { prisma } from '../../../lib/prisma'
+import { hasPermission, PERMISSIONS } from '../../../lib/permissions'
 
 /**
  * GET /api/features - Ambil features dengan filter spatial dan layer
@@ -11,6 +14,14 @@ import { prisma } from '../../../lib/prisma'
  */
 export async function GET(request) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.FEATURE_VIEW)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk melihat data features.' },
+        { status: 403 }
+      )
+    }
     const { searchParams } = new URL(request.url)
     const sourceLayer = searchParams.get('source_layer')
     const bbox = searchParams.get('bbox')

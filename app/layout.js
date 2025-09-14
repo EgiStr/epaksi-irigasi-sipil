@@ -1,4 +1,5 @@
 import './globals.css'
+import NextAuthProvider from '../components/NextAuthProvider'
 
 export const metadata = {
   title: 'Sistem Pemetaan Irigasi Sipil',
@@ -8,7 +9,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <NextAuthProvider>
+          {children}
+        </NextAuthProvider>
+      </body>
     </html>
   )
 }

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]/route';
 import { prisma } from '../../../lib/prisma';
+import { hasPermission, PERMISSIONS } from '../../../lib/permissions';
 
 /**
  * GET /api/survey-configs - Get active survey configurations
@@ -8,6 +11,29 @@ import { prisma } from '../../../lib/prisma';
  */
 export async function GET(request) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Silakan login terlebih dahulu.' },
+        { status: 401 }
+      )
+    }
+    
+    if (!session.user.role) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Role pengguna tidak ditemukan.' },
+        { status: 403 }
+      )
+    }
+    
+    if (!hasPermission(session.user.role, PERMISSIONS.CONFIG_VIEW)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk melihat konfigurasi survei.' },
+        { status: 403 }
+      )
+    }
     const { searchParams } = new URL(request.url);
     const scheme = searchParams.get('scheme');
 
@@ -36,25 +62,8 @@ export async function GET(request) {
       orderBy: { scheme: 'asc' }
     });
 
-    if (configs.length === 0) {
-      return NextResponse.json(
-        { error: 'Tidak ada konfigurasi aktif ditemukan' },
-        { status: 404 }
-      );
-    }
-
-    // If single scheme requested, return the config directly
-    if (scheme) {
-      return NextResponse.json(configs[0]);
-    }
-
-    // Return all configs as object keyed by scheme
-    const configsByScheme = configs.reduce((acc, config) => {
-      acc[config.scheme] = config;
-      return acc;
-    }, {});
-
-    return NextResponse.json(configsByScheme);
+    // Always return array for consistency
+    return NextResponse.json(configs);
 
   } catch (error) {
     console.error('Error fetching survey configs:', error);
@@ -70,6 +79,16 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.CONFIG_MANAGE)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk mengelola konfigurasi survei.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json();
     const { scheme, json, setAsActive = true } = body;
 

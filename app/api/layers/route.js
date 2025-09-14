@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '../auth/[...nextauth]/route'
 import { prisma } from '../../../lib/prisma'
+import { hasPermission, PERMISSIONS } from '../../../lib/permissions'
 
 /**
  * GET /api/layers - Ambil daftar layer dengan statistik
  */
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.LAYER_VIEW)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk melihat data layers.' },
+        { status: 403 }
+      )
+    }
     // Query untuk mendapatkan statistik per layer
     const query = `
       SELECT 

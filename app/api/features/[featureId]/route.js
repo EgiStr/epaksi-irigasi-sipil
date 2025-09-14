@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
 import { prisma } from '../../../../lib/prisma'
+import { hasPermission, PERMISSIONS } from '../../../../lib/permissions'
 
 /**
  * GET /api/features/[featureId] - Ambil detail feature tunggal
  */
 export async function GET(request, { params }) {
   try {
+    const session = await getServerSession()
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.FEATURE_VIEW)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk melihat data features.' },
+        { status: 403 }
+      )
+    }
+
     const { featureId } = params
 
     // Raw SQL untuk mengambil feature dengan geometry sebagai GeoJSON

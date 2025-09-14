@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { hasPermission, PERMISSIONS } from '../../../../lib/permissions';
 import { prisma } from '../../../../lib/prisma';
 
 /**
@@ -10,6 +12,14 @@ import { prisma } from '../../../../lib/prisma';
  */
 export async function GET(request) {
   try {
+    const session = await getServerSession()
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.ANALYTICS_VIEW)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk melihat statistik survei.' },
+        { status: 403 }
+      )
+    }
     const { searchParams } = new URL(request.url);
     const scheme = searchParams.get('scheme');
     const sourceLayer = searchParams.get('sourceLayer');

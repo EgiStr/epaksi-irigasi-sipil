@@ -1,45 +1,39 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useRequireAuth } from '../hooks/useAuth'
+import { useRouter } from 'next/navigation'
 import Layout from '../components/Layout'
 import Home from '../components/Home'
-import IrigasiMap from '../components/IrigasiMap'
-import TableDaerahIrigasi from '../components/TableDaerahIrigasi'
 
-export default function Page() {
-  const [currentPage, setCurrentPage] = useState('home')
+export default function HomePage() {
+  const { loading } = useRequireAuth()
+  const router = useRouter()
 
-  const renderContent = () => {
-    switch(currentPage) {
-      case 'home':
-        return <Home onNavigate={setCurrentPage} />
+  const handleNavigate = (page) => {
+    // Handle navigation from Home component
+    switch(page) {
       case 'peta':
-        return (
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '1.5rem', 
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-            height: 'calc(100vh - 200px)',
-            minHeight: '600px'
-          }}>
-            <IrigasiMap />
-          </div>
-        )
-      case 'tabel':
-        return <TableDaerahIrigasi />
+        router.push('/peta')
+        break
+      case 'users':
+        router.push('/users')
+        break
       default:
-        return <Home onNavigate={setCurrentPage} />
+        router.push('/')
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
   return (
-    <Layout 
-      activeMenu={currentPage} 
-      onMenuChange={setCurrentPage}
-    >
-      {renderContent()}
+    <Layout>
+      <Home onNavigate={handleNavigate} />
     </Layout>
   )
 }

@@ -445,53 +445,23 @@ PG:"host=localhost dbname=irigasi user=postgres password=***" \
    - Create sync mechanism
    - PWA configuration
 
-3. **File Attachments & Media**
-   - Photo upload for survey evidence
-   - File storage integration (MinIO/S3)
-   - Media gallery in survey details
-   - File compression and optimization
-
-4. **Analytics & Reporting**
-   - Trend analysis over time
-   - Advanced PDF reports
-   - Dashboard analytics
-   - Data visualization enhancements
-
-5. **Performance & Monitoring**
-   - Database query optimization
-   - Frontend performance monitoring
-   - Error tracking and logging
-   - Load testing and optimization
-
 ### Sprint 4: AI Copilot & Final Polish 🔄 FUTURE
 **Status:** Planned  
 **Duration:** 2 weeks  
 **Objective:** Add AI assistance and final system polish
 
-**Planned Tasks:**
-1. **AI Copilot Integration**
-   - Survey validation assistance
-   - Automated issue detection
-   - Smart suggestions for improvements
-   - Natural language processing
-
-2. **System Testing & QA**
+**Planned Tasks:**   
+   1. **System Testing & QA**
    - End-to-end testing
    - User acceptance testing
    - Performance benchmarking
    - Security audit
 
-3. **Documentation & Training**
+2. **Documentation & Training**
    - User manuals and guides
    - API documentation
    - Training materials
    - Deployment guides
-
-4. **Production Deployment**
-   - Docker containerization
-   - CI/CD pipeline setup
-   - Monitoring and alerting
-   - Backup and recovery procedures
 
 ---
 

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
 import { prisma } from '../../../lib/prisma';
+import { hasPermission, PERMISSIONS } from '../../../lib/permissions';
 import { calculateTotalScore, validateSurveyValues } from '../../../lib/scoring/engine';
 
 /**
@@ -13,6 +15,14 @@ import { calculateTotalScore, validateSurveyValues } from '../../../lib/scoring/
  */
 export async function GET(request) {
   try {
+    const session = await getServerSession()
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.SURVEY_VIEW)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk melihat data survei.' },
+        { status: 403 }
+      )
+    }
     const { searchParams } = new URL(request.url);
     const featureId = searchParams.get('featureId');
     const scheme = searchParams.get('scheme');
@@ -110,6 +120,15 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
+    const session = await getServerSession()
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.SURVEY_MANAGE)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk membuat data survei.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json();
     const { featureId, scheme, values, configId } = body;
 
