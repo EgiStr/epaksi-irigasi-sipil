@@ -1,5 +1,250 @@
 @import "tailwindcss";
 
+/* Custom Color Variables */
+:root {
+  --primary-blue: #00008C;
+  --primary-blue-dark: #0000AA;
+  --primary-yellow: #EFB900;
+  --primary-yellow-dark: #D49F00;
+  --primary-yellow-darker: #B88A00;
+}
+
+/* Utility Classes untuk Warna Konsisten */
+.bg-primary-blue { background-color: var(--primary-blue) !important; }
+.bg-primary-blue-600 { background-color: var(--primary-blue) !important; }
+.bg-primary-blue-700 { background-color: var(--primary-blue-dark) !important; }
+.text-primary-blue { color: var(--primary-blue) !important; }
+.text-primary-blue-600 { color: var(--primary-blue) !important; }
+.text-primary-blue-900 { color: var(--primary-blue-dark) !important; }
+.border-primary-blue { border-color: var(--primary-blue) !important; }
+.border-primary-blue-500 { border-color: var(--primary-blue) !important; }
+
+.bg-primary-yellow { background-color: var(--primary-yellow) !important; }
+.bg-primary-yellow-600 { background-color: var(--primary-yellow) !important; }
+.bg-primary-yellow-700 { background-color: var(--primary-yellow-dark) !important; }
+.text-primary-yellow { color: var(--primary-yellow) !important; }
+.text-primary-yellow-600 { color: var(--primary-yellow) !important; }
+
+.focus\:ring-primary-blue:focus { --tw-ring-color: var(--primary-blue) !important; }
+.focus\:ring-primary-blue-500:focus { --tw-ring-color: var(--primary-blue) !important; }
+
+.hover\:bg-primary-blue-700:hover { background-color: var(--primary-blue-dark) !important; }
+.hover\:bg-primary-yellow-700:hover { background-color: var(--primary-yellow-dark) !important; }
+.hover\:text-primary-blue-900:hover { color: var(--primary-blue-dark) !important; }
+
+/* Override default blue colors to use our custom colors */
+.bg-blue-600 { background-color: var(--primary-yellow) !important; }
+.bg-blue-700 { background-color: var(--primary-yellow-dark) !important; }
+.text-blue-600 { color: var(--primary-yellow) !important; }
+.text-blue-900 { color: var(--primary-yellow-darker) !important; }
+.border-blue-500 { border-color: var(--primary-yellow) !important; }
+.focus\:ring-blue-500:focus { --tw-ring-color: var(--primary-yellow) !important; }
+.hover\:bg-blue-700:hover { background-color: var(--primary-yellow-dark) !important; }
+.hover\:text-blue-900:hover { color: var(--primary-yellow-darker) !important; }
+.border-b-2.border-blue-600 { border-color: var(--primary-yellow) !important; }
+.bg-blue-50 { background-color: rgba(239, 185, 0, 0.1) !important; }
+.bg-blue-500 { background-color: var(--primary-yellow) !important; }
+
+/* Survey Modal Animation - Center fade with scale */
+@keyframes surveyModalSlideUp {
+  from {
+    transform: translateX(-50%) translateY(-50%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes surveyModalSlideDown {
+  from {
+    transform: translateX(-50%) translateY(-50%) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) translateY(-50%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlayFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.survey-modal-bottom {
+  animation: surveyModalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+  min-width: 320px;
+}
+
+.survey-modal-bottom.closing {
+  animation: surveyModalSlideDown 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Survey Modal Overlay */
+.survey-modal-overlay {
+  animation: overlayFadeIn 0.3s ease-out forwards;
+  backdrop-filter: blur(8px) saturate(150%);
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.25), 
+    rgba(0, 0, 0, 0.15)
+  ) !important;
+  transition: backdrop-filter 0.3s ease, background 0.3s ease;
+  z-index: 1001 !important; /* Above sidebar but allow visibility through transparency */
+}
+
+.survey-modal-overlay.closing {
+  animation: overlayFadeOut 0.3s ease-in forwards;
+}
+
+/* Ensure modal content is always on top */
+.survey-modal-bottom {
+  z-index: 1002 !important;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* User Modal Styles */
+.user-modal-overlay,
+.config-modal-overlay,
+.feature-modal-overlay {
+  animation: overlayFadeIn 0.3s ease-out forwards;
+  backdrop-filter: blur(8px) saturate(150%);
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.25), 
+    rgba(0, 0, 0, 0.15)
+  ) !important;
+  transition: backdrop-filter 0.3s ease, background 0.3s ease;
+  z-index: 1001 !important;
+}
+
+.user-modal-content,
+.config-modal-content,
+.feature-modal-content {
+  animation: surveyModalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Hide Leaflet controls when modal is open */
+.survey-modal-overlay ~ * .leaflet-control-zoom {
+  display: none !important;
+}
+
+.survey-modal-overlay ~ * .leaflet-control-layers {
+  display: none !important;
+}
+
+/* Alternative approach - hide all leaflet controls when modal overlay exists */
+body:has(.survey-modal-overlay) .leaflet-control-zoom,
+body:has(.survey-modal-overlay) .leaflet-control-layers {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Large screen adjustments */
+@media (min-width: 1024px) {
+  .survey-modal-bottom {
+    width: calc(100% - 4rem) !important;
+    max-width: 1200px !important;
+  }
+}
+
+/* Extra large screen adjustments */
+@media (min-width: 1440px) {
+  .survey-modal-bottom {
+    width: 1200px !important;
+  }
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .survey-modal-bottom {
+    max-height: 90vh !important;
+    border-radius: 20px !important;
+    width: calc(100% - 1rem) !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translateX(-50%) translateY(-50%) !important;
+  }
+  
+  @keyframes surveyModalSlideUp {
+    from {
+      transform: translateX(-50%) translateY(-50%) scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(-50%) translateY(-50%) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes surveyModalSlideDown {
+    from {
+      transform: translateX(-50%) translateY(-50%) scale(1);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(-50%) translateY(-50%) scale(0.9);
+      opacity: 0;
+    }
+  }
+  
+  .survey-modal-bottom .w-80 {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid #e5e7eb !important;
+  }
+}
+
+/* Ensure modal is above map but below other UI elements */
+.survey-modal-overlay {
+  z-index: 800 !important;
+}
+
+.survey-modal-bottom {
+  z-index: 801 !important;
+}
+
+/* Prevent scrolling on body when modal is open */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Touch improvements for mobile */
+.survey-modal-bottom {
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+/* Smooth scrolling for modal content */
+.survey-modal-bottom .flex-1 {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Radix UI Dialog animations and styles */
 @keyframes dialogOverlayShow {
   from { opacity: 0; }
@@ -71,7 +316,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #EFB900, #D49F00);
   color: white;
   border: none;
   border-radius: 8px;
@@ -82,9 +327,9 @@
 }
 
 .admin-action-btn:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: linear-gradient(135deg, #D49F00, #B88A00);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 185, 0, 0.3);
 }
 
 .admin-action-btn:active {

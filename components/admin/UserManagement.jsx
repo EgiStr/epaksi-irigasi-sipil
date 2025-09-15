@@ -580,10 +580,32 @@ const UserFormModal = ({ title, user, onSave, onClose, currentUserRole }) => {
   )
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
+    <div className="user-modal-overlay fixed inset-0" style={{ zIndex: 1001 }}>
+      <div className="user-modal-content fixed bg-white rounded-3xl shadow-2xl max-h-[80vh] flex flex-col" style={{ 
+        zIndex: 1002,
+        maxWidth: '600px', 
+        width: 'calc(100% - 2rem)',
+        left: '50%',
+        top: '50%',
+        transform: 'translateX(-50%) translateY(-50%)'
+      }}>
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-3xl">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 hover:bg-white hover:bg-opacity-80 rounded-full transition-all duration-200 bg-white bg-opacity-50"
+          >
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
         
+        <div className="flex-1 overflow-y-auto px-6 py-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -657,23 +679,25 @@ const UserFormModal = ({ title, user, onSave, onClose, currentUserRole }) => {
               placeholder="e.g., Dinas Pengairan, Kementerian PUPR"
             />
           </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              {user ? 'Update' : 'Simpan'}
-            </button>
-          </div>
         </form>
+        </div>
+        
+        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-end gap-2 rounded-b-3xl">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            {user ? 'Update' : 'Simpan'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -682,19 +706,31 @@ const UserFormModal = ({ title, user, onSave, onClose, currentUserRole }) => {
 // User Detail Modal Component
 const UserDetailModal = ({ user, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Detail Pengguna</h3>
+    <div className="user-modal-overlay fixed inset-0" style={{ zIndex: 1001 }}>
+      <div className="user-modal-content fixed bg-white rounded-3xl shadow-2xl max-h-[80vh] flex flex-col" style={{ 
+        zIndex: 1002,
+        maxWidth: '800px', 
+        width: 'calc(100% - 2rem)',
+        left: '50%',
+        top: '50%',
+        transform: 'translateX(-50%) translateY(-50%)'
+      }}>
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-3xl">
+          <h3 className="text-lg font-semibold text-gray-900">Detail Pengguna</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="p-2 hover:bg-white hover:bg-opacity-80 rounded-full transition-all duration-200 bg-white bg-opacity-50"
           >
-            ✕
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
-
-        <div className="space-y-6">
+        
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           {/* Profile Section */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
@@ -810,11 +846,11 @@ const UserDetailModal = ({ user, onClose }) => {
             </div>
           </div>
         </div>
-
-        <div className="flex justify-end pt-4">
+        
+        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-end gap-2 rounded-b-3xl">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 transition-colors"
           >
             Tutup
           </button>

@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, FileText, Calculator, Save, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { useSidebar } from '../contexts/SidebarContext';
 
 const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
+  const { setModalState } = useSidebar();
+  
   // State management
   const [surveyConfig, setSurveyConfig] = useState(null);
   const [formValues, setFormValues] = useState({});
@@ -12,6 +15,26 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
   const [score, setScore] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  // Handle modal close with animation
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      setModalState(false); // Notify sidebar context that modal is closed
+      onClose();
+    }, 300); // Match animation duration
+  }, [onClose, setModalState]);
+
+  // Effect to manage sidebar state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setModalState(true); // This will automatically close sidebar
+    } else {
+      setModalState(false);
+    }
+  }, [isOpen, setModalState]);
 
   // Determine survey type based on feature properties
   const getSurveyType = useCallback((featureData) => {
@@ -108,6 +131,26 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
       loadSurveyConfig(surveyType);
     }
   }, [isOpen, featureData, getSurveyType, loadSurveyConfig]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && isOpen && !isClosing) {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscKey);
+      // Prevent body scroll when modal is open
+      document.body.classList.add('modal-open');
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen, isClosing, handleClose]);
 
   // Calculate score when form values change
   const calculateScore = useCallback(async (values) => {
@@ -292,7 +335,7 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
       });
 
       // Close modal
-      onClose();
+      handleClose();
     } catch (error) {
       console.error('Error submitting survey:', error);
       setErrors({ general: error.message || 'Gagal menyimpan survey. Silakan coba lagi.' });
@@ -446,10 +489,30 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
   if (!isOpen || !featureData) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+    <div 
+      className={`survey-modal-overlay fixed inset-0 ${isClosing ? 'closing' : ''}`}
+      style={{ zIndex: 1001 }}
+      onClick={() => !isClosing && handleClose()}
+    >
+      {/* Modal positioned at center */}
+      <div 
+        className={`survey-modal-bottom fixed bg-white rounded-3xl shadow-2xl max-h-[80vh] flex flex-col ${isClosing ? 'closing' : ''}`}
+        style={{ 
+          zIndex: 1002,
+          maxWidth: '1200px', 
+          width: 'calc(100% - 2rem)',
+          left: '50%',
+          top: '50%',
+          transform: 'translateX(-50%) translateY(-50%)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Drag handle indicator */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-3xl">
           <div className="flex items-center space-x-2">
             <FileText className="w-5 h-5 text-blue-600" />
             <div>
@@ -462,17 +525,18 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            onClick={handleClose}
+            className="p-2 hover:bg-white hover:bg-opacity-80 rounded-full transition-all duration-200 bg-white bg-opacity-50"
+            title="Tutup modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
           {/* Form Section */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             {/* Error Display */}
             {errors.general && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center space-x-2">
@@ -583,7 +647,7 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
           </div>
 
           {/* Score Panel */}
-          <div className="w-80 border-l border-gray-200 p-4 bg-gray-50">
+          <div className="w-80 border-l border-gray-200 px-4 py-4 bg-gradient-to-b from-gray-50 to-white">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Calculator className="w-5 h-5 text-blue-600" />
@@ -661,7 +725,7 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4 flex items-center justify-between">
+        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between rounded-b-3xl">
           <div className="text-sm text-gray-500">
             {surveyConfig && (
               <>
@@ -673,7 +737,7 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
           
           <div className="flex space-x-2">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
               Batal
