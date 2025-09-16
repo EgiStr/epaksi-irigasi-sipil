@@ -24,8 +24,8 @@
   left: 0;
   top: 0;
   height: 100vh;
-  background: linear-gradient(180deg, #1e40af 0%, #3b82f6 100%);
-  color: white;
+  background: linear-gradient(180deg, #00008C 0%, #0000AA 100%);
+  color: rgb(255, 255, 255);
   transition: width 0.3s ease;
   z-index: 1000;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -60,14 +60,24 @@
   border-radius: 12px;
   padding: 8px;
   min-width: 48px;
+  min-height: 48px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-svg {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain;
 }
 
 .logo-text h3 {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
-  color: white;
+  color: #ffffff;
 }
 
 .logo-text span {
@@ -243,6 +253,30 @@
   margin-left: 70px;
 }
 
+/* When modal is open, give more space for content */
+.main-content.modal-open {
+  margin-left: 70px;
+  transition: margin-left 0.3s ease;
+}
+
+/* Sidebar toggle button for modal state */
+.sidebar-toggle-btn {
+  background: rgba(0, 0, 140, 0.9);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  margin-right: 1rem;
+}
+
+.sidebar-toggle-btn:hover {
+  background: rgba(0, 0, 140, 1);
+}
+
 /* Header Styles */
 .header {
   background: white;
@@ -296,7 +330,7 @@
 }
 
 .header-badge {
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  background: linear-gradient(135deg, #EFB900, #D49F00);
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -580,7 +614,7 @@
 }
 
 .view-full-btn {
-  background: #3b82f6;
+  background: #EFB900;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -591,7 +625,7 @@
 }
 
 .view-full-btn:hover {
-  background: #2563eb;
+  background: #D49F00;
 }
 
 .map-placeholder {
@@ -756,12 +790,12 @@
 }
 
 .download-btn {
-  background: #3b82f6;
+  background: #EFB900;
   color: white;
 }
 
 .download-btn:hover {
-  background: #2563eb;
+  background: #D49F00;
 }
 
 .view-btn {
@@ -1486,7 +1520,7 @@
 }
 
 .badge-admin {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #EFB900, #D49F00);
   color: white;
   padding: 0.125rem 0.5rem;
   border-radius: 6px;

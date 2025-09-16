@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { MapContainer, TileLayer, GeoJSON, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, LayersControl, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import SurveyModal from './SurveyModal';
@@ -404,19 +404,20 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     <div style={{ height: '80vh', minHeight: '640px', width: '100%', position: 'relative' }}>
     
       {/* Survey Filter Controls */}
-      <div style={{
-        position: 'absolute',
-        top: '10px',
-        left: '10px',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        padding: '12px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
-        zIndex: 1000,
-        fontSize: '13px',
-        fontWeight: '500',
-        minWidth: '240px'
-      }}>
+      {!isSurveyModalOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          padding: '12px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          fontSize: '13px',
+          fontWeight: '500',
+          minWidth: '240px'
+        }}>
         <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#1f2937' }}>
           📊 Filter Survey
         </div>
@@ -464,9 +465,10 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
           </div>
         )}
       </div>
+      )}
 
       {/* Survey Statistics Panel - moved to right side */}
-      {statistics.total > 0 && showSurveyLayer && (
+      {!isSurveyModalOpen && statistics.total > 0 && showSurveyLayer && (
         <div style={{
           position: 'absolute',
           top: '10px',
@@ -540,8 +542,14 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         zoom={MAP_CONFIG.zoom}
         style={{ height: '100%', width: '100%', borderRadius: '8px' }}
         scrollWheelZoom={true}
+        zoomControl={false} // Always disable default zoom control
       >
-        <LayersControl position="topright">
+        {/* Conditionally add zoom control only when modal is not open */}
+        {!isSurveyModalOpen && <ZoomControl position="topleft" />}
+        
+        {/* Only show LayersControl when modal is not open */}
+        {!isSurveyModalOpen && (
+          <LayersControl position="topright">
           {/* Base Layers */}
           <LayersControl.BaseLayer checked name="OpenStreetMap">
             <TileLayer
@@ -621,9 +629,11 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
             );
           })}
         </LayersControl>
+        )}
       </MapContainer>
       
       {/* Compact legend */}
+      {!isSurveyModalOpen && (
       <div style={{
         position: 'absolute',
         bottom: '15px',
@@ -722,6 +732,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
           </>
         )}
       </div>
+      )}
 
       {/* Survey Modal */}
       <SurveyModal

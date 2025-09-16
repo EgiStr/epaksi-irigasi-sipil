@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { 
@@ -112,10 +113,18 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
     <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
         <div className="logo">
-          <div className="logo-icon">🌊</div>
+          <div className="logo-icon">
+            <Image 
+              src="/vite.svg" 
+              alt="Logo Irigasi" 
+              width={48} 
+              height={48}
+              className="logo-svg"
+            />
+          </div>
           {isOpen && (
             <div className="logo-text">
-              <h3>Irigasi</h3>
+              <h3>EPAKSI</h3>
             </div>
           )}
         </div>

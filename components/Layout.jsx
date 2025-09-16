@@ -1,13 +1,14 @@
 'use client'
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { LogOut, User } from 'lucide-react';
 import Sidebar from './Sidebar';
+import { useSidebar } from '../contexts/SidebarContext';
 import './Layout.css';
 
 const Layout = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { sidebarOpen, isModalOpen, toggleSidebar } = useSidebar();
   const { data: session } = useSession();
 
   const handleLogout = async () => {
@@ -22,26 +23,38 @@ const Layout = ({ children }) => {
       {sidebarOpen && (
         <div 
           className="sidebar-backdrop md:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => toggleSidebar()}
         />
       )}
       
       <Sidebar 
         isOpen={sidebarOpen} 
-        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        toggleSidebar={toggleSidebar}
       />
-      <div className={`main-content ${!sidebarOpen ? 'sidebar-closed' : ''}`}>
+      <div className={`main-content ${!sidebarOpen || isModalOpen ? 'sidebar-closed' : ''} ${isModalOpen ? 'modal-open' : ''}`}>
         <header className="header">
           <button 
             className="menu-toggle md:hidden"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            onClick={() => toggleSidebar()}
           >
             <span></span>
             <span></span>
             <span></span>
           </button>
+          
+          {/* Desktop sidebar toggle - always visible when modal is open */}
+          {isModalOpen && (
+            <button 
+              className="sidebar-toggle-btn hidden md:block"
+              onClick={() => toggleSidebar()}
+              title={sidebarOpen ? "Tutup Sidebar" : "Buka Sidebar"}
+            >
+              {sidebarOpen ? "◀" : "▶"}
+            </button>
+          )}
+          
           <div className="header-title">
-            <h1>🌊 Sistem Informasi Irigasi Way Rarem</h1>
+            <h1>EPAKSI IRIGASI WAY RAREM</h1>
             <p>Visualisasi Interaktif Data Infrastruktur Irigasi</p>
           </div>
           

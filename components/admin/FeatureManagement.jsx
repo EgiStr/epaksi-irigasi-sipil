@@ -192,26 +192,26 @@ const FeatureManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header Actions */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:justify-between lg:items-center">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           {/* Search */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial sm:min-w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
               placeholder="Cari feature..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           {/* Filters */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm"
             >
               <option value="all">Semua Type</option>
               {uniqueTypes.map(type => (
@@ -222,7 +222,7 @@ const FeatureManagement = () => {
             <select
               value={filterScheme}
               onChange={(e) => setFilterScheme(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm"
             >
               <option value="all">Semua Scheme</option>
               {uniqueSchemes.map(scheme => (
@@ -232,46 +232,49 @@ const FeatureManagement = () => {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <button
             onClick={() => {
               resetForm()
               setIsModalOpen(true)
             }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
           >
             <Plus className="w-4 h-4" />
-            Tambah Feature
+            <span className="hidden sm:inline">Tambah Feature</span>
+            <span className="sm:hidden">Tambah</span>
           </button>
 
           <button
             onClick={() => setIsUploadModalOpen(true)}
-            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
           >
             <Upload className="w-4 h-4" />
-            Upload File
+            <span className="hidden sm:inline">Upload File</span>
+            <span className="sm:hidden">Upload</span>
           </button>
           
           <button
             onClick={() => window.open('/api/features?format=export', '_blank')}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
           >
             <Download className="w-4 h-4" />
-            Export
+            <span className="hidden sm:inline">Export</span>
+            <span className="sm:hidden">Export</span>
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <MapPin className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+              <MapPin className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Features</p>
-              <p className="text-xl font-semibold text-gray-900">
+            <div className="min-w-0">
+              <p className="text-xs lg:text-sm text-gray-600 truncate">Total Features</p>
+              <p className="text-lg lg:text-xl font-semibold text-gray-900">
                 {pagination?.total || features.length}
               </p>
             </div>
@@ -280,12 +283,12 @@ const FeatureManagement = () => {
         
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Map className="w-6 h-6 text-green-600" />
+            <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
+              <Map className="w-5 h-5 lg:w-6 lg:h-6 text-green-600" />
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Source Layers</p>
-              <p className="text-xl font-semibold text-gray-900">
+            <div className="min-w-0">
+              <p className="text-xs lg:text-sm text-gray-600 truncate">Source Layers</p>
+              <p className="text-lg lg:text-xl font-semibold text-gray-900">
                 {new Set(features.map(f => f.sourceLayer)).size}
               </p>
             </div>
@@ -294,24 +297,24 @@ const FeatureManagement = () => {
 
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <FileText className="w-6 h-6 text-yellow-600" />
+            <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
+              <FileText className="w-5 h-5 lg:w-6 lg:h-6 text-yellow-600" />
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Types</p>
-              <p className="text-xl font-semibold text-gray-900">{uniqueTypes.length}</p>
+            <div className="min-w-0">
+              <p className="text-xs lg:text-sm text-gray-600 truncate">Types</p>
+              <p className="text-lg lg:text-xl font-semibold text-gray-900">{uniqueTypes.length}</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Filter className="w-6 h-6 text-purple-600" />
+            <div className="p-2 bg-purple-100 rounded-lg flex-shrink-0">
+              <Filter className="w-5 h-5 lg:w-6 lg:h-6 text-purple-600" />
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Current Page</p>
-              <p className="text-xl font-semibold text-gray-900">
+            <div className="min-w-0">
+              <p className="text-xs lg:text-sm text-gray-600 truncate">Current Page</p>
+              <p className="text-lg lg:text-xl font-semibold text-gray-900">
                 {filteredFeatures.length} of {pagination?.total || features.length}
               </p>
             </div>
@@ -326,34 +329,124 @@ const FeatureManagement = () => {
         </div>
       )}
 
-      {/* Features Table */}
+      {/* Features Table/Cards */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile/Tablet Card View */}
+        <div className="block lg:hidden">
+          <div className="space-y-4 p-4">
+            {filteredFeatures.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm || filterType !== 'all' || filterScheme !== 'all' 
+                  ? 'Tidak ada feature yang sesuai filter' 
+                  : 'Belum ada feature'}
+              </div>
+            ) : (
+              filteredFeatures.map((feature) => (
+                <div key={feature.id} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-mono text-sm font-medium text-gray-900 mb-1">
+                        ID: {feature.featureId}
+                      </div>
+                      <div className="text-sm text-gray-900 mb-2">
+                        <strong>Name:</strong> {feature.name || '-'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-2">
+                      <button
+                        onClick={() => handleEdit(feature)}
+                        className="text-blue-600 hover:text-blue-900 p-1 rounded transition-colors"
+                        title="Edit feature"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(feature.featureId)}
+                        className="text-red-600 hover:text-red-900 p-1 rounded transition-colors"
+                        title="Hapus feature"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-600">Type:</span>
+                      <div className="mt-1">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {feature.type || '-'}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Scheme:</span>
+                      <div className="mt-1">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          feature.scheme === 'utama' ? 'bg-green-100 text-green-800' :
+                          feature.scheme === 'tersier' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {feature.scheme || 'None'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm">
+                    <span className="text-gray-600">Source Layer:</span>
+                    <div className="mt-1 text-gray-900 break-words">
+                      {feature.sourceLayer}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {feature.surveyCount || 0} survey{(feature.surveyCount || 0) !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="text-gray-500 text-xs">
+                      {new Date(feature.updatedAt).toLocaleDateString('id-ID', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Feature ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Scheme
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Source Layer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Surveys
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Last Updated
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -370,22 +463,22 @@ const FeatureManagement = () => {
               ) : (
                 filteredFeatures.map((feature) => (
                   <tr key={feature.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 font-mono">
                         {feature.featureId}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                    <td className="px-4 py-4">
+                      <div className="text-sm text-gray-900 max-w-32 truncate" title={feature.name}>
                         {feature.name || '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                         {feature.type || '-'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         feature.scheme === 'utama' ? 'bg-green-100 text-green-800' :
                         feature.scheme === 'tersier' ? 'bg-yellow-100 text-yellow-800' :
@@ -394,26 +487,32 @@ const FeatureManagement = () => {
                         {feature.scheme || 'None'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate">
+                    <td className="px-4 py-4">
+                      <div className="text-sm text-gray-900 max-w-40 truncate" title={feature.sourceLayer}>
                         {feature.sourceLayer}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {feature.surveyCount || 0} survey{(feature.surveyCount || 0) !== 1 ? 's' : ''}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(feature.updatedAt).toLocaleDateString('id-ID', {
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="max-w-24 truncate" title={new Date(feature.updatedAt).toLocaleDateString('id-ID', {
                         year: 'numeric',
-                        month: 'short',
+                        month: 'long',
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
-                      })}
+                      })}>
+                        {new Date(feature.updatedAt).toLocaleDateString('id-ID', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEdit(feature)}
@@ -531,144 +630,173 @@ const FeatureManagement = () => {
 
       {/* Modal for Create/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
+        <div className="feature-modal-overlay fixed inset-0" style={{ zIndex: 1001 }}>
+          <div className="feature-modal-content fixed bg-white rounded-3xl shadow-2xl max-h-[80vh] flex flex-col" style={{ 
+            zIndex: 1002,
+            maxWidth: '800px', 
+            width: 'calc(100% - 2rem)',
+            left: '50%',
+            top: '50%',
+            transform: 'translateX(-50%) translateY(-50%)'
+          }}>
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-3xl">
+              <h3 className="text-lg font-semibold text-gray-900">
                 {editingFeature ? 'Edit Feature' : 'Tambah Feature Baru'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 hover:bg-white hover:bg-opacity-80 rounded-full transition-all duration-200 bg-white bg-opacity-50"
               >
-                ✕
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
+            
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nama Feature
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Masukkan nama feature"
+                  />
+                </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nama Feature
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Masukkan nama feature"
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Masukkan type feature"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
-                </label>
-                <input
-                  type="text"
-                  value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Masukkan type feature"
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Scheme
+                  </label>
+                  <select
+                    value={formData.scheme}
+                    onChange={(e) => setFormData({...formData, scheme: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Pilih Scheme (Optional)</option>
+                    <option value="utama">Utama</option>
+                    <option value="tersier">Tersier</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Scheme
-                </label>
-                <select
-                  value={formData.scheme}
-                  onChange={(e) => setFormData({...formData, scheme: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Pilih Scheme (Optional)</option>
-                  <option value="utama">Utama</option>
-                  <option value="tersier">Tersier</option>
-                </select>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Source Layer *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.sourceLayer}
+                    onChange={(e) => setFormData({...formData, sourceLayer: e.target.value})}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Masukkan source layer"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Source Layer *
-                </label>
-                <input
-                  type="text"
-                  value={formData.sourceLayer}
-                  onChange={(e) => setFormData({...formData, sourceLayer: e.target.value})}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Masukkan source layer"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Properties (JSON)
-                </label>
-                <textarea
-                  value={formData.props}
-                  onChange={(e) => setFormData({...formData, props: e.target.value})}
-                  rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                  placeholder='{"key": "value"}'
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Format JSON valid diperlukan
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {editingFeature ? 'Update' : 'Simpan'}
-                </button>
-              </div>
-            </form>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Properties (JSON)
+                  </label>
+                  <textarea
+                    value={formData.props}
+                    onChange={(e) => setFormData({...formData, props: e.target.value})}
+                    rows={6}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    placeholder='{"key": "value"}'
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Format JSON valid diperlukan
+                  </p>
+                </div>
+              </form>
+            </div>
+            
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-end gap-2 rounded-b-3xl">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                {editingFeature ? 'Update' : 'Simpan'}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Upload Modal */}
       {isUploadModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
+        <div className="feature-modal-overlay fixed inset-0" style={{ zIndex: 1001 }}>
+          <div className="feature-modal-content fixed bg-white rounded-3xl shadow-2xl max-h-[80vh] flex flex-col" style={{ 
+            zIndex: 1002,
+            maxWidth: '800px', 
+            width: 'calc(100% - 2rem)',
+            left: '50%',
+            top: '50%',
+            transform: 'translateX(-50%) translateY(-50%)'
+          }}>
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-3xl">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Upload Features dari File KML/GeoJSON
               </h3>
               <button
                 onClick={() => setIsUploadModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 hover:bg-white hover:bg-opacity-80 rounded-full transition-all duration-200 bg-white bg-opacity-50"
               >
-                ✕
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
-            <div className="mb-4">
-              <p className="text-sm text-gray-600">
-                Upload file KML atau GeoJSON untuk menambahkan features secara bulk. 
-                File akan diproses dan features akan ditambahkan ke database.
-              </p>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  Upload file KML atau GeoJSON untuk menambahkan features secara bulk. 
+                  File akan diproses dan features akan ditambahkan ke database.
+                </p>
+              </div>
+
+              <FileUpload 
+                onUploadSuccess={handleUploadSuccess}
+                onUploadError={handleUploadError}
+              />
             </div>
 
-            <FileUpload 
-              onUploadSuccess={handleUploadSuccess}
-              onUploadError={handleUploadError}
-            />
-
-            <div className="mt-6 flex justify-end">
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-end gap-2 rounded-b-3xl">
               <button
                 onClick={() => setIsUploadModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
               >
                 Tutup
               </button>

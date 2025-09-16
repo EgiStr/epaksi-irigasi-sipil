@@ -1,5 +1,6 @@
 import './globals.css'
 import NextAuthProvider from '../components/NextAuthProvider'
+import { SidebarProvider } from '../contexts/SidebarContext'
 
 export const metadata = {
   title: 'Sistem Pemetaan Irigasi Sipil',
@@ -11,7 +12,9 @@ export default function RootLayout({ children }) {
     <html lang="id">
       <body>
         <NextAuthProvider>
-          {children}
+          <SidebarProvider>
+            {children}
+          </SidebarProvider>
         </NextAuthProvider>
       </body>
     </html>
