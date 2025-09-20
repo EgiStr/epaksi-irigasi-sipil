@@ -75,6 +75,14 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
       isAdmin: true
     },
     {
+      id: 'admin-pai',
+      label: 'PAI Management',
+      icon: Database,
+      path: '/admin/pai',
+      permission: PERMISSIONS.SURVEY_MANAGE, // Same permission as surveys for now
+      isAdmin: true
+    },
+    {
       id: 'admin-audit',
       label: 'Audit Logs',
       icon: Activity,
