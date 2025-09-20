@@ -86,18 +86,78 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     }
   }, [geoJsonData]);
 
-  // Setup global function
+  // Function to open PAI modal
+  const openPAIForFeature = useCallback((featureId) => {
+    // Find feature by ID
+    const targetFeature = geoJsonData?.features?.find(f => f.properties?.featureId === featureId);
+    
+    if (targetFeature && typeof window !== 'undefined' && window.openPAIManagementModal) {
+      window.openPAIManagementModal(targetFeature.properties);
+    } else {
+      console.error('Feature not found or PAI modal not available:', featureId);
+    }
+  }, [geoJsonData]);
+
+  // Setup global functions
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.openSurveyModal = openSurveyForFeature;
+      window.openPAIModal = openPAIForFeature;
+      
+      // Function to load PAI info in popup
+      window.loadPAIInfo = async (featureId) => {
+        try {
+          const response = await fetch(`/api/pai?featureId=${featureId}&latest=true`);
+          if (response.ok) {
+            const data = await response.json();
+            const paiInfoElement = document.getElementById(`pai-info-${featureId}`);
+            
+            if (paiInfoElement) {
+              if (data.pai) {
+                const pai = data.pai;
+                const paiTypeIcon = pai.paiType === 'saluran' ? '🚰' : '🏢';
+                const paiTypeName = pai.paiType === 'saluran' ? 'Saluran' : 'Bangunan';
+                
+                let infoHTML = `<div style="color: #374151;">`;
+                infoHTML += `<div style="margin-bottom: 4px;"><strong>${paiTypeIcon} ${paiTypeName}</strong></div>`;
+                infoHTML += `<div>${pai.paiData?.aset?.nama || 'Tidak ada nama'}</div>`;
+                infoHTML += `<div style="font-size: 11px; color: #6b7280;">${pai.paiData?.aset?.jenis || ''} • ${pai.paiData?.aset?.nomenklatur || ''}</div>`;
+                
+                if (pai.paiType === 'saluran' && pai.lengthM) {
+                  infoHTML += `<div style="font-size: 11px; color: #6b7280;">Panjang: ${Math.round(pai.lengthM)}m</div>`;
+                }
+                
+                if (pai.photos && pai.photos.length > 0) {
+                  infoHTML += `<div style="font-size: 11px; color: #6b7280;">📷 ${pai.photos.length} foto</div>`;
+                }
+                
+                infoHTML += `<div style="font-size: 11px; color: #6b7280;">Updated: ${new Date(pai.updatedAt).toLocaleDateString('id-ID')}</div>`;
+                infoHTML += `</div>`;
+                
+                paiInfoElement.innerHTML = infoHTML;
+              } else {
+                paiInfoElement.innerHTML = '<div style="color: #6b7280; font-style: italic;">Belum ada data PAI</div>';
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading PAI info:', error);
+          const paiInfoElement = document.getElementById(`pai-info-${featureId}`);
+          if (paiInfoElement) {
+            paiInfoElement.innerHTML = '<div style="color: #ef4444;">Error loading PAI data</div>';
+          }
+        }
+      };
     }
 
     return () => {
       if (typeof window !== 'undefined') {
         delete window.openSurveyModal;
+        delete window.openPAIModal;
+        delete window.loadPAIInfo;
       }
     };
-  }, [openSurveyForFeature]);
+  }, [openSurveyForFeature, openPAIForFeature]);
 
   // Debug state changes
   useEffect(() => {
@@ -284,6 +344,19 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         content += `<div style="font-size: 11px; color: #666; margin-top: 4px;">Klik untuk menilai kualitas irigasi ini</div>`;
         content += `</div>`;
       }
+
+      // Add PAI info section
+      content += `<div style="margin: 12px 0; padding: 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #16a34a;">`;
+      content += `<div style="font-weight: bold; color: #15803d; margin-bottom: 6px;">🏗️ Profil Aset Irigasi (PAI)</div>`;
+      content += `<div id="pai-info-${props.featureId}" style="font-size: 12px; color: #374151;">Memuat data PAI...</div>`;
+      content += `<div style="margin-top: 8px; text-align: center;">`;
+      content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
+                    style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 12px; margin-right: 6px;">
+                    📝 Kelola PAI
+                  </button>`;
+      content += `</div>`;
+      content += `</div>`;
     }
     
     return content + '</div>';
@@ -301,6 +374,17 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       maxWidth: 420,
       maxHeight: 600,
       className: 'custom-popup'
+    });
+
+    // Add popup open event to load PAI info
+    layer.on('popupopen', () => {
+      const isIrrigationFeature = props.featureId && !props.NAMOBJ && !props.WADMKK;
+      if (isIrrigationFeature && typeof window !== 'undefined' && window.loadPAIInfo) {
+        // Load PAI info after a short delay to ensure DOM is ready
+        setTimeout(() => {
+          window.loadPAIInfo(props.featureId);
+        }, 100);
+      }
     });
     
     // Optimized hover effects

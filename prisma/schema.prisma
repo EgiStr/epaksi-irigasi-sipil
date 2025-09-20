@@ -30,6 +30,7 @@ model User {
   sessions      Session[]
   surveys       Survey[]
   auditLogs     AuditLog[]
+  pai           PAI[]     // Relasi ke PAI
   
   @@map("users")
 }
@@ -86,6 +87,7 @@ model Feature {
   updatedAt   DateTime @updatedAt @map("updated_at")
   
   surveys     Survey[]
+  pai         PAI[]    // Relasi ke PAI
   
   @@map("features")
   @@index([sourceLayer])
@@ -150,6 +152,42 @@ model AuditLog {
   @@index([action])
   @@index([entityType])
   @@index([createdAt])
+}
+
+model PAI {
+  id            String   @id @default(cuid())
+  featureId     String   @map("feature_id")
+  paiType       String   @map("pai_type") // 'saluran' | 'bangunan'
+  paiData       Json     @map("pai_data") // Structured PAI data
+  photos        Json?    // Legacy field for base64 photos (deprecated)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdBy     String   @map("created_by")
+
+  feature       Feature  @relation(fields: [featureId], references: [featureId], onDelete: Cascade)
+  user          User     @relation(fields: [createdBy], references: [id])
+  paiPhotos     Photo[]  @relation("PAIPhotos") // New relation to Photo model
+
+  @@map("pai")
+  @@index([featureId])
+  @@index([paiType])
+  @@index([createdAt])
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  paiId     String   @map("pai_id")
+  url       String   // Supabase Storage public URL
+  path      String   // Supabase Storage file path
+  caption   String?
+  metadata  Json?    // File metadata (size, type, uploadedAt, etc.)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  pai       PAI      @relation("PAIPhotos", fields: [paiId], references: [id], onDelete: Cascade)
+
+  @@map("photos")
+  @@index([paiId])
 }
 
 enum Role {
