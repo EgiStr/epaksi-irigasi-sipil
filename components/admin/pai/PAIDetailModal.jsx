@@ -1,6 +1,7 @@
 'use client'
 
 import { X, MapPin, Calendar, User, Image as ImageIcon } from 'lucide-react'
+import PhotoManager from '../../forms/PhotoManager'
 
 export default function PAIDetailModal({ 
   isOpen, 
@@ -176,30 +177,13 @@ export default function PAIDetailModal({
           )}
 
           {/* Foto Dokumentasi */}
-          {pai.photos && pai.photos.length > 0 && (
-            <SectionCard title={`Foto Dokumentasi (${pai.photos.length})`} icon="📸">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {pai.photos.map((photo, index) => (
-                  <div key={photo.id || index} className="space-y-2">
-                    {photo.url || photo.data_uri ? (
-                      <img
-                        src={photo.url || photo.data_uri}
-                        alt={photo.caption || `Foto ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border"
-                      />
-                    ) : (
-                      <div className="w-full h-32 bg-gray-100 rounded-lg border flex items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-gray-400" />
-                      </div>
-                    )}
-                    {photo.caption && (
-                      <p className="text-sm text-gray-600">{photo.caption}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-          )}
+          <SectionCard title="Foto Dokumentasi" icon="📸">
+            <PhotoManager
+              paiId={pai.id}
+              maxPhotos={10}
+              readOnly={true}
+            />
+          </SectionCard>
 
           {/* Metadata */}
           <SectionCard title="Informasi Metadata" icon="ℹ️">

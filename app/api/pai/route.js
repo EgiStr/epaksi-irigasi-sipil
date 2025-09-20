@@ -144,7 +144,7 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    const { featureId, paiType, paiData, photos, paiGeomGeoJSON } = validationResult.data
+    const { featureId, paiType, paiData, paiGeomGeoJSON } = validationResult.data
     console.log('Validated paiData:', JSON.stringify(paiData, null, 2))
 
     // Check if feature exists
@@ -162,13 +162,13 @@ export async function POST(request) {
     const normalizedPaiData = normalizePAIData(paiType, paiData, null)
     console.log('Normalized PAI data:', JSON.stringify(normalizedPaiData, null, 2))
 
-    // Create PAI record
+    // Create PAI record (photos are now managed separately)
     const newPAI = await prisma.pAI.create({
       data: {
         featureId,
         paiType,
         paiData: normalizedPaiData,
-        photos: photos || [],
+        photos: null, // Legacy field, photos now managed via PhotoManager
         createdBy: session.user.id
       },
       include: {
@@ -246,7 +246,7 @@ export async function PUT(request) {
       }, { status: 400 })
     }
 
-    const { id, featureId, paiType, paiData, photos, paiGeomGeoJSON } = updateValidationResult.data
+    const { id, featureId, paiType, paiData, paiGeomGeoJSON } = updateValidationResult.data
     console.log('Validated update data:', JSON.stringify(paiData, null, 2))
 
     // Check if PAI exists and user has permission to update
@@ -272,13 +272,13 @@ export async function PUT(request) {
     const normalizedData = normalizePAIData(paiData, paiType)
     console.log('Normalized update data:', normalizedData)
 
-    // Update PAI
+    // Update PAI (photos are now managed separately)
     const updatedPAI = await prisma.pAI.update({
       where: { id },
       data: {
         paiType,
         paiData: normalizedData,
-        photos: photos || [],
+        photos: null, // Legacy field, photos now managed via PhotoManager
         updatedAt: new Date()
         // Note: featureId and geom should not change in update
       },

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Save, MapPin, Image, FileText } from 'lucide-react'
 import PAIFormFields from '../../forms/PAIFormFields'
-import PhotoUpload from '../../forms/PhotoUpload'
+import PhotoManager from '../../forms/PhotoManager'
 import { useSidebar } from '../../../contexts/SidebarContext'
 
 export default function PAIFormModal({ 
@@ -17,7 +17,7 @@ export default function PAIFormModal({
   const { setModalState } = useSidebar()
   const [paiType, setPaiType] = useState('saluran')
   const [formData, setFormData] = useState({})
-  const [photos, setPhotos] = useState([])
+  const [currentPaiId, setCurrentPaiId] = useState(null) // For PhotoManager
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
   const [activeTab, setActiveTab] = useState('data') // 'data' | 'photos' | 'map'
@@ -109,10 +109,11 @@ export default function PAIFormModal({
         
         console.log('Processed existing data:', existingData)
         setFormData(existingData)
-        setPhotos(initialData.photos || [])
+        setCurrentPaiId(initialData.id) // Set PAI ID for PhotoManager
       } else {
         // Creating new PAI
         setIsEditMode(false)
+        setCurrentPaiId(null)
         console.log('Creating new PAI for feature:', feature)
         resetForm()
       }
@@ -202,7 +203,7 @@ export default function PAIFormModal({
     
     console.log('Reset form with initial data:', initialFormData)
     setFormData(initialFormData)
-    setPhotos([])
+    setCurrentPaiId(null)
     setErrors({})
     setActiveTab('data')
   }
@@ -259,29 +260,30 @@ export default function PAIFormModal({
       // Debug: Log form data before sending
       console.log('Form data before submit:', formData)
       console.log('PAI Type:', paiType)
-      console.log('Photos:', photos)
       
       const paiData = {
         featureId: feature.featureId,
         paiType,
-        paiData: formData,
-        photos: photos.map(photo => ({
-          id: photo.id,
-          caption: photo.caption,
-          data_uri: photo.data_uri // For dev - in prod this would be uploaded to S3
-        }))
+        paiData: formData
+        // Photos are now managed separately via PhotoManager and stored in database
       }
       
       console.log('Final PAI data to be sent:', paiData)
 
+      let savedPai;
       if (initialData) {
         // Update existing PAI
         console.log('Updating existing PAI with ID:', initialData.id)
-        await onSave({ ...paiData, id: initialData.id })
+        savedPai = await onSave({ ...paiData, id: initialData.id })
       } else {
         // Create new PAI
         console.log('Creating new PAI')
-        await onSave(paiData)
+        savedPai = await onSave(paiData)
+        
+        // Set the PAI ID for PhotoManager after creation
+        if (savedPai && savedPai.id) {
+          setCurrentPaiId(savedPai.id)
+        }
       }
 
       handleClose()
@@ -401,7 +403,7 @@ export default function PAIFormModal({
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                📸 Foto ({photos.length})
+                📸 Foto
               </button>
             </div>
           </div>
@@ -438,11 +440,22 @@ export default function PAIFormModal({
                       </p>
                     </div>
                     
-                    <PhotoUpload
-                      photos={photos}
-                      onChange={setPhotos}
-                      maxFiles={10}
-                    />
+                    {currentPaiId ? (
+                      <PhotoManager
+                        paiId={currentPaiId}
+                        maxPhotos={10}
+                        readOnly={false}
+                      />
+                    ) : (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p className="text-sm text-yellow-800">
+                          📝 Simpan data PAI terlebih dahulu untuk mengupload foto
+                        </p>
+                        <p className="text-xs text-yellow-600 mt-1">
+                          Foto akan tersedia setelah PAI berhasil disimpan ke database
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </>
