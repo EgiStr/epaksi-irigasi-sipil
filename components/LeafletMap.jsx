@@ -481,36 +481,51 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         
         // Update survey button
         content += `<div style="margin: 8px 0; padding: 8px; background: #fff3cd; border-radius: 6px; text-align: center; border: 1px solid #ffc107;">`;
+        content += `<div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 4px;">`;
         content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
                       style="background: #ffc107; color: #212529; border: none; padding: 6px 12px; border-radius: 4px; 
                              cursor: pointer; font-weight: 500; font-size: 12px;">
                       🔄 Update Survey
                     </button>`;
-        content += `<div style="font-size: 11px; color: #856404; margin-top: 4px;">Perbarui penilaian irigasi ini</div>`;
+        content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
+                     style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 12px;">
+                  📝 PAI
+                </button>`;
+        content += `</div>`;
+        content += `<div style="font-size: 11px; color: #856404;">Perbarui penilaian irigasi ini atau kelola data PAI</div>`;
         content += `</div>`;
       } else {
         // No survey yet - show create button
         content += `<div style="margin: 12px 0; padding: 10px; background: #e3f2fd; border-radius: 6px; text-align: center; border: 1px solid #2196f3;">`;
+        content += `<div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 4px;">`;
         content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
                       style="background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
                              cursor: pointer; font-weight: 500; font-size: 13px;">
-                      📋 Buat Survey Penilaian
+                      📋 Buat Survey
                     </button>`;
-        content += `<div style="font-size: 11px; color: #666; margin-top: 4px;">Klik untuk menilai kualitas irigasi ini</div>`;
+        content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
+                     style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 13px;">
+                  📝 PAI
+                </button>`;
+        content += `</div>`;
+        content += `<div style="font-size: 11px; color: #666;">Buat penilaian kualitas irigasi atau kelola data PAI</div>`;
         content += `</div>`;
       }
-
-      // Add PAI info section
-      content += `<div style="margin: 12px 0; padding: 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #16a34a;">`;
-      content += `<div style="font-weight: bold; color: #15803d; margin-bottom: 6px;">🏗️ Profil Aset Irigasi (PAI)</div>`;
-      content += `<div id="pai-info-${props.featureId}" style="font-size: 12px; color: #374151;">Memuat data PAI...</div>`;
-      content += `<div style="margin-top: 8px; text-align: center;">`;
-      content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
-                    style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; 
-                           cursor: pointer; font-weight: 500; font-size: 12px; margin-right: 6px;">
-                    📝 Kelola PAI
+    }
+    
+    // Add detail button for all features at the bottom
+    if (props.featureId) {
+      content += `<div style="margin: 12px 0; padding: 8px; background: #f8fafc; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0;">`;
+      content += `<button onclick="window.open('/features/${props.featureId}', '_blank')" 
+                    style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 13px; width: 100%;">
+                    📊 Lihat Detail Lengkap
                   </button>`;
-      content += `</div>`;
+      content += `<div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+                    Informasi lengkap PAI, Survey, dan Properties
+                  </div>`;
       content += `</div>`;
     }
     
@@ -1041,33 +1056,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
           </>
         )}
         
-        {/* Clustering Info */}
-        <div style={{ 
-          borderTop: '1px solid #e5e7eb', 
-          marginTop: '8px', 
-          paddingTop: '6px',
-          fontSize: '10px',
-          color: '#6b7280'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-            🗂️ Clustering:
-          </div>
-          <div style={{ marginBottom: '2px' }}>
-            • Zoom out: Kelompokkan marker
-          </div>
-          <div style={{ marginBottom: '2px' }}>
-            • Zoom in: Pecah kelompok
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px' }}>
-            <div style={{
-              width: '20px', height: '12px',
-              background: 'linear-gradient(90deg, #4CAF50, #FF9800, #F44336)',
-              borderRadius: '6px',
-              marginRight: '4px'
-            }}></div>
-            <span>Cluster (hijau→kuning→merah)</span>
-          </div>
-        </div>
       </div>
       )}
 

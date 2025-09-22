@@ -74,19 +74,44 @@ export async function GET(request, { params }) {
     if (format === 'management') {
       const feature = await prisma.feature.findUnique({
         where: { featureId },
-        select: {
-          id: true,
-          featureId: true,
-          name: true,
-          type: true,
-          scheme: true,
-          sourceLayer: true,
-          props: true,
-          createdAt: true,
-          updatedAt: true,
-          _count: {
-            select: {
-              surveys: true
+        include: {
+          surveys: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true
+                }
+              },
+              config: {
+                select: {
+                  id: true,
+                  scheme: true
+                }
+              }
+            },
+            orderBy: {
+              createdAt: 'desc'
+            }
+          },
+          pai: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true
+                }
+              },
+              paiPhotos: {
+                orderBy: {
+                  createdAt: 'asc'
+                }
+              }
+            },
+            orderBy: {
+              createdAt: 'desc'
             }
           }
         }
@@ -107,7 +132,8 @@ export async function GET(request, { params }) {
         scheme: feature.scheme,
         sourceLayer: feature.sourceLayer,
         props: feature.props,
-        surveyCount: feature._count.surveys,
+        surveys: feature.surveys,
+        pai: feature.pai,
         createdAt: feature.createdAt,
         updatedAt: feature.updatedAt
       })

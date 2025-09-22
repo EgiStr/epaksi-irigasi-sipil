@@ -132,7 +132,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
           </div>
           {isOpen && (
             <div className="logo-text">
-              <h3>EPAKSI</h3>
+              <h3>SINTARA</h3>
             </div>
           )}
         </div>
