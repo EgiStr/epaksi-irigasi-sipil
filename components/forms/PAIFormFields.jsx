@@ -105,8 +105,6 @@ export default function PAIFormFields({
     current[pathArray[pathArray.length - 1]] = value
     
     // Debug log untuk melihat perubahan data
-    console.log(`Field updated: ${path} = ${value}`)
-    console.log('Updated formData:', newData)
     
     onChange(newData)
   }, [formData, onChange])

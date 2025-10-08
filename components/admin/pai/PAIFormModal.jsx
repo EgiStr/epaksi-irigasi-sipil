@@ -31,7 +31,6 @@ export default function PAIFormModal({
       if (initialData) {
         // Editing existing PAI
         setIsEditMode(true)
-        console.log('Loading existing PAI data:', initialData)
         
         // Set paiType from initialData or from subsystem field
         const detectedPaiType = initialData.paiType || (initialData.paiData?.subsystem ? 'saluran' : 'bangunan')
@@ -107,14 +106,12 @@ export default function PAIFormModal({
           ...actualPaiData,
         }
         
-        console.log('Processed existing data:', existingData)
         setFormData(existingData)
         setCurrentPaiId(initialData.id) // Set PAI ID for PhotoManager
       } else {
         // Creating new PAI
         setIsEditMode(false)
         setCurrentPaiId(null)
-        console.log('Creating new PAI for feature:', feature)
         resetForm()
       }
     } else {
@@ -201,7 +198,6 @@ export default function PAIFormModal({
       }
     }
     
-    console.log('Reset form with initial data:', initialFormData)
     setFormData(initialFormData)
     setCurrentPaiId(null)
     setErrors({})
@@ -258,8 +254,6 @@ export default function PAIFormModal({
     
     try {
       // Debug: Log form data before sending
-      console.log('Form data before submit:', formData)
-      console.log('PAI Type:', paiType)
       
       const paiData = {
         featureId: feature.featureId,
@@ -268,16 +262,13 @@ export default function PAIFormModal({
         // Photos are now managed separately via PhotoManager and stored in database
       }
       
-      console.log('Final PAI data to be sent:', paiData)
 
       let savedPai;
       if (initialData) {
         // Update existing PAI
-        console.log('Updating existing PAI with ID:', initialData.id)
         savedPai = await onSave({ ...paiData, id: initialData.id })
       } else {
         // Create new PAI
-        console.log('Creating new PAI')
         savedPai = await onSave(paiData)
         
         // Set the PAI ID for PhotoManager after creation

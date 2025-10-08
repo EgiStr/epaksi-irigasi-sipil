@@ -245,7 +245,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       }
 
       const result = await response.json();
-      console.log('✅ Scheme updated:', result);
       
       // Reload data to reflect changes
       if (onDataReload) {
@@ -421,12 +420,10 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
 
         // User cancelled
         if (!schemeChoice) {
-          console.log('ℹ️ User cancelled scheme selection');
           return;
         }
 
         // Update feature scheme
-        console.log(`📝 Updating scheme to: ${schemeChoice}`);
         const updatedFeature = await updateFeatureScheme(featureId, schemeChoice);
         
         // Update local data
@@ -505,7 +502,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       }
 
       const data = await response.json();
-      console.log('PAI data for priority (latest=true):', data);
       
       // ✅ FIX: Response format is { pai: {...} } or { pai: null }
       const pai = data.pai;
@@ -558,7 +554,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
           }
           
           const data = await response.json();
-          console.log('PAI API Response (latest=true):', data); // Debug log
           
           if (paiInfoElement) {
             // ✅ FIX: Response format dengan latest=true adalah { pai: {...} } atau { pai: null }
@@ -1485,7 +1480,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         featureData={selectedFeature}
         paiData={selectedPAI}
         onSubmit={(result) => {
-          console.log('Priority updated:', result);
           
           // Optionally trigger data reload
           if (onDataReload) {

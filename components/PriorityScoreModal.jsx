@@ -25,14 +25,60 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
   const [priorityNotes, setPriorityNotes] = useState(paiData?.priorityNotes || '')
   const [priorityStatus, setPriorityStatus] = useState(paiData?.priorityStatus || 'pending')
   const [loading, setLoading] = useState(false)
+  const [fetchingData, setFetchingData] = useState(false)
   const [error, setError] = useState(null)
   const [isClosing, setIsClosing] = useState(false)
+  const [existingPAI, setExistingPAI] = useState(null)
+
+  // Fetch existing PAI data when modal opens
+  useEffect(() => {
+    const fetchExistingPriority = async () => {
+      if (!isOpen || !featureData?.featureId) return
+
+      setFetchingData(true)
+      setError(null)
+
+      try {
+        // Fetch PAI data for this feature
+        const response = await fetch(`/api/pai?featureId=${featureData.featureId}&latest=true`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          
+          if (data.pai) {
+            setExistingPAI(data.pai)
+            // Pre-fill form with existing data
+            setPriorityScore(data.pai.priorityScore || null)
+            setPriorityNotes(data.pai.priorityNotes || '')
+            setPriorityStatus(data.pai.priorityStatus || 'pending')
+          } else {
+            // No existing PAI data
+            setExistingPAI(null)
+          }
+        } else {
+          console.warn('Failed to fetch PAI data:', response.status)
+        }
+      } catch (err) {
+        console.error('Error fetching priority data:', err)
+        // Don't show error to user, just log it
+      } finally {
+        setFetchingData(false)
+      }
+    }
+
+    if (isOpen) {
+      fetchExistingPriority()
+    }
+  }, [isOpen, featureData?.featureId])
 
   useEffect(() => {
     if (isOpen) {
       setModalState(true)
       document.body.classList.add('modal-open')
+      
+      // Also handle paiData prop if provided directly
       if (paiData) {
+        setExistingPAI(paiData)
         setPriorityScore(paiData.priorityScore || null)
         setPriorityNotes(paiData.priorityNotes || '')
         setPriorityStatus(paiData.priorityStatus || 'pending')
@@ -40,6 +86,12 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
     } else {
       setModalState(false)
       document.body.classList.remove('modal-open')
+      // Reset states when closed
+      setExistingPAI(null)
+      setPriorityScore(null)
+      setPriorityNotes('')
+      setPriorityStatus('pending')
+      setError(null)
     }
 
     return () => {
@@ -67,11 +119,19 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
       return
     }
 
+    // Get PAI ID from existingPAI or paiData
+    const currentPAI = existingPAI || paiData
+    
+    if (!currentPAI?.id) {
+      setError('Data PAI tidak ditemukan. Pastikan sudah ada data PAI untuk feature ini.')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch(`/api/pai/${paiData.id}/priority`, {
+      const response = await fetch(`/api/pai/${currentPAI.id}/priority`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,13 +142,15 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
       })
 
       if (!response.ok) {
-        throw new Error('Gagal menyimpan prioritas')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Gagal menyimpan prioritas')
       }
 
       const result = await response.json()
       onSubmit?.(result)
       handleClose()
     } catch (err) {
+      console.error('❌ Error saving priority:', err)
       setError(err.message)
     } finally {
       setLoading(false)
@@ -128,9 +190,21 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
           <div className="flex items-center space-x-2">
             <Flag className="w-5 h-5 text-red-600" />
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                Skor Prioritas Perbaikan
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Skor Prioritas Perbaikan
+                </h2>
+                {existingPAI?.priorityScore && (
+                  <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full border border-blue-300">
+                    Update
+                  </span>
+                )}
+                {!existingPAI?.priorityScore && existingPAI && (
+                  <span className="px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 rounded-full border border-green-300">
+                    Baru
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-gray-600">
                 {featureData?.name || featureData?.featureId}
               </p>
@@ -147,6 +221,14 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4">
+          {/* Loading State */}
+          {fetchingData && (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              <p className="text-sm text-blue-800">Memuat data prioritas...</p>
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -155,18 +237,52 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
           )}
 
           {/* Informasi PAI */}
-          {paiData && (
+          {existingPAI && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="font-semibold text-blue-900 mb-2">Informasi PAI</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5" />
+                Informasi PAI
+              </h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <span className="text-blue-700">Tipe:</span>{' '}
-                  <span className="font-medium">{paiData.paiType === 'saluran' ? '🚰 Saluran' : '🏢 Bangunan'}</span>
+                  <span className="font-medium">{existingPAI.paiType === 'saluran' ? '🚰 Saluran' : '🏢 Bangunan'}</span>
+                </div>
+                <div>
+                  <span className="text-blue-700">Dibuat:</span>{' '}
+                  <span className="font-medium">{new Date(existingPAI.createdAt).toLocaleDateString('id-ID')}</span>
                 </div>
                 <div>
                   <span className="text-blue-700">Terakhir Update:</span>{' '}
-                  <span className="font-medium">{new Date(paiData.updatedAt).toLocaleDateString('id-ID')}</span>
+                  <span className="font-medium">{new Date(existingPAI.updatedAt).toLocaleDateString('id-ID')}</span>
                 </div>
+                {existingPAI.priorityScore && (
+                  <div>
+                    <span className="text-blue-700">Prioritas Saat Ini:</span>{' '}
+                    <span className="font-semibold" style={{ color: PRIORITY_LEVELS.find(p => p.value === existingPAI.priorityScore)?.color }}>
+                      {PRIORITY_LEVELS.find(p => p.value === existingPAI.priorityScore)?.label}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {existingPAI.priorityNotes && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <span className="text-blue-700 text-sm">Catatan Sebelumnya:</span>
+                  <p className="text-sm text-gray-700 mt-1 italic">"{existingPAI.priorityNotes}"</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Warning if no PAI data */}
+          {!existingPAI && !fetchingData && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-yellow-900">Belum ada data PAI</p>
+                <p className="text-sm text-yellow-800 mt-1">
+                  Silakan buat data PAI terlebih dahulu sebelum mengatur prioritas perbaikan.
+                </p>
               </div>
             </div>
           )}
@@ -277,10 +393,24 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
 
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t bg-gray-50 rounded-b-3xl">
-          <div className="text-sm text-gray-500">
-            {!priorityScore && (
+          <div className="text-sm">
+            {!priorityScore ? (
               <span className="text-amber-600">
                 ⚠️ Pilih tingkat prioritas untuk melanjutkan
+              </span>
+            ) : existingPAI?.priorityScore ? (
+              <span className="text-blue-600 flex items-center gap-1">
+                <CheckCircle className="w-4 h-4" />
+                Update prioritas yang sudah ada
+              </span>
+            ) : existingPAI ? (
+              <span className="text-green-600 flex items-center gap-1">
+                <CheckCircle className="w-4 h-4" />
+                Tambah prioritas baru
+              </span>
+            ) : (
+              <span className="text-gray-400">
+                Memuat data...
               </span>
             )}
           </div>
@@ -290,7 +420,7 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
               type="button"
               onClick={handleClose}
               className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              disabled={loading}
+              disabled={loading || fetchingData}
             >
               Batal
             </button>
@@ -298,11 +428,11 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
               type="button"
               onClick={handleSubmit}
               className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              disabled={loading || !priorityScore}
+              disabled={loading || fetchingData || !priorityScore || !existingPAI}
             >
               <Flag className="w-4 h-4" />
               <span>
-                {loading ? 'Menyimpan...' : paiData?.priorityScore ? 'Update Prioritas' : 'Simpan Prioritas'}
+                {loading ? 'Menyimpan...' : existingPAI?.priorityScore ? 'Update Prioritas' : 'Simpan Prioritas'}
               </span>
             </button>
           </div>

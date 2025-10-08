@@ -46,7 +46,6 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
     
     // ✅ PRIORITY 1: Check explicit scheme field (set by scheme selector)
     if (props.scheme) {
-      console.log('📋 Using explicit scheme from feature:', props.scheme);
       return props.scheme;
     }
     
@@ -57,11 +56,9 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
     if (sourceLayer.toLowerCase().includes('tersier') || 
         props.n_aset?.toLowerCase().includes('tersier') ||
         props.nama?.toLowerCase().includes('tersier')) {
-      console.log('📋 Auto-detected scheme: tersier');
       return 'tersier';
     }
     
-    console.log('📋 Default scheme: utama');
     return 'utama';
   }, []);
 
@@ -172,7 +169,6 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
       }
 
       const result = await response.json();
-      console.log('✅ Scheme changed:', result);
 
       // Update local feature data
       if (featureData.properties) {
