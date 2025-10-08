@@ -24,7 +24,7 @@ export default function PAITable({
   onFilterChange
 }) {
   const [selectedRows, setSelectedRows] = useState([])
-  const [sortField, setSortField] = useState('createdAt')
+  const [sortField, setSortField] = useState('priorityScore')
   const [sortDirection, setSortDirection] = useState('desc')
 
   const handleSort = (field) => {
@@ -56,6 +56,31 @@ export default function PAITable({
       : 'bg-green-100 text-green-800'
   }
 
+  const getPriorityLabel = (score) => {
+    if (!score) return { label: 'Belum Diatur', color: 'bg-gray-100 text-gray-600', icon: '⚪' }
+    
+    const priorities = {
+      5: { label: 'Sangat Mendesak', color: 'bg-red-600 text-white', icon: '🔴' },
+      4: { label: 'Mendesak', color: 'bg-orange-500 text-white', icon: '🟠' },
+      3: { label: 'Sedang', color: 'bg-yellow-500 text-white', icon: '🟡' },
+      2: { label: 'Rendah', color: 'bg-blue-500 text-white', icon: '🔵' },
+      1: { label: 'Sangat Rendah', color: 'bg-gray-400 text-white', icon: '⚪' }
+    }
+    
+    return priorities[score] || { label: 'Tidak Valid', color: 'bg-gray-100 text-gray-600', icon: '❓' }
+  }
+
+  const getPriorityStatusLabel = (status) => {
+    const statuses = {
+      'pending': { label: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' },
+      'approved': { label: 'Disetujui', color: 'bg-blue-100 text-blue-800' },
+      'in_progress': { label: 'Dalam Proses', color: 'bg-purple-100 text-purple-800' },
+      'completed': { label: 'Selesai', color: 'bg-green-100 text-green-800' }
+    }
+    
+    return statuses[status] || { label: 'Tidak Diketahui', color: 'bg-gray-100 text-gray-600' }
+  }
+
   const handleSelectAll = (checked) => {
     if (checked) {
       setSelectedRows(data.map(item => item.id))
@@ -71,6 +96,32 @@ export default function PAITable({
       setSelectedRows(selectedRows.filter(rowId => rowId !== id))
     }
   }
+
+  // Sort data based on priority score (highest first) and other fields
+  const sortedData = [...data].sort((a, b) => {
+    let aValue, bValue
+    
+    if (sortField === 'priorityScore') {
+      // Sort by priority: treat null/undefined as lowest priority (0)
+      aValue = a.priorityScore || 0
+      bValue = b.priorityScore || 0
+    } else if (sortField === 'feature.name') {
+      aValue = a.feature?.name || a.featureId
+      bValue = b.feature?.name || b.featureId
+    } else if (sortField === 'createdAt') {
+      aValue = new Date(a.createdAt).getTime()
+      bValue = new Date(b.createdAt).getTime()
+    } else {
+      aValue = a[sortField]
+      bValue = b[sortField]
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1
+    } else {
+      return aValue < bValue ? 1 : -1
+    }
+  })
 
   if (loading) {
     return (
@@ -99,7 +150,7 @@ export default function PAITable({
           </h3>
           
           <div className="flex items-center space-x-3">
-            {/* Filter */}
+            {/* Filter Tipe PAI */}
             <select
               value={filters.paiType || ''}
               onChange={(e) => onFilterChange({ ...filters, paiType: e.target.value || undefined })}
@@ -108,6 +159,34 @@ export default function PAITable({
               <option value="">Semua Tipe</option>
               <option value="saluran">Saluran</option>
               <option value="bangunan">Bangunan</option>
+            </select>
+
+            {/* Filter Prioritas */}
+            <select
+              value={filters.priorityScore || ''}
+              onChange={(e) => onFilterChange({ ...filters, priorityScore: e.target.value || undefined })}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Semua Prioritas</option>
+              <option value="5">🔴 Sangat Mendesak</option>
+              <option value="4">🟠 Mendesak</option>
+              <option value="3">🟡 Sedang</option>
+              <option value="2">🔵 Rendah</option>
+              <option value="1">⚪ Sangat Rendah</option>
+              <option value="0">⚪ Belum Diatur</option>
+            </select>
+
+            {/* Filter Status Prioritas */}
+            <select
+              value={filters.priorityStatus || ''}
+              onChange={(e) => onFilterChange({ ...filters, priorityStatus: e.target.value || undefined })}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Semua Status</option>
+              <option value="pending">Menunggu</option>
+              <option value="approved">Disetujui</option>
+              <option value="in_progress">Dalam Proses</option>
+              <option value="completed">Selesai</option>
             </select>
 
             {/* Bulk Actions */}
@@ -154,44 +233,58 @@ export default function PAITable({
                 />
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('feature.name')}
               >
                 Feature
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Tipe PAI
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Nama Aset
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Nomenklatur
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('priorityScore')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>⚠️ Prioritas Penanganan</span>
+                  {sortField === 'priorityScore' && (
+                    <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Status Prioritas
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Tahun
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Detail
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Foto
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('createdAt')}
               >
                 Tanggal Input
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Aksi
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.length === 0 ? (
+            {sortedData.length === 0 ? (
               <tr>
-                <td colSpan="10" className="px-6 py-12 text-center">
+                <td colSpan="12" className="px-6 py-12 text-center">
                   <div className="text-gray-500">
                     <Image className="mx-auto h-12 w-12 mb-4" />
                     <p className="text-lg font-medium">Belum ada data PAI</p>
@@ -200,7 +293,11 @@ export default function PAITable({
                 </td>
               </tr>
             ) : (
-              data.map((pai) => (
+              sortedData.map((pai) => {
+                const priority = getPriorityLabel(pai.priorityScore)
+                const priorityStatus = getPriorityStatusLabel(pai.priorityStatus)
+                
+                return (
                 <tr key={pai.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <input
@@ -235,6 +332,35 @@ export default function PAITable({
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {pai.paiData?.aset?.nomenklatur || '-'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col space-y-1">
+                      <span 
+                        className={`inline-flex items-center justify-center px-3 py-1 text-xs font-bold rounded-full ${priority.color}`}
+                        title={pai.priorityNotes || 'Tidak ada catatan'}
+                      >
+                        {priority.icon} {priority.label}
+                      </span>
+                      {pai.priorityScore && (
+                        <span className="text-xs text-gray-500 text-center">
+                          Skor: {pai.priorityScore}/5
+                        </span>
+                      )}
+                      {pai.priorityNotes && (
+                        <div className="text-xs text-gray-600 italic mt-1 max-w-xs truncate" title={pai.priorityNotes}>
+                          💬 {pai.priorityNotes}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {pai.priorityStatus ? (
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${priorityStatus.color}`}>
+                        {priorityStatus.label}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {pai.paiData?.tahun_dibangun || '-'}
@@ -298,7 +424,8 @@ export default function PAITable({
                     </div>
                   </td>
                 </tr>
-              ))
+                )
+              })
             )}
           </tbody>
         </table>

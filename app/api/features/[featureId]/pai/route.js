@@ -12,7 +12,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 401 })
     }
 
-    const { featureId } = params
+    const { featureId } = await params
 
     // Check if feature exists
     const feature = await prisma.feature.findUnique({

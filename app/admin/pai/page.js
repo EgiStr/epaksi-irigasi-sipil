@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, FileText, Download } from 'lucide-react'
 import { useSession } from 'next-auth/react'
+import Layout from '../../../components/Layout'
 import PAITable from '../../../components/admin/pai/PAITable'
 import PAIFormModal from '../../../components/admin/pai/PAIFormModal'
 import PAIDetailModal from '../../../components/admin/pai/PAIDetailModal'
@@ -146,17 +147,18 @@ export default function PAIManagementPage() {
   const canCreatePAI = session?.user?.role && ['SUPERADMIN', 'ADMIN', 'SURVEYOR'].includes(session.user.role)
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Manajemen PAI (Profil Aset Irigasi)
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Kelola data profil aset irigasi untuk semua feature dalam sistem
-          </p>
-        </div>
+    <Layout>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Manajemen PAI (Profil Aset Irigasi)
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Kelola data profil aset irigasi untuk semua feature dalam sistem
+            </p>
+          </div>
 
         <div className="flex items-center space-x-3">
           {/* Export Button */}
@@ -285,6 +287,7 @@ export default function PAIManagementPage() {
         }}
         pai={viewingPai}
       />
-    </div>
+      </div>
+    </Layout>
   )
 }

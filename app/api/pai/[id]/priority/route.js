@@ -19,7 +19,7 @@ export async function PATCH(request, { params }) {
       )
     }
 
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { priorityScore, priorityNotes, priorityStatus } = body
 
@@ -118,7 +118,7 @@ export async function GET(request, { params }) {
       )
     }
 
-    const { id } = params
+    const { id } = await params
 
     const pai = await prisma.pAI.findUnique({
       where: { id },
