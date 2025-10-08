@@ -52,7 +52,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
     },
     {
       id: 'admin-configs',
-      label: 'Config Management',
+      label: 'IKSI Konfigurasi',
       icon: Settings,
       path: '/admin/configs',
       permission: PERMISSIONS.CONFIG_MANAGE,
@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
     },
     {
       id: 'admin-features',
-      label: 'Feature Management',
+      label: 'Saluran Management',
       icon: Layers,
       path: '/admin/features',
       permission: PERMISSIONS.FEATURE_MANAGE,
@@ -68,7 +68,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
     },
     {
       id: 'admin-surveys',
-      label: 'Survey Management',
+      label: 'IKSI Management',
       icon: FileText,
       path: '/admin/surveys',
       permission: PERMISSIONS.SURVEY_MANAGE,
@@ -121,18 +121,54 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
     <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
         <div className="logo">
-          <div className="logo-icon">
-            <Image 
-              src="/vite.svg" 
-              alt="Logo Irigasi" 
-              width={48} 
-              height={48}
-              className="logo-svg"
-            />
-          </div>
-          {isOpen && (
-            <div className="logo-text">
-              <h3>EPAKSI</h3>
+          {isOpen ? (
+            <div className="logo-container">
+              <div className="logo-icon-large">
+                <div className="logo-grid">
+                  <Image 
+                    src="/vite.svg" 
+                    alt="Logo Sintara" 
+                    width={32} 
+                    height={32}
+                    className="logo-svg"
+                  />
+                  <Image 
+                    src="/assets/unila.png" 
+                    alt="Logo UNILA" 
+                    width={32} 
+                    height={32}
+                    className="logo-svg"
+                  />
+                  <Image 
+                    src="/assets/logo1.png" 
+                    alt="Logo Sistem" 
+                    width={32} 
+                    height={32}
+                    className="logo-svg"
+                  />
+                  <Image 
+                    src="/assets/itera.png" 
+                    alt="Logo ITERA" 
+                    width={32} 
+                    height={32}
+                    className="logo-svg"
+                  />
+                  
+                </div>
+              </div>
+              <div className="logo-text">
+                <h3>SINTARA</h3>
+              </div>
+            </div>
+          ) : (
+            <div className="logo-icon">
+              <Image 
+                src="/vite.svg" 
+                alt="Logo Irigasi" 
+                width={32} 
+                height={32}
+                className="logo-svg"
+              />
             </div>
           )}
         </div>

@@ -1,7 +1,9 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl, ZoomControl } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-markercluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'react-leaflet-markercluster/styles';
 import SurveyModal from './SurveyModal';
 import { useSurveyData } from '../hooks/useSurveyData';
 
@@ -23,7 +25,7 @@ const MAP_CONFIG = {
   center: [-4.75, 105.0],
   zoom: 11,
   colors: {
-    "Bangunan_Irigasi Way Rarem": { color: "#FF0000", fillColor: "#FF4444" },
+    "Bangunan_Irigasi Way Rarem": { color: "#666666", fillColor: "#999999" },
     "Bangunan.kml": { color: "#0000FF", fillColor: "#4444FF" },
     "Bendung Way Rarem": { color: "#00FF00", fillColor: "#44FF44" },
     "Jaringan Irigasi Way Rarem": { color: "#FFA500", fillColor: "#FFB84D" }
@@ -35,6 +37,17 @@ const MAP_CONFIG = {
     fillOpacity: 0.1,
     opacity: 0.8,
     dashArray: "8, 4"
+  },
+  cluster: {
+    // Konfigurasi clustering
+    maxClusterRadius: 50, // Radius maksimum untuk pengelompokan (dalam pixel)
+    disableClusteringAtZoom: 16, // Zoom level dimana clustering dimatikan
+    showCoverageOnHover: false, // Tampilkan area coverage saat hover
+    spiderfyOnMaxZoom: true, // Spiderfy saat zoom maksimum
+    removeOutsideVisibleBounds: true, // Hapus marker di luar area pandang untuk performa
+    animate: true, // Animasi saat clustering/unclustering
+    animateAddingMarkers: true, // Animasi saat menambah marker
+    maxZoom: 18 // Zoom maksimum
   }
 };
 
@@ -71,6 +84,143 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     reloadSurveys,
     getStatistics
   } = useSurveyData();
+
+  // Function to create custom cluster icon
+  const createClusterCustomIcon = useCallback((cluster) => {
+    const childCount = cluster.getChildCount();
+    let sizeClass = 'small';
+    let bgColor = '#2196F3'; // Default blue
+    
+    // Determine cluster size and color based on count
+    if (childCount < 10) {
+      sizeClass = 'small';
+      bgColor = '#4CAF50'; // Green for small clusters
+    } else if (childCount < 50) {
+      sizeClass = 'medium';
+      bgColor = '#FF9800'; // Orange for medium clusters
+    } else {
+      sizeClass = 'large';
+      bgColor = '#F44336'; // Red for large clusters
+    }
+    
+    const size = sizeClass === 'small' ? 30 : sizeClass === 'medium' ? 40 : 50;
+    
+    return L.divIcon({
+      html: `<div style="
+        background-color: ${bgColor};
+        color: white;
+        border-radius: 50%;
+        width: ${size}px;
+        height: ${size}px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: ${size < 35 ? '12px' : size < 45 ? '14px' : '16px'};
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">${childCount}</div>`,
+      className: 'custom-cluster-icon',
+      iconSize: L.point(size, size),
+      iconAnchor: L.point(size / 2, size / 2)
+    });
+  }, []);
+
+  // Separate features by geometry type for better clustering
+  const separateFeaturesByGeometry = useCallback((features) => {
+    const pointFeatures = [];
+    const nonPointFeatures = [];
+    
+    features.forEach(feature => {
+      if (feature.geometry?.type === 'Point') {
+        pointFeatures.push(feature);
+      } else {
+        nonPointFeatures.push(feature);
+      }
+    });
+    
+    return { pointFeatures, nonPointFeatures };
+  }, []);
+  const handleClusterEvents = useCallback((clusterGroup) => {
+    // Event ketika cluster diklik
+    clusterGroup.on('clusterclick', (event) => {
+      const cluster = event.layer;
+      const childMarkers = cluster.getAllChildMarkers();
+      
+      // Buat popup info untuk cluster
+      let popupContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 300px;">
+          <h4 style="margin: 0 0 8px 0; color: #1f2937; font-size: 14px;">
+            🗂️ Kelompok Bangunan Irigasi
+          </h4>
+          <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">
+            Jumlah total: <strong>${childMarkers.length}</strong> bangunan
+          </div>
+          <div style="max-height: 200px; overflow-y: auto; border-top: 1px solid #e5e7eb; padding-top: 8px;">
+      `;
+      
+      // Ambil informasi dari setiap marker dalam cluster
+      childMarkers.slice(0, 10).forEach((marker, index) => {
+        const feature = marker.feature;
+        if (feature && feature.properties) {
+          const props = feature.properties;
+          const name = props.name || props.featureId || `Bangunan ${index + 1}`;
+          const type = props.type || props.sourceLayer || 'Tidak diketahui';
+          
+          popupContent += `
+            <div style="padding: 4px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px;">
+              <div style="font-weight: 500; color: #374151;">${name}</div>
+              <div style="color: #6b7280;">${type}</div>
+            </div>
+          `;
+        }
+      });
+      
+      if (childMarkers.length > 10) {
+        popupContent += `
+          <div style="padding: 4px 0; font-size: 11px; color: #6b7280; text-align: center;">
+            ... dan ${childMarkers.length - 10} bangunan lainnya
+          </div>
+        `;
+      }
+      
+      popupContent += `
+          </div>
+          <div style="margin-top: 8px; font-size: 11px; color: #6b7280; text-align: center;">
+            💡 Perbesar peta untuk melihat detail setiap bangunan
+          </div>
+        </div>
+      `;
+      
+      cluster.bindPopup(popupContent, {
+        maxWidth: 300,
+        className: 'cluster-popup'
+      }).openPopup();
+    });
+    
+    // Event ketika cluster di-hover
+    clusterGroup.on('clustermouseover', (event) => {
+      const cluster = event.layer;
+      // Tambahkan efek visual saat hover jika diperlukan
+    });
+    
+  }, []);
+
+  // Cluster options dengan event handlers
+  const clusterOptions = useMemo(() => ({
+    ...MAP_CONFIG.cluster,
+    iconCreateFunction: createClusterCustomIcon,
+    // Custom styling untuk cluster
+    polygonOptions: {
+      fillColor: '#2196F3',
+      color: '#1976D2',
+      weight: 2,
+      opacity: 0.5,
+      fillOpacity: 0.1
+    }
+  }), [createClusterCustomIcon]);
 
   // Function to open survey modal
   const openSurveyForFeature = useCallback((featureId) => {
@@ -174,6 +324,11 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
 
   // Generate dynamic colors for source layers
   const generateLayerColor = useCallback((sourceLayer, index) => {
+    // Special handling for specific layers
+    if (sourceLayer && sourceLayer.toLowerCase().includes('bangunan_irigasi')) {
+      return { color: "#666666", fillColor: "#999999" }; // Gray for Bangunan Irigasi
+    }
+    
     const colors = [
       { color: "#FF0000", fillColor: "#FF4444" }, // Red
       { color: "#0000FF", fillColor: "#4444FF" }, // Blue  
@@ -326,36 +481,51 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         
         // Update survey button
         content += `<div style="margin: 8px 0; padding: 8px; background: #fff3cd; border-radius: 6px; text-align: center; border: 1px solid #ffc107;">`;
+        content += `<div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 4px;">`;
         content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
                       style="background: #ffc107; color: #212529; border: none; padding: 6px 12px; border-radius: 4px; 
                              cursor: pointer; font-weight: 500; font-size: 12px;">
                       🔄 Update Survey
                     </button>`;
-        content += `<div style="font-size: 11px; color: #856404; margin-top: 4px;">Perbarui penilaian irigasi ini</div>`;
+        content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
+                     style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 12px;">
+                  📝 PAI
+                </button>`;
+        content += `</div>`;
+        content += `<div style="font-size: 11px; color: #856404;">Perbarui penilaian irigasi ini atau kelola data PAI</div>`;
         content += `</div>`;
       } else {
         // No survey yet - show create button
         content += `<div style="margin: 12px 0; padding: 10px; background: #e3f2fd; border-radius: 6px; text-align: center; border: 1px solid #2196f3;">`;
+        content += `<div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 4px;">`;
         content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
                       style="background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
                              cursor: pointer; font-weight: 500; font-size: 13px;">
-                      📋 Buat Survey Penilaian
+                      📋 IKSI
                     </button>`;
-        content += `<div style="font-size: 11px; color: #666; margin-top: 4px;">Klik untuk menilai kualitas irigasi ini</div>`;
+        content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
+                     style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 13px;">
+                  📝 PAI
+                </button>`;
+        content += `</div>`;
+        content += `<div style="font-size: 11px; color: #666;">Buat penilaian kualitas irigasi atau kelola data PAI</div>`;
         content += `</div>`;
       }
-
-      // Add PAI info section
-      content += `<div style="margin: 12px 0; padding: 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #16a34a;">`;
-      content += `<div style="font-weight: bold; color: #15803d; margin-bottom: 6px;">🏗️ Profil Aset Irigasi (PAI)</div>`;
-      content += `<div id="pai-info-${props.featureId}" style="font-size: 12px; color: #374151;">Memuat data PAI...</div>`;
-      content += `<div style="margin-top: 8px; text-align: center;">`;
-      content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
-                    style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; 
-                           cursor: pointer; font-weight: 500; font-size: 12px; margin-right: 6px;">
-                    📝 Kelola PAI
+    }
+    
+    // Add detail button for all features at the bottom
+    if (props.featureId) {
+      content += `<div style="margin: 12px 0; padding: 8px; background: #f8fafc; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0;">`;
+      content += `<button onclick="window.open('/features/${props.featureId}', '_blank')" 
+                    style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 13px; width: 100%;">
+                    📊 Lihat Detail Lengkap
                   </button>`;
-      content += `</div>`;
+      content += `<div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+                    Informasi lengkap PAI, Survey, dan Properties
+                  </div>`;
       content += `</div>`;
     }
     
@@ -486,6 +656,43 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
 
   return (
     <div style={{ height: '80vh', minHeight: '640px', width: '100%', position: 'relative' }}>
+      {/* Custom CSS for cluster styling */}
+      <style jsx>{`
+        .custom-cluster-icon {
+          background: transparent !important;
+          border: none !important;
+        }
+        
+        .custom-cluster-icon div {
+          transition: all 0.2s ease-in-out;
+        }
+        
+        .custom-cluster-icon:hover div {
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        }
+        
+        .leaflet-cluster-anim .leaflet-marker-icon, 
+        .leaflet-cluster-anim .leaflet-marker-shadow {
+          transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+        }
+        
+        /* Custom cluster popup styling */
+        .cluster-popup {
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .cluster-popup .leaflet-popup-content-wrapper {
+          border-radius: 8px;
+          padding: 1px;
+        }
+        
+        .cluster-popup .leaflet-popup-content {
+          margin: 12px 16px;
+          line-height: 1.4;
+        }
+      `}</style>
     
       {/* Survey Filter Controls */}
       {!isSurveyModalOpen && (
@@ -696,19 +903,52 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
             const displayName = formatLayerName(sourceLayer);
             const featureCount = layerData.features.length;
             
+            // Separate point and non-point features
+            const { pointFeatures, nonPointFeatures } = separateFeaturesByGeometry(layerData.features);
+            
             return (
               <LayersControl.Overlay 
                 key={sourceLayer} 
                 name={`${displayName} (${featureCount})`}
                 checked={true}
               >
-                <GeoJSON
-                  key={`${sourceLayer}-${featureCount}`} // Force re-render when data changes
-                  data={layerData}
-                  style={getFeatureStyle}
-                  pointToLayer={pointToLayer}
-                  onEachFeature={onEachFeature}
-                />
+                {/* Render non-point features (lines, polygons) without clustering */}
+                {nonPointFeatures.length > 0 && (
+                  <GeoJSON
+                    key={`${sourceLayer}-non-point-${nonPointFeatures.length}`}
+                    data={{
+                      type: "FeatureCollection",
+                      features: nonPointFeatures
+                    }}
+                    style={getFeatureStyle}
+                    onEachFeature={onEachFeature}
+                  />
+                )}
+                
+                {/* Render point features with clustering */}
+                {pointFeatures.length > 0 && (
+                  <MarkerClusterGroup
+                    {...clusterOptions}
+                    key={`cluster-${sourceLayer}-${pointFeatures.length}`}
+                    eventHandlers={{
+                      add: (event) => {
+                        // Setup event handlers setelah cluster group ditambahkan
+                        handleClusterEvents(event.target);
+                      }
+                    }}
+                  >
+                    <GeoJSON
+                      key={`${sourceLayer}-point-${pointFeatures.length}`}
+                      data={{
+                        type: "FeatureCollection",
+                        features: pointFeatures
+                      }}
+                      style={getFeatureStyle}
+                      pointToLayer={pointToLayer}
+                      onEachFeature={onEachFeature}
+                    />
+                  </MarkerClusterGroup>
+                )}
               </LayersControl.Overlay>
             );
           })}
@@ -815,6 +1055,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
             </div>
           </>
         )}
+        
       </div>
       )}
 

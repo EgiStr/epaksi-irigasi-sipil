@@ -10,7 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body>
+      <body suppressHydrationWarning={true}>
         <NextAuthProvider>
           <SidebarProvider>
             {children}

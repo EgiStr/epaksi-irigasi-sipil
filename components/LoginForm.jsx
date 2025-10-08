@@ -84,7 +84,7 @@ export default function LoginForm() {
             <Lock className="h-8 w-8 text-white" />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Sistem Pemetaan Irigasi Sipil
+            Sistem Pengelolaan Irigasi Sinergi Unila - Itera
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Masuk ke panel administrator

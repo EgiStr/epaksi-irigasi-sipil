@@ -34,7 +34,7 @@ export default function FeaturesPage() {
     <Layout>
       <div className="h-full">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">🗺️ Feature Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900">🗺️ Saluran Management</h1>
           <p className="text-gray-600">Kelola fitur infrastruktur irigasi dan data geometri</p>
         </div>
         <FeatureManagement />

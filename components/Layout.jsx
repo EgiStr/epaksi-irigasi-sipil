@@ -54,8 +54,8 @@ const Layout = ({ children }) => {
           )}
           
           <div className="header-title">
-            <h1>EPAKSI IRIGASI WAY RAREM</h1>
-            <p>Visualisasi Interaktif Data Infrastruktur Irigasi</p>
+            <h1>SINTARA</h1>
+            <p>Sistem Pengelolaan Irigasi Sinergi Unila - Itera</p>
           </div>
           
           {/* Admin Info & Logout */}

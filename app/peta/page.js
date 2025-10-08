@@ -26,11 +26,11 @@ export default function PetaPage() {
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
           border: '1px solid #e5e7eb',
           height: 'calc(100vh - 200px)',
-          minHeight: '600px'
+          minHeight: '780px'
         }}>
           <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">🗺️ Peta Irigasi Way Rarem</h1>
-            <p className="text-gray-600">Visualisasi interaktif data infrastruktur irigasi</p>
+            <h1 className="text-2xl font-bold text-gray-900">🗺️ PETA IRIGASI</h1>
+            <p className="text-gray-600">Sistem Pengelolaan Irigasi Sinergi Unila - Itera</p>
           </div>
           <IrigasiMap />
         </div>
