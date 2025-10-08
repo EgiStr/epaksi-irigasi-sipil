@@ -228,18 +228,250 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
   }), [createClusterCustomIcon]);
 
   // Function to open survey modal
-  const openSurveyForFeature = useCallback((featureId) => {
-    
-    // Find feature by ID
-    const targetFeature = geoJsonData?.features?.find(f => f.properties?.featureId === featureId);
-    
-    if (targetFeature) {
+  // Function to update feature scheme
+  const updateFeatureScheme = useCallback(async (featureId, scheme) => {
+    try {
+      const response = await fetch(`/api/features/${featureId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ scheme }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Gagal mengupdate skema');
+      }
+
+      const result = await response.json();
+      console.log('✅ Scheme updated:', result);
+      
+      // Reload data to reflect changes
+      if (onDataReload) {
+        await onDataReload();
+      }
+      
+      return result.feature;
+    } catch (error) {
+      console.error('❌ Error updating scheme:', error);
+      alert(`Gagal mengupdate skema: ${error.message}`);
+      throw error;
+    }
+  }, [onDataReload]);
+
+  const openSurveyForFeature = useCallback(async (featureId) => {
+    try {
+      // Find feature by ID
+      const targetFeature = geoJsonData?.features?.find(f => f.properties?.featureId === featureId);
+      
+      if (!targetFeature) {
+        console.error('Feature not found with ID:', featureId);
+        alert('❌ Feature tidak ditemukan');
+        return;
+      }
+
+      // ✅ Check if scheme exists - if not, show scheme selector
+      if (!targetFeature.properties.scheme) {
+        // Create scheme selector modal
+        const schemeChoice = await new Promise((resolve) => {
+          // Create modal overlay
+          const overlay = document.createElement('div');
+          overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+          `;
+
+          // Create modal content
+          const modal = document.createElement('div');
+          modal.style.cssText = `
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: slideUp 0.3s ease;
+          `;
+
+          modal.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-size: 48px; margin-bottom: 12px;">📋</div>
+              <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 20px; font-weight: 600;">
+                Pilih Skema Survey IKSI
+              </h3>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                Pilih skema yang sesuai dengan jenis bangunan irigasi:
+              </p>
+            </div>
+
+            <div style="display: grid; gap: 12px; margin-bottom: 20px;">
+              <button id="scheme-utama" style="
+                padding: 16px;
+                border: 2px solid #3b82f6;
+                background: #eff6ff;
+                border-radius: 12px;
+                cursor: pointer;
+                text-align: left;
+                transition: all 0.2s;
+              " onmouseover="this.style.background='#dbeafe'; this.style.borderColor='#2563eb'" 
+                 onmouseout="this.style.background='#eff6ff'; this.style.borderColor='#3b82f6'">
+                <div style="font-weight: 600; color: #1e40af; font-size: 16px; margin-bottom: 4px;">
+                  🏗️ Saluran Utama (Primer/Sekunder)
+                </div>
+                <div style="font-size: 13px; color: #64748b;">
+                  Untuk bangunan utama seperti bendung, saluran primer, atau sekunder
+                </div>
+              </button>
+
+              <button id="scheme-tersier" style="
+                padding: 16px;
+                border: 2px solid #10b981;
+                background: #f0fdf4;
+                border-radius: 12px;
+                cursor: pointer;
+                text-align: left;
+                transition: all 0.2s;
+              " onmouseover="this.style.background='#dcfce7'; this.style.borderColor='#059669'" 
+                 onmouseout="this.style.background='#f0fdf4'; this.style.borderColor='#10b981'">
+                <div style="font-weight: 600; color: #047857; font-size: 16px; margin-bottom: 4px;">
+                  🌾 Saluran Tersier
+                </div>
+                <div style="font-size: 13px; color: #64748b;">
+                  Untuk saluran tersier yang langsung ke lahan pertanian
+                </div>
+              </button>
+            </div>
+
+            <button id="scheme-cancel" style="
+              width: 100%;
+              padding: 12px;
+              border: 1px solid #e5e7eb;
+              background: white;
+              border-radius: 8px;
+              cursor: pointer;
+              color: #6b7280;
+              font-size: 14px;
+              font-weight: 500;
+              transition: all 0.2s;
+            " onmouseover="this.style.background='#f9fafb'" 
+               onmouseout="this.style.background='white'">
+              Batal
+            </button>
+
+            <style>
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes slideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+              }
+            </style>
+          `;
+
+          overlay.appendChild(modal);
+          document.body.appendChild(overlay);
+
+          // Handle button clicks
+          const utamaBtn = modal.querySelector('#scheme-utama');
+          const tersierBtn = modal.querySelector('#scheme-tersier');
+          const cancelBtn = modal.querySelector('#scheme-cancel');
+
+          const cleanup = () => {
+            overlay.style.animation = 'fadeIn 0.2s ease reverse';
+            setTimeout(() => {
+              document.body.removeChild(overlay);
+            }, 200);
+          };
+
+          utamaBtn.onclick = () => {
+            cleanup();
+            resolve('utama');
+          };
+
+          tersierBtn.onclick = () => {
+            cleanup();
+            resolve('tersier');
+          };
+
+          cancelBtn.onclick = () => {
+            cleanup();
+            resolve(null);
+          };
+
+          // Close on overlay click
+          overlay.onclick = (e) => {
+            if (e.target === overlay) {
+              cleanup();
+              resolve(null);
+            }
+          };
+        });
+
+        // User cancelled
+        if (!schemeChoice) {
+          console.log('ℹ️ User cancelled scheme selection');
+          return;
+        }
+
+        // Update feature scheme
+        console.log(`📝 Updating scheme to: ${schemeChoice}`);
+        const updatedFeature = await updateFeatureScheme(featureId, schemeChoice);
+        
+        // Update local data
+        targetFeature.properties.scheme = schemeChoice;
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #10b981;
+          color: white;
+          padding: 16px 24px;
+          border-radius: 12px;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+          z-index: 10001;
+          animation: slideInRight 0.3s ease;
+          font-weight: 500;
+        `;
+        successMsg.innerHTML = `
+          ✅ Skema "${schemeChoice}" berhasil disimpan!
+          <style>
+            @keyframes slideInRight {
+              from { transform: translateX(100%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+          </style>
+        `;
+        document.body.appendChild(successMsg);
+        setTimeout(() => {
+          successMsg.style.animation = 'slideInRight 0.3s ease reverse';
+          setTimeout(() => document.body.removeChild(successMsg), 300);
+        }, 2000);
+      }
+
+      // Open survey modal with the feature (now has scheme)
       setSelectedFeature(targetFeature);
       setIsSurveyModalOpen(true);
-    } else {
-      console.error('Feature not found with ID:', featureId);
+      
+    } catch (error) {
+      console.error('❌ Error opening survey modal:', error);
+      alert(`Gagal membuka survey: ${error.message}`);
     }
-  }, [geoJsonData]);
+  }, [geoJsonData, updateFeatureScheme]);
 
   // Function to open PAI modal
   const openPAIForFeature = useCallback((featureId) => {
