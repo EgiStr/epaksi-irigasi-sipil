@@ -384,3 +384,103 @@ export async function DELETE(request, { params }) {
     )
   }
 }
+
+/**
+ * PATCH /api/features/[featureId] - Update feature data (terutama scheme)
+ * Endpoint untuk surveyor update scheme feature sebelum melakukan survey IKSI
+ */
+export async function PATCH(request, { params }) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || !hasPermission(session.user.role, PERMISSIONS.FEATURE_EDIT)) {
+      return NextResponse.json(
+        { error: 'Akses ditolak. Anda tidak memiliki izin untuk mengubah data features.' },
+        { status: 403 }
+      )
+    }
+
+    const { featureId } = await params
+    const body = await request.json()
+    
+    // Validate scheme value
+    if (body.scheme && !['utama', 'tersier'].includes(body.scheme)) {
+      return NextResponse.json(
+        { error: 'Scheme tidak valid. Harus "utama" atau "tersier".' },
+        { status: 400 }
+      )
+    }
+
+    // Check if feature exists
+    const existingFeature = await prisma.feature.findUnique({
+      where: { featureId },
+      select: {
+        id: true,
+        featureId: true,
+        name: true,
+        scheme: true
+      }
+    })
+
+    if (!existingFeature) {
+      return NextResponse.json(
+        { error: 'Feature tidak ditemukan' },
+        { status: 404 }
+      )
+    }
+
+    // Prepare update data
+    const updateData = {}
+    if (body.scheme !== undefined) updateData.scheme = body.scheme
+    if (body.name !== undefined) updateData.name = body.name
+    if (body.type !== undefined) updateData.type = body.type
+
+    // Update feature
+    const updatedFeature = await prisma.feature.update({
+      where: { featureId },
+      data: {
+        ...updateData,
+        updatedAt: new Date()
+      },
+      select: {
+        id: true,
+        featureId: true,
+        name: true,
+        type: true,
+        scheme: true,
+        sourceLayer: true,
+        updatedAt: true
+      }
+    })
+
+    // Log audit trail
+    const { AuditLogger } = await import('../../../../lib/audit')
+    await AuditLogger.log({
+      userId: session.user.id,
+      action: 'UPDATE',
+      entityType: 'Feature',
+      entityId: updatedFeature.featureId,
+      oldValues: { scheme: existingFeature.scheme },
+      newValues: { scheme: updatedFeature.scheme },
+      details: `Updated scheme from "${existingFeature.scheme || 'null'}" to "${updatedFeature.scheme}"`
+    })
+
+    return NextResponse.json({
+      message: 'Feature berhasil diupdate',
+      feature: updatedFeature,
+      changes: {
+        scheme: {
+          from: existingFeature.scheme,
+          to: updatedFeature.scheme
+        }
+      }
+    })
+    
+  } catch (error) {
+    console.error('Error updating feature:', error)
+    return NextResponse.json(
+      { error: 'Gagal mengupdate feature', details: error.message },
+      { status: 500 }
+    )
+  }
+}

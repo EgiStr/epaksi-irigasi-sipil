@@ -35,12 +35,10 @@ export async function GET(request) {
       latest: searchParams.get('latest')
     }
     
-    console.log('Query params received:', queryParams)
     
     const queryResult = queryPAISchema.safeParse(queryParams)
 
     if (!queryResult.success) {
-      console.log('Query validation error:', queryResult.error.errors)
       return NextResponse.json({ 
         error: 'Parameter query tidak valid',
         details: queryResult.error.errors,
@@ -132,7 +130,6 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    console.log('Received PAI data:', JSON.stringify(body, null, 2))
     
     // Validate request body
     const validationResult = createPAISchema.safeParse(body)
@@ -145,7 +142,6 @@ export async function POST(request) {
     }
 
     const { featureId, paiType, paiData, paiGeomGeoJSON } = validationResult.data
-    console.log('Validated paiData:', JSON.stringify(paiData, null, 2))
 
     // Check if feature exists
     const feature = await prisma.feature.findUnique({
@@ -160,7 +156,6 @@ export async function POST(request) {
 
     // Normalize PAI data (geometri akan diambil dari Feature)
     const normalizedPaiData = normalizePAIData(paiType, paiData, null)
-    console.log('Normalized PAI data:', JSON.stringify(normalizedPaiData, null, 2))
 
     // Create PAI record (photos are now managed separately)
     const newPAI = await prisma.pAI.create({
@@ -190,7 +185,6 @@ export async function POST(request) {
       }
     })
 
-    console.log('Created PAI in database:', JSON.stringify(newPAI.paiData, null, 2))
 
     return NextResponse.json({
       message: 'PAI berhasil dibuat',
@@ -234,7 +228,6 @@ export async function PUT(request) {
     }
 
     const body = await request.json()
-    console.log('Updating PAI data:', JSON.stringify(body, null, 2))
     
     // Validate request body - should include id for update
     const updateValidationResult = updatePAISchema.safeParse(body)
@@ -247,7 +240,6 @@ export async function PUT(request) {
     }
 
     const { id, featureId, paiType, paiData, paiGeomGeoJSON } = updateValidationResult.data
-    console.log('Validated update data:', JSON.stringify(paiData, null, 2))
 
     // Check if PAI exists and user has permission to update
     const existingPAI = await prisma.pAI.findUnique({
@@ -270,7 +262,6 @@ export async function PUT(request) {
 
     // Normalize PAI data (geometri akan diambil dari Feature)
     const normalizedData = normalizePAIData(paiData, paiType)
-    console.log('Normalized update data:', normalizedData)
 
     // Update PAI (photos are now managed separately)
     const updatedPAI = await prisma.pAI.update({
@@ -301,7 +292,6 @@ export async function PUT(request) {
       }
     })
 
-    console.log('PAI updated successfully:', updatedPAI.id)
 
     return NextResponse.json({
       message: 'PAI berhasil diupdate',

@@ -55,7 +55,6 @@ const FeatureManagement = () => {
       
       if (response.ok) {
         const data = await response.json()
-        console.log('Features API response:', data)
         
         // Validate response structure
         if (data.features && Array.isArray(data.features)) {

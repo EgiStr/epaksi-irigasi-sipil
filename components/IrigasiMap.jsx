@@ -61,7 +61,6 @@ const IrigasiMap = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.openPAIManagementModal = async (feature) => {
-        console.log('Opening PAI modal for feature:', feature);
         setSelectedFeatureForPAI(feature);
         
         // Check if this feature already has PAI
@@ -84,24 +83,19 @@ const IrigasiMap = () => {
     
     setLoadingExistingPAI(true);
     try {
-      console.log('Checking existing PAI for featureId:', featureId);
       const response = await fetch(`/api/pai?featureId=${featureId}&latest=true`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Existing PAI response:', data);
         
         if (data.pai) {
           // For latest=true, API returns single object, not array
           const existingPaiData = data.pai;
-          console.log('Found existing PAI:', existingPaiData);
           setExistingPAI(existingPaiData);
         } else {
-          console.log('No existing PAI found for this feature');
           setExistingPAI(null);
         }
       } else {
-        console.log('Error fetching existing PAI:', response.status);
         setExistingPAI(null);
       }
     } catch (error) {
@@ -115,19 +109,16 @@ const IrigasiMap = () => {
   // PAI handlers
   const handleSavePAI = async (paiData) => {
     try {
-      console.log('Saving PAI data:', paiData)
       
       let url, method
       if (paiData.id) {
         // Update existing PAI
         url = `/api/pai/${paiData.id}`
         method = 'PUT'
-        console.log('Updating existing PAI with ID:', paiData.id)
       } else {
         // Create new PAI
         url = '/api/pai'
         method = 'POST'
-        console.log('Creating new PAI')
       }
 
       const response = await fetch(url, {
@@ -138,7 +129,6 @@ const IrigasiMap = () => {
 
       if (response.ok) {
         const result = await response.json()
-        console.log('PAI save result:', result)
         
         // Close modal and reset states
         setIsPAIFormModalOpen(false);
@@ -271,7 +261,6 @@ const IrigasiMap = () => {
       <PAIFormModal
         isOpen={isPAIFormModalOpen}
         onClose={() => {
-          console.log('Closing PAI Form Modal');
           setIsPAIFormModalOpen(false);
           setSelectedFeatureForPAI(null);
           setExistingPAI(null); // Reset existing PAI when closing

@@ -1,0 +1,283 @@
+{
+  "version": "v2.0",
+  "scheme": "tersier",
+  "title": "Formulir Penilaian Irigasi Tersier ",
+  "description": "Penilaian kondisi jaringan irigasi untuk sistem irigasi tersier dengan sistem persentase 0-100% untuk semua parameter",
+  "grading": {
+    "A": {
+      "min": 85,
+      "max": 100,
+      "label": "Baik",
+      "color": "#22c55e"
+    },
+    "B": {
+      "min": 70,
+      "max": 84.99,
+      "label": "Sedang",
+      "color": "#eab308"
+    },
+    "C": {
+      "min": 55,
+      "max": 69.99,
+      "label": "Kurang",
+      "color": "#f97316"
+    },
+    "D": {
+      "min": 0,
+      "max": 54.99,
+      "label": "Buruk",
+      "color": "#ef4444"
+    }
+  },
+  "categories": [
+    {
+      "key": "prasarana_fisik",
+      "label": "Prasarana Fisik Jaringan Tersier",
+      "weight": 32,
+      "subs": [
+        {
+          "key": "saluran_pembawa",
+          "label": "Saluran Pembawa",
+          "weight": 18,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "bangunan_pada_saluran_pembawa",
+          "label": "Bangunan pada Saluran Pembawa",
+          "weight": 10,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "saluran_pembuang_dan_bangunannya",
+          "label": "Saluran Pembuang dan Bangunannya",
+          "weight": 4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "produktivitas_tanam",
+      "label": "Produktivitas Tanam",
+      "weight": 16,
+      "subs": [
+        {
+          "key": "pemenuhan_kebutuhan_air_pintu_sadap",
+          "label": "Pemenuhan Kebutuhan Air di Pintu Sadap",
+          "weight": 10,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "realisasi_luas_tanam",
+          "label": "Realisasi Luas Tanam",
+          "weight": 4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "produktivitas_padi",
+          "label": "Produktivitas Padi",
+          "weight": 2,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "kondisi_operasional",
+      "label": "Kondisi OP Jaringan Tersier",
+      "weight": 16,
+      "subs": [
+        {
+          "key": "bobolan",
+          "label": "Bobolan dari saluran induk/sekunder/tersier",
+          "weight": 5,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "giliran_pembagian_air",
+          "label": "Giliran pembagian air saat debit kecil",
+          "weight": 3,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "pembersihan_saluran_tersier",
+          "label": "Pembersihan Saluran Tersier",
+          "weight": 5,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "perlengkapan_pendukung_op",
+          "label": "Perlengkapan Pendukung OP",
+          "weight": 3,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "organisasi_personalia",
+      "label": "Organisasi dan Personalia (Petugas OP)",
+      "weight": 12,
+      "subs": [
+        {
+          "key": "petugas_tersedia",
+          "label": "Ulu-ulu/petugas teknis P3A tersedia",
+          "weight": 4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "petugas_terlatih",
+          "label": "Ulu-ulu/petugas teknis P3A terlatih",
+          "weight": 4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "komunikasi_dengan_petani",
+          "label": "Ulu-ulu/petugas sering berkomunikasi dg Petani & Juru",
+          "weight": 4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "dokumentasi",
+      "label": "Dokumentasi",
+      "weight": 8,
+      "subs": [
+        {
+          "key": "buku_data_petak_tersier",
+          "label": "Buku Data Petak Tersier",
+          "weight": 3,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "peta_gambar",
+          "label": "Peta dan Gambar-gambar",
+          "weight": 5,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "p3a",
+      "label": "P3A",
+      "weight": 16,
+      "subs": [
+        {
+          "key": "berbadan_hukum",
+          "label": "P3A berbadan Hukum",
+          "weight": 1.6,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "kelembagaan",
+          "label": "Kondisi Kelembagaan P3A",
+          "weight": 2.4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "rapat_koordinasi",
+          "label": "Rapat Ulu-Ulu/P3A dg Juru/Mantri/Penyuluh",
+          "weight": 1.6,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "aktif_survei",
+          "label": "P3A aktif melakukan survei/penelusuran jaringan",
+          "weight": 2.4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "partisipasi_perbaikan",
+          "label": "Partisipasi perbaikan jaringan & penanganan bencana",
+          "weight": 2.4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "kepatuhan_iuran",
+          "label": "Kepatuhan anggota P3A terhadap iuran utk pengelolaan jaringan",
+          "weight": 1.6,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "perencanaan_tata_tanam",
+          "label": "P3A dalam perencanaan tata tanam & pengalokasian air",
+          "weight": 2.4,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        },
+        {
+          "key": "monitoring_evaluasi",
+          "label": "Keterlibatan P3A dalam Monitoring & Evaluasi",
+          "weight": 1.6,
+          "type": "persentase",
+          "min": 0,
+          "max": 100,
+          "required": true
+        }
+      ]
+    }
+  ]
+}

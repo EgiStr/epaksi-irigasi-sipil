@@ -16,6 +16,8 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isChangingScheme, setIsChangingScheme] = useState(false);
+  const [showSchemeDropdown, setShowSchemeDropdown] = useState(false);
 
   // Handle modal close with animation
   const handleClose = useCallback(() => {
@@ -41,10 +43,16 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
     if (!featureData?.properties) return 'utama';
     
     const props = featureData.properties;
+    
+    // ✅ PRIORITY 1: Check explicit scheme field (set by scheme selector)
+    if (props.scheme) {
+      return props.scheme;
+    }
+    
+    // ✅ PRIORITY 2: Check sourceLayer for auto-detection
     const sourceLayer = props.sourceLayer || '';
     
     // Logic to determine survey type based on feature characteristics
-    // You can adjust this logic based on your specific requirements
     if (sourceLayer.toLowerCase().includes('tersier') || 
         props.n_aset?.toLowerCase().includes('tersier') ||
         props.nama?.toLowerCase().includes('tersier')) {
@@ -124,6 +132,63 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
     }
   }, []);
 
+  // Function to change scheme
+  const handleChangeScheme = useCallback(async (newScheme) => {
+    if (!featureData?.properties?.featureId) {
+      alert('❌ Feature ID tidak ditemukan');
+      return;
+    }
+
+    // Confirm scheme change
+    const confirmed = window.confirm(
+      `⚠️ Apakah Anda yakin ingin mengubah skema ke "${newScheme === 'utama' ? 'Saluran Utama' : 'Saluran Tersier'}"?\n\n` +
+      `Data form yang sudah diisi akan dihapus dan dimulai dari awal.`
+    );
+
+    if (!confirmed) {
+      setShowSchemeDropdown(false);
+      return;
+    }
+
+    setIsChangingScheme(true);
+    setShowSchemeDropdown(false);
+
+    try {
+      // Update scheme via API
+      const response = await fetch(`/api/features/${featureData.properties.featureId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ scheme: newScheme }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Gagal mengupdate skema');
+      }
+
+      const result = await response.json();
+
+      // Update local feature data
+      if (featureData.properties) {
+        featureData.properties.scheme = newScheme;
+      }
+
+      // Reload survey config with new scheme
+      await loadSurveyConfig(newScheme);
+
+      // Show success message
+      alert(`✅ Skema berhasil diubah ke "${newScheme === 'utama' ? 'Saluran Utama' : 'Saluran Tersier'}"!\n\nForm telah direset, silakan isi kembali.`);
+
+    } catch (error) {
+      console.error('❌ Error changing scheme:', error);
+      alert(`Gagal mengubah skema: ${error.message}`);
+    } finally {
+      setIsChangingScheme(false);
+    }
+  }, [featureData, loadSurveyConfig]);
+
   // Effect to load config when modal opens
   useEffect(() => {
     if (isOpen && featureData) {
@@ -136,21 +201,33 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
   useEffect(() => {
     const handleEscKey = (event) => {
       if (event.key === 'Escape' && isOpen && !isClosing) {
-        handleClose();
+        if (showSchemeDropdown) {
+          setShowSchemeDropdown(false);
+        } else {
+          handleClose();
+        }
+      }
+    };
+
+    const handleClickOutside = (event) => {
+      if (showSchemeDropdown && !event.target.closest('.scheme-dropdown-container')) {
+        setShowSchemeDropdown(false);
       }
     };
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscKey);
+      document.addEventListener('mousedown', handleClickOutside);
       // Prevent body scroll when modal is open
       document.body.classList.add('modal-open');
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
+      document.removeEventListener('mousedown', handleClickOutside);
       document.body.classList.remove('modal-open');
     };
-  }, [isOpen, isClosing, handleClose]);
+  }, [isOpen, isClosing, handleClose, showSchemeDropdown]);
 
   // Calculate score when form values change
   const calculateScore = useCallback(async (values) => {
@@ -513,13 +590,117 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         </div>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-3xl">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <FileText className="w-5 h-5 text-blue-600" />
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                Survey Penilaian Irigasi
-              </h2>
-              <p className="text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Survey Penilaian Irigasi
+                </h2>
+                {surveyConfig && (
+                  <div className="relative scheme-dropdown-container">
+                    <button
+                      onClick={() => setShowSchemeDropdown(!showSchemeDropdown)}
+                      disabled={isChangingScheme}
+                      className={`
+                        px-2.5 py-0.5 text-xs font-semibold rounded-full
+                        transition-all duration-200
+                        ${surveyConfig.scheme === 'utama' 
+                          ? 'bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200' 
+                          : 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
+                        }
+                        ${isChangingScheme ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'}
+                      `}
+                      title="Klik untuk mengubah skema"
+                    >
+                      {isChangingScheme ? (
+                        <span className="flex items-center gap-1">
+                          <span className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                          Mengubah...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          {surveyConfig.scheme === 'utama' ? '🏗️ Utama' : '🌾 Tersier'}
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      )}
+                    </button>
+                    
+                    {/* Dropdown Menu */}
+                    {showSchemeDropdown && !isChangingScheme && (
+                      <div 
+                        className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                      >
+                        <div className="p-2">
+                          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            Ubah Skema Survey
+                          </div>
+                          
+                          {/* Option: Utama */}
+                          <button
+                            onClick={() => handleChangeScheme('utama')}
+                            disabled={surveyConfig.scheme === 'utama'}
+                            className={`
+                              w-full text-left px-3 py-2.5 rounded-md transition-colors
+                              ${surveyConfig.scheme === 'utama'
+                                ? 'bg-blue-50 text-blue-700 cursor-default'
+                                : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
+                              }
+                            `}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">🏗️</span>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">Saluran Utama</div>
+                                <div className="text-xs text-gray-500">Primer/Sekunder</div>
+                              </div>
+                              {surveyConfig.scheme === 'utama' && (
+                                <CheckCircle className="w-4 h-4 text-blue-600" />
+                              )}
+                            </div>
+                          </button>
+                          
+                          {/* Option: Tersier */}
+                          <button
+                            onClick={() => handleChangeScheme('tersier')}
+                            disabled={surveyConfig.scheme === 'tersier'}
+                            className={`
+                              w-full text-left px-3 py-2.5 rounded-md transition-colors
+                              ${surveyConfig.scheme === 'tersier'
+                                ? 'bg-green-50 text-green-700 cursor-default'
+                                : 'hover:bg-green-50 text-gray-700 hover:text-green-700'
+                              }
+                            `}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">🌾</span>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">Saluran Tersier</div>
+                                <div className="text-xs text-gray-500">Ke lahan pertanian</div>
+                              </div>
+                              {surveyConfig.scheme === 'tersier' && (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              )}
+                            </div>
+                          </button>
+                        </div>
+                        
+                        <div className="border-t border-gray-100 px-3 py-2 bg-yellow-50">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-xs text-yellow-800">
+                              Mengubah skema akan mereset semua data form yang sudah diisi
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mt-0.5">
                 {featureData.properties.nama || featureData.properties.n_di || 'Fasilitas Irigasi'}
               </p>
             </div>
