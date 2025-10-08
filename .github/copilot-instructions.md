@@ -1,156 +1,214 @@
-# GitHub Copilot Instructions for Sistem Pemetaan Irigasi Sipil
+# GitHub Copilot Instructions
 
-## 📜 Core Mission
+## 🎯 Project Overview
+**Sistem Pemetaan Irigasi Sipil** - A Next.js geospatial web application for managing irrigation infrastructure with dual scoring systems (IKSI survey + PAI asset profiling) and role-based access control.
 
-Your primary role is to act as an expert **Next.js and React developer**, specializing in creating user-friendly geospatial applications for irrigation management. Your goal is to assist in building the Sistem Pemetaan Irigasi Sipil application, which focuses on mapping and managing irrigation infrastructure data. Every piece of code you generate must be clean, maintainable, performant, and adhere strictly to the principles, conventions, and architectural patterns outlined in this document.
+## 🏗️ Architecture
 
-## 👤 Persona
+### Core Stack
+- **Next.js 15.5** (App Router) + **React 19** + **PostgreSQL 15 + PostGIS**
+- **Prisma ORM 6.15** for type-safe database access
+- **Leaflet 1.9.4** + React-Leaflet for maps (client-side only)
+- **NextAuth.js 4.24** for authentication
+- **Tailwind CSS 4.1** for styling
 
-Act as a senior full-stack developer with deep expertise in:
-- **Next.js 15.x**: Following App Router patterns and modern React Server Components.
-- **React 19.x**: Building interactive and performant user interfaces.
-- **Leaflet & React-Leaflet**: Creating responsive geospatial mapping applications.
-- **Prisma ORM**: Implementing efficient database operations and migrations.
-- **Tailwind CSS**: Crafting responsive and accessible UI components.
-- **Bilingual Development**: Fluent in writing **English for technical code** and **Bahasa Indonesia for user-facing text**.
+### Critical: Bilingual Codebase Rule
+- **Code & Technical**: Always English (variables, functions, API routes, comments)
+- **UI & User-Facing**: Always Bahasa Indonesia (labels, messages, buttons, errors)
+- Example: `const irrigationData = ...` but `<button>Simpan Data</button>`
 
----
+### Data Flow Pattern
+```
+User → Next.js Page (Server/Client) → API Route → Prisma → PostGIS
+                                         ↓
+                                    Audit Logger (lib/audit.js)
+                                         ↓
+                                    Permission Check (lib/permissions.js)
+```
 
-## CONTEXT AND GUIDELINES
+## 📁 Key File Patterns
 
-### 1. High-Level Project Context
+### 1. Database & ORM
+- **Schema**: `prisma/schema.prisma` - Core models: `Feature`, `Survey`, `PAI`, `User`, `AuditLog`
+- **Spatial Data**: Features use `geometry(GEOMETRY,4326)` for PostGIS
+- **Feature ID**: MD5 hash from coordinates + name (see `lib/kml-parser.js::generateFeatureId()`)
+- **Schemes**: Features tagged as `'utama'` or `'tersier'` for different assessment types
 
-- **Project**: Sistem Pemetaan Irigasi Sipil (Civil Irrigation Mapping System)
-- **Purpose**: A web application for mapping, monitoring, and managing irrigation infrastructure data.
-- **Primary Users**: Civil engineers, irrigation technicians, government officials, and agricultural stakeholders.
-- **Core Philosophy**: **"Data-Driven, Map-Centric, User-Friendly."** All features should center around geospatial data visualization and management.
+**Database Commands**:
+```bash
+npm run db:generate  # Generate Prisma Client
+npm run db:push      # Push schema changes (dev)
+npm run db:migrate   # Run migrations (production)
+```
 
-### 2. The Golden Rule of Language
+### 2. Authentication & Authorization
+- **Auth Config**: `app/api/auth/[...nextauth]/route.js` - Credentials provider with bcrypt
+- **Middleware**: `middleware.js` - Role-based route protection
+- **Permissions**: `lib/permissions.js` - RBAC with 4 roles (VIEWER → SURVEYOR → ADMIN → SUPERADMIN)
+- **Session**: JWT strategy, 24-hour expiry, user.role attached to token
 
-This is a non-negotiable rule for all generated code.
+**Permission Check Pattern**:
+```javascript
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+if (!hasPermission(session.user.role, PERMISSIONS.FEATURE_EDIT)) {
+  return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
+}
+```
 
-- **For the User (UI/UX): Use Bahasa Indonesia.**
-    - All labels, tooltips, notifications, error messages, and content visible on the screen **must** be in clear, professional Bahasa Indonesia.
-    - *Example*: `<h1>Peta Daerah Irigasi</h1>`, `placeholder="Masukkan nama daerah irigasi"`
-- **For the Developer (Technical): Use English.**
-    - All variable names, function names, component names, database schemas, comments, and API routes **must** be in English.
-    - *Example*: `const irrigationData = await fetchIrrigationAreas()`, `export default function IrrigationMap()`
+### 3. Geospatial Data Processing
+- **KML Upload**: `app/api/upload/route.js` - Parses KML → GeoJSON → PostGIS
+- **Parser**: `lib/kml-parser.js` - Extracts properties from HTML tables, detects scheme
+- **API**: `app/api/features/route.js` - Supports bbox filtering, spatial queries
+- **Map Component**: `components/LeafletMap.jsx` - **Must use dynamic import** (Leaflet breaks SSR)
 
-### 3. Technology Stack
+**Critical Pattern - Avoid SSR Issues**:
+```javascript
+// ❌ WRONG - Will break on server
+import { MapContainer } from 'react-leaflet'
 
-When generating code, strictly adhere to this stack. Do not introduce new technologies without explicit instruction.
-- **Framework**: Next.js 15.x with App Router
-- **Frontend**: React 19.x with TypeScript (when requested)
-- **Database**: postgresql + postgis with Prisma ORM
-- **Mapping**: Leaflet with React-Leaflet
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **State Management**: React Hooks (useState, useEffect, useContext)
-- **Data Fetching**: Native fetch API with custom hooks
+// ✅ CORRECT - Dynamic import
+const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
+  ssr: false,
+  loading: () => <div>Memuat peta...</div>
+})
+```
 
-### 4. Architectural and Design Principles
+### 4. Dual Scoring Systems
 
-Your code must embody these foundational software engineering principles.
+#### IKSI Survey (Existing)
+- **Model**: `Survey` - Weighted scoring with A/B/C/D classification
+- **Engine**: `lib/scoring/engine.js` - Implements Weighted Sum Model (WSM)
+- **Config**: `config/survey-{utama|tersier}*.json` - Dynamic weights & grading thresholds
+- **Normalization**: Handles boolean, ordinal, percentage, numeric inputs → [0,1] scale
+- **API**: `app/api/surveys/route.js` - CRUD + `/calculate-score` endpoint
 
-#### KISS (Keep It Simple, Stupid)
-- **Core Idea**: Favor simple, straightforward solutions over complex ones.
-- **Your Application**:
-    - Use simple React patterns and avoid over-engineering components.
-    - Prefer composition over complex inheritance patterns.
-    - *Example*: Use a simple `useState` hook instead of complex state management for local component state.
+#### PAI Asset Profiling (Sprint 2)
+- **Model**: `PAI` - Structured asset data with photo support
+- **Types**: `'saluran'` (channel) or `'bangunan'` (structure)
+- **Photos**: `Photo` model → Supabase Storage integration (`lib/supabase.js`)
+- **Priority System**: `priorityScore` (1-5), `priorityStatus`, `priorityNotes` for maintenance prioritization
+- **API**: `app/api/pai/route.js` - Separate from surveys
+- **API Priority**: `app/api/pai/[id]/priority/route.js` - PATCH for updating priority scores
+- **Forms**: `components/forms/PAIFormFields.jsx` + `PhotoManager.jsx`
+- **Priority Modal**: `components/PriorityScoreModal.jsx` - UI for setting repair priorities
+- **Admin Page**: `app/admin/priorities/page.js` - Dashboard for viewing all priorities
 
-#### DRY (Don't Repeat Yourself)
-- **Core Idea**: Every piece of knowledge must have a single, unambiguous representation.
-- **Your Application**:
-    - Create reusable React components for repeated UI patterns.
-    - Use custom hooks for shared logic across components.
-    - Create utility functions for common data transformations.
-    - *Example*: If map styling logic appears in multiple components, create a `useMapStyles()` hook.
+### 5. Audit Trail System
+- **Logger**: `lib/audit.js::AuditLogger` - Tracks all user actions
+- **Usage**: Call `AuditLogger.log()` in API routes after mutations
+- **Storage**: `AuditLog` model with user, action, entity type, old/new values
+- **Admin UI**: `app/admin/audit-logs/page.js`
 
-#### YAGNI (You Ain't Gonna Need It)
-- **Core Idea**: Do not add functionality until it is deemed necessary.
-- **Your Application**:
-    - Only implement the features explicitly requested.
-    - Avoid adding generic props or configuration options speculatively.
-    - *Example*: Don't add export functionality unless specifically requested.
+## 🔧 Development Workflows
 
-#### Component-Based Architecture
-- **Separation of Concerns**: Each component should have a single responsibility.
-    - *Your Application*: `IrrigationMap` handles map display, `Sidebar` handles navigation, `TableDaerahIrigasi` handles data tables.
-- **Reusability**: Components should be designed for reuse across different contexts.
-- **Composition**: Build complex UIs by composing simpler components.
+### Local Setup
+```bash
+npm install
+npm run db:generate              # After schema changes
+node scripts/create-dummy-user.js # Create test admin
+node scripts/seed-configs.js      # Seed survey configs
+npm run dev                       # Start dev server
+```
 
-### 5. UI/UX Principles for Geospatial Applications
+### Adding New Features
+1. **Database**: Update `prisma/schema.prisma` → `npm run db:push`
+2. **API**: Create route in `app/api/*/route.js` with permission checks
+3. **Component**: If map-related, use dynamic import
+4. **Audit**: Add `AuditLogger.log()` for sensitive operations
+5. **Types**: Features need `featureId`, `sourceLayer`, `scheme` fields
 
-All generated UI code must follow these rules.
+### Common Gotchas
+- **Leaflet Icons**: Fixed in `components/LeafletMap.jsx` - imports from `/public/leaflet/`
+- **GeoJSON Format**: Must include `type: 'FeatureCollection'` and `features` array
+- **Spatial Queries**: Use raw SQL with `prisma.$queryRaw` for PostGIS functions
+- **Photo Upload**: Max 5MB, stored in Supabase, URLs saved in `Photo.url`
 
-- **Map-Centric Design**:
-    - The map should be the primary interface element in most views.
-    - Use clear **Bahasa Indonesia** labels for map controls and data layers.
-    - Implement responsive design that works on mobile and desktop.
-- **Data Visualization**:
-    - Use consistent color schemes for different irrigation types.
-    - Provide clear legends and tooltips in **Bahasa Indonesia**.
-    - Show loading states for async map data operations.
-- **Accessibility**:
-    - Ensure keyboard navigation for map controls.
-    - Provide alternative text for map elements.
-    - Use high contrast colors for better visibility.
+## 🎨 UI/UX Conventions
 
-### 6. Code Standards and Conventions
+### Map Visualization
+- **Colors**: Defined in `MAP_CONFIG` (LeafletMap.jsx) - different per `sourceLayer`
+- **Popups**: Show priority fields first (defined in `PRIORITY_FIELDS` array)
+- **Survey Status**: Color-coded by quality class (A=green, B=yellow, C=orange, D=red)
+- **Controls**: Layer toggle, opacity sliders, legend - all in Bahasa Indonesia
 
-- **Next.js App Router Conventions**:
-    - Use `app/` directory structure with `page.js`, `layout.js`, `loading.js`, `error.js`.
-    - Implement Server and Client Components appropriately.
-    - Use `'use client'` directive only when necessary for interactivity.
-- **React Best Practices**:
-    - Use functional components with hooks.
-    - Implement proper error boundaries for map components.
-    - Use React.memo() for expensive components that re-render frequently.
-- **Prisma Database Conventions**:
-    - Use descriptive model names in English: `IrrigationArea`, `InfrastructureType`.
-    - Implement proper relationships between models.
-    - Use appropriate field types for geospatial data (Decimal for coordinates).
+### Forms & Validation
+- **Survey Forms**: Auto-generated from JSON config, type-aware inputs
+- **PAI Forms**: Schema validation with Zod (`lib/validations/pai-schema.js`)
+- **Photo Upload**: Drag-drop + preview, managed by `PhotoUpload.jsx`
 
-### 7. Geospatial-Specific Guidelines
+## 📋 Reference Decision Log
 
-- **Map Performance**:
-    - Implement lazy loading for map components to avoid SSR issues.
-    - Use dynamic imports with `next/dynamic` for Leaflet components.
-    - Optimize GeoJSON data loading and rendering.
-- **Data Handling**:
-    - Validate coordinate data before rendering on maps.
-    - Implement proper error handling for missing or invalid geospatial data.
-    - Use appropriate data formats (GeoJSON for vector data).
-- **User Experience**:
-    - Provide clear feedback when map data is loading.
-    - Implement intuitive map controls in **Bahasa Indonesia**.
-    - Show informative popups and tooltips for map features.
+### Why PostGIS?
+Spatial indexing for bbox queries, future geocoding/routing support
 
-### 8. Anti-Patterns to AVOID
+### Why Separate Survey vs PAI?
+Different purposes - IKSI scores condition, PAI documents assets. Independent lifecycles.
 
-- **SSR Issues**: **NEVER** import Leaflet directly in components without dynamic imports.
-- **Performance Issues**: **NEVER** render large datasets without pagination or clustering.
-- **Mixed Languages**: **NEVER** mix English and Bahasa Indonesia in user-facing text.
-- **Blocking Operations**: **NEVER** perform heavy geospatial calculations on the main thread.
-- **Unhandled Errors**: **NEVER** leave map operations without proper error handling.
+### Why MD5 for Feature IDs?
+Stable IDs across KML re-uploads, prevents duplicate features
 
----
+### Why JSON Configs?
+Admin-editable scoring without redeployment (see `app/admin/configs/page.js`)
 
-## HOW TO INTERACT
+## 🚨 Critical Patterns
 
-- **Be Proactive**: Suggest the best implementation approach considering Next.js patterns and mapping requirements.
-- **Explain Your Code**: Briefly explain geospatial or Next.js-specific decisions.
-- **Consider Performance**: Always consider the impact on map rendering performance.
-- **Ask for Clarification**: If geospatial requirements are unclear, ask specific questions about data formats, coordinate systems, or user interactions.
+### API Route Template
+```javascript
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '../auth/[...nextauth]/route'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { AuditLogger } from '@/lib/audit'
 
-## Reference Files
+export async function POST(request) {
+  const session = await getServerSession(authOptions)
+  if (!session || !hasPermission(session.user.role, PERMISSIONS.X)) {
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
+  }
+  
+  // ... operation ...
+  
+  await AuditLogger.log({
+    userId: session.user.id,
+    action: 'CREATE',
+    entityType: 'Feature',
+    entityId: result.id,
+    newValues: result
+  })
+  
+  return NextResponse.json(result)
+}
+```
 
-When working on a task, always consider the context provided in these files:
-- `app/layout.js` - Root layout configuration
-- `app/page.js` - Main application page
-- `components/IrrigationMap.jsx` - Main map component
-- `components/LeafletMap.jsx` - Leaflet-specific map implementation
-- `hooks/useIrigasiData.js` - Data fetching hook for irrigation data
-- `prisma/schema.prisma` - Database schema definition
-- `lib/prisma.js` - Prisma client configuration
+### Data Fetching Hook Template
+```javascript
+export function useEntityData() {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const reload = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/entity')
+      if (!res.ok) throw new Error(await res.text())
+      setData(await res.json())
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { reload() }, [reload])
+  return { data, loading, error, reload }
+}
+```
+
+## 📚 Key Files to Reference
+- `prisma/schema.prisma` - Full data model
+- `lib/permissions.js` - All roles & permissions
+- `lib/scoring/engine.js` - Survey calculation logic
+- `lib/kml-parser.js` - Geospatial data processing
+- `components/LeafletMap.jsx` - Map implementation patterns
+- `middleware.js` - Route protection logic
+- `docs/PRD.md` + `docs/PRD_SPRINT2.md` - Feature requirements

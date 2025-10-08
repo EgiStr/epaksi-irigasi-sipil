@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-markercluster/styles';
 import SurveyModal from './SurveyModal';
+import PriorityScoreModal from './PriorityScoreModal';
 import { useSurveyData } from '../hooks/useSurveyData';
 
 // Import ikon leaflet
@@ -69,6 +70,10 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
   // State for survey modal
   const [isSurveyModalOpen, setIsSurveyModalOpen] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
+  
+  // State for priority modal
+  const [isPriorityModalOpen, setIsPriorityModalOpen] = useState(false);
+  const [selectedPAI, setSelectedPAI] = useState(null);
   
   // Survey visualization controls
   const [showSurveyLayer, setShowSurveyLayer] = useState(true);
@@ -248,53 +253,189 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     }
   }, [geoJsonData]);
 
+  // Function to open priority modal
+  const openPriorityModalForPAI = useCallback(async (featureId) => {
+    try {
+      // Find feature by ID
+      const targetFeature = geoJsonData?.features?.find(f => f.properties?.featureId === featureId);
+      
+      if (!targetFeature) {
+        console.error('Feature not found with ID:', featureId);
+        alert('❌ Feature tidak ditemukan');
+        return;
+      }
+
+      // Fetch PAI data for this feature
+      const response = await fetch(`/api/pai?featureId=${featureId}`);
+      
+      if (!response.ok) {
+        throw new Error('Gagal mengambil data PAI');
+      }
+
+      const data = await response.json();
+      console.log('PAI data for priority:', data);
+      
+      // Support both response formats
+      const paiList = data.data || data;
+      
+      if (!Array.isArray(paiList) || paiList.length === 0) {
+        alert('⚠️ Data PAI belum tersedia\n\nSilakan buat data PAI terlebih dahulu dengan klik tombol "📝 PAI" sebelum mengatur prioritas perbaikan.');
+        return;
+      }
+      
+      // Use the first/latest PAI
+      const paiData = paiList[0];
+      setSelectedPAI(paiData);
+      setSelectedFeature(targetFeature);
+      setIsPriorityModalOpen(true);
+      
+    } catch (error) {
+      console.error('Error opening priority modal:', error);
+      alert('❌ Gagal membuka modal prioritas: ' + error.message);
+    }
+  }, [geoJsonData]);
+
   // Setup global functions
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.openSurveyModal = openSurveyForFeature;
       window.openPAIModal = openPAIForFeature;
+      window.openPriorityModal = openPriorityModalForPAI;
       
       // Function to load PAI info in popup
       window.loadPAIInfo = async (featureId) => {
         try {
-          const response = await fetch(`/api/pai?featureId=${featureId}&latest=true`);
-          if (response.ok) {
-            const data = await response.json();
-            const paiInfoElement = document.getElementById(`pai-info-${featureId}`);
-            
+          const response = await fetch(`/api/pai?featureId=${featureId}`);
+          
+          const paiInfoElement = document.getElementById(`pai-info-${featureId}`);
+          const priorityBtn = document.getElementById(`priority-btn-${featureId}`);
+          
+          if (!response.ok) {
+            console.error('Failed to fetch PAI:', response.status);
+            // Show error state
             if (paiInfoElement) {
-              if (data.pai) {
-                const pai = data.pai;
-                const paiTypeIcon = pai.paiType === 'saluran' ? '🚰' : '🏢';
-                const paiTypeName = pai.paiType === 'saluran' ? 'Saluran' : 'Bangunan';
-                
-                let infoHTML = `<div style="color: #374151;">`;
-                infoHTML += `<div style="margin-bottom: 4px;"><strong>${paiTypeIcon} ${paiTypeName}</strong></div>`;
-                infoHTML += `<div>${pai.paiData?.aset?.nama || 'Tidak ada nama'}</div>`;
-                infoHTML += `<div style="font-size: 11px; color: #6b7280;">${pai.paiData?.aset?.jenis || ''} • ${pai.paiData?.aset?.nomenklatur || ''}</div>`;
-                
-                if (pai.paiType === 'saluran' && pai.lengthM) {
-                  infoHTML += `<div style="font-size: 11px; color: #6b7280;">Panjang: ${Math.round(pai.lengthM)}m</div>`;
+              paiInfoElement.innerHTML = '<div style="color: #ef4444; font-size: 12px;">❌ Gagal memuat data PAI</div>';
+            }
+            if (priorityBtn) {
+              priorityBtn.disabled = true;
+              priorityBtn.style.opacity = '0.5';
+              priorityBtn.style.cursor = 'not-allowed';
+              priorityBtn.title = 'Gagal memuat data PAI';
+            }
+            return;
+          }
+          
+          const data = await response.json();
+          console.log('PAI API Response:', data); // Debug log
+          
+          if (paiInfoElement) {
+            // Check if PAI data exists - support both response formats
+            const paiList = data.data || data;
+            const hasPAI = Array.isArray(paiList) && paiList.length > 0;
+            
+            if (hasPAI) {
+              const pai = paiList[0]; // Use first/latest PAI
+              const paiTypeIcon = pai.paiType === 'saluran' ? '🚰' : '🏢';
+              const paiTypeName = pai.paiType === 'saluran' ? 'Saluran' : 'Bangunan';
+              
+              let infoHTML = `<div style="color: #374151;">`;
+              infoHTML += `<div style="margin-bottom: 4px;"><strong>${paiTypeIcon} ${paiTypeName}</strong></div>`;
+              infoHTML += `<div>${pai.paiData?.aset?.nama || 'Tidak ada nama'}</div>`;
+              infoHTML += `<div style="font-size: 11px; color: #6b7280;">${pai.paiData?.aset?.jenis || ''} • ${pai.paiData?.aset?.nomenklatur || ''}</div>`;
+              
+              if (pai.paiType === 'saluran' && pai.lengthM) {
+                infoHTML += `<div style="font-size: 11px; color: #6b7280;">Panjang: ${Math.round(pai.lengthM)}m</div>`;
+              }
+              
+              if (pai.photos && pai.photos.length > 0) {
+                infoHTML += `<div style="font-size: 11px; color: #6b7280;">📷 ${pai.photos.length} foto</div>`;
+              }
+              
+              // Add priority info if exists
+              if (pai.priorityScore) {
+                const priorityLabels = {
+                  5: { label: 'Sangat Mendesak', color: '#ef4444' },
+                  4: { label: 'Mendesak', color: '#f97316' },
+                  3: { label: 'Sedang', color: '#f59e0b' },
+                  2: { label: 'Rendah', color: '#3b82f6' },
+                  1: { label: 'Sangat Rendah', color: '#6b7280' }
+                };
+                const priorityInfo = priorityLabels[pai.priorityScore];
+                infoHTML += `<div style="margin-top: 6px; padding: 4px 8px; background: ${priorityInfo.color}20; border-left: 3px solid ${priorityInfo.color}; border-radius: 4px;">`;
+                infoHTML += `<div style="font-size: 11px; font-weight: 600; color: ${priorityInfo.color};">⚠️ Prioritas: ${priorityInfo.label} (${priorityInfo.priority})</div>`;
+                if (pai.priorityNotes) {
+                  infoHTML += `<div style="font-size: 10px; color: #6b7280; margin-top: 2px;">${pai.priorityNotes}</div>`;
                 }
-                
-                if (pai.photos && pai.photos.length > 0) {
-                  infoHTML += `<div style="font-size: 11px; color: #6b7280;">📷 ${pai.photos.length} foto</div>`;
-                }
-                
-                infoHTML += `<div style="font-size: 11px; color: #6b7280;">Updated: ${new Date(pai.updatedAt).toLocaleDateString('id-ID')}</div>`;
                 infoHTML += `</div>`;
+              }
+              
+              infoHTML += `<div style="font-size: 11px; color: #6b7280;">Updated: ${new Date(pai.updatedAt).toLocaleDateString('id-ID')}</div>`;
+              infoHTML += `</div>`;
+              
+              paiInfoElement.innerHTML = infoHTML;
+              
+              // Enable priority button
+              if (priorityBtn) {
+                priorityBtn.disabled = false;
+                priorityBtn.style.opacity = '1';
+                priorityBtn.style.cursor = 'pointer';
+                priorityBtn.title = 'Atur prioritas perbaikan';
+                // Remove any previous onclick override
+                priorityBtn.onclick = null;
+              }
+            } else {
+              // No PAI data
+              paiInfoElement.innerHTML = `
+                <div style="padding: 8px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                  <div style="color: #92400e; font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+                    ℹ️ Belum ada data PAI
+                  </div>
+                  <div style="color: #78350f; font-size: 11px;">
+                    Silakan buat data PAI terlebih dahulu dengan klik tombol "📝 PAI"
+                  </div>
+                </div>
+              `;
+              
+              // Disable priority button with explanation
+              if (priorityBtn) {
+                priorityBtn.disabled = true;
+                priorityBtn.style.opacity = '0.5';
+                priorityBtn.style.cursor = 'not-allowed';
+                priorityBtn.title = 'Buat data PAI terlebih dahulu untuk mengatur prioritas';
                 
-                paiInfoElement.innerHTML = infoHTML;
-              } else {
-                paiInfoElement.innerHTML = '<div style="color: #6b7280; font-style: italic;">Belum ada data PAI</div>';
+                // Override onclick to show alert
+                priorityBtn.onclick = function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert('⚠️ Data PAI belum tersedia\n\nSilakan buat data PAI terlebih dahulu dengan klik tombol "📝 PAI" sebelum mengatur prioritas perbaikan.');
+                  return false;
+                };
               }
             }
           }
         } catch (error) {
           console.error('Error loading PAI info:', error);
           const paiInfoElement = document.getElementById(`pai-info-${featureId}`);
+          const priorityBtn = document.getElementById(`priority-btn-${featureId}`);
+          
           if (paiInfoElement) {
-            paiInfoElement.innerHTML = '<div style="color: #ef4444;">Error loading PAI data</div>';
+            paiInfoElement.innerHTML = `
+              <div style="padding: 8px; background: #fee2e2; border-left: 3px solid #ef4444; border-radius: 4px;">
+                <div style="color: #991b1b; font-size: 12px; font-weight: 600;">
+                  ❌ Gagal memuat data PAI
+                </div>
+                <div style="color: #7f1d1d; font-size: 11px; margin-top: 2px;">
+                  ${error.message || 'Terjadi kesalahan'}
+                </div>
+              </div>
+            `;
+          }
+          
+          if (priorityBtn) {
+            priorityBtn.disabled = true;
+            priorityBtn.style.opacity = '0.5';
+            priorityBtn.style.cursor = 'not-allowed';
+            priorityBtn.title = 'Gagal memuat data PAI';
           }
         }
       };
@@ -304,10 +445,11 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       if (typeof window !== 'undefined') {
         delete window.openSurveyModal;
         delete window.openPAIModal;
+        delete window.openPriorityModal;
         delete window.loadPAIInfo;
       }
     };
-  }, [openSurveyForFeature, openPAIForFeature]);
+  }, [openSurveyForFeature, openPAIForFeature, openPriorityModalForPAI]);
 
   // Debug state changes
   useEffect(() => {
@@ -460,6 +602,17 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     // Add survey info and button for irrigation features (exclude boundary features)
     const isIrrigationFeature = props.featureId && !props.NAMOBJ && !props.WADMKK;
     if (isIrrigationFeature) {
+      // Add PAI info section (will be populated by loadPAIInfo)
+      content += `<div style="margin: 12px 0; padding: 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0;">`;
+      content += `<div style="font-weight: bold; color: #15803d; margin-bottom: 6px;">📋 Info PAI</div>`;
+      content += `<div id="pai-info-${props.featureId}" style="min-height: 24px; display: flex; align-items: center;">`;
+      content += `<div style="display: flex; align-items: center; gap: 6px; color: #6b7280; font-size: 12px;">`;
+      content += `<div class="animate-pulse" style="width: 12px; height: 12px; background: #9ca3af; border-radius: 50%;"></div>`;
+      content += `Memuat data PAI...`;
+      content += `</div>`;
+      content += `</div>`;
+      content += `</div>`;
+      
       // Check if survey exists
       const existingSurvey = getSurveyForFeature(props.featureId);
       
@@ -481,36 +634,52 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         
         // Update survey button
         content += `<div style="margin: 8px 0; padding: 8px; background: #fff3cd; border-radius: 6px; text-align: center; border: 1px solid #ffc107;">`;
-        content += `<div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 4px;">`;
+        content += `<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 4px;">`;
         content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
-                      style="background: #ffc107; color: #212529; border: none; padding: 6px 12px; border-radius: 4px; 
-                             cursor: pointer; font-weight: 500; font-size: 12px;">
-                      🔄 Update Survey
+                      style="background: #ffc107; color: #212529; border: none; padding: 6px 8px; border-radius: 4px; 
+                             cursor: pointer; font-weight: 500; font-size: 11px;">
+                      🔄 Survey
                     </button>`;
         content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
-                     style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; 
-                           cursor: pointer; font-weight: 500; font-size: 12px;">
+                     style="background: #16a34a; color: white; border: none; padding: 6px 8px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 11px;">
                   📝 PAI
                 </button>`;
+        content += `<button id="priority-btn-${props.featureId}" 
+                     onclick="window.openPriorityModal && window.openPriorityModal('${props.featureId}')" 
+                     style="background: #ef4444; color: white; border: none; padding: 6px 8px; border-radius: 4px; 
+                           font-weight: 500; font-size: 11px; opacity: 0.5; cursor: not-allowed;" 
+                     disabled
+                     title="Memuat status PAI...">
+                  ⚠️ Prioritas
+                </button>`;
         content += `</div>`;
-        content += `<div style="font-size: 11px; color: #856404;">Perbarui penilaian irigasi ini atau kelola data PAI</div>`;
+        content += `<div style="font-size: 10px; color: #856404;">Update survey, kelola PAI, atau atur prioritas perbaikan</div>`;
         content += `</div>`;
       } else {
         // No survey yet - show create button
         content += `<div style="margin: 12px 0; padding: 10px; background: #e3f2fd; border-radius: 6px; text-align: center; border: 1px solid #2196f3;">`;
-        content += `<div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 4px;">`;
+        content += `<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 4px;">`;
         content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
-                      style="background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
-                             cursor: pointer; font-weight: 500; font-size: 13px;">
-                      📋 Buat Survey
+                      style="background: #2196f3; color: white; border: none; padding: 8px 12px; border-radius: 4px; 
+                             cursor: pointer; font-weight: 500; font-size: 12px;">
+                      📋 Survey
                     </button>`;
         content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
-                     style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
-                           cursor: pointer; font-weight: 500; font-size: 13px;">
+                     style="background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 4px; 
+                           cursor: pointer; font-weight: 500; font-size: 12px;">
                   📝 PAI
                 </button>`;
+        content += `<button id="priority-btn-${props.featureId}" 
+                     onclick="window.openPriorityModal && window.openPriorityModal('${props.featureId}')" 
+                     style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; 
+                           font-weight: 500; font-size: 12px; opacity: 0.5; cursor: not-allowed;" 
+                     disabled
+                     title="Memuat status PAI...">
+                  ⚠️ Prioritas
+                </button>`;
         content += `</div>`;
-        content += `<div style="font-size: 11px; color: #666;">Buat penilaian kualitas irigasi atau kelola data PAI</div>`;
+        content += `<div style="font-size: 11px; color: #666;">Buat survey, kelola PAI, atau atur prioritas perbaikan</div>`;
         content += `</div>`;
       }
     }
@@ -1077,6 +1246,28 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
           }
           
           // Show success message (you can enhance this with a toast notification)
+        }}
+      />
+
+      {/* Priority Score Modal */}
+      <PriorityScoreModal
+        isOpen={isPriorityModalOpen}
+        onClose={() => {
+          setIsPriorityModalOpen(false);
+          setSelectedPAI(null);
+        }}
+        featureData={selectedFeature}
+        paiData={selectedPAI}
+        onSubmit={(result) => {
+          console.log('Priority updated:', result);
+          
+          // Optionally trigger data reload
+          if (onDataReload) {
+            onDataReload();
+          }
+          
+          // Show success message
+          alert('Prioritas berhasil disimpan!');
         }}
       />
       

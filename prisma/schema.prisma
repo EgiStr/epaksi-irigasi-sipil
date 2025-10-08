@@ -155,14 +155,17 @@ model AuditLog {
 }
 
 model PAI {
-  id            String   @id @default(cuid())
-  featureId     String   @map("feature_id")
-  paiType       String   @map("pai_type") // 'saluran' | 'bangunan'
-  paiData       Json     @map("pai_data") // Structured PAI data
-  photos        Json?    // Legacy field for base64 photos (deprecated)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  createdBy     String   @map("created_by")
+  id              String   @id @default(cuid())
+  featureId       String   @map("feature_id")
+  paiType         String   @map("pai_type") // 'saluran' | 'bangunan'
+  paiData         Json     @map("pai_data") // Structured PAI data
+  photos          Json?    // Legacy field for base64 photos (deprecated)
+  priorityScore   Int?     @map("priority_score") // Skor prioritas perbaikan (1-5)
+  priorityNotes   String?  @map("priority_notes") @db.Text // Catatan prioritas
+  priorityStatus  String?  @map("priority_status") @default("pending") // 'pending' | 'approved' | 'in_progress' | 'completed'
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdBy       String   @map("created_by")
 
   feature       Feature  @relation(fields: [featureId], references: [featureId], onDelete: Cascade)
   user          User     @relation(fields: [createdBy], references: [id])
@@ -172,6 +175,8 @@ model PAI {
   @@index([featureId])
   @@index([paiType])
   @@index([createdAt])
+  @@index([priorityScore])
+  @@index([priorityStatus])
 }
 
 model Photo {
