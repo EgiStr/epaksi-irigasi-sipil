@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, AlertTriangle, CheckCircle, Clock, PlayCircle } from 'lucide-react'
+import { X, AlertTriangle, CheckCircle, Clock, PlayCircle, Flag } from 'lucide-react'
+import { useSidebar } from '../contexts/SidebarContext'
 
 const PRIORITY_LEVELS = [
   { value: 5, label: 'Sangat Mendesak', color: '#ef4444', description: 'Kerusakan parah, perlu perbaikan segera' },
@@ -19,19 +20,44 @@ const STATUS_OPTIONS = [
 ]
 
 export default function PriorityScoreModal({ isOpen, onClose, featureData, paiData, onSubmit }) {
+  const { setModalState } = useSidebar()
   const [priorityScore, setPriorityScore] = useState(paiData?.priorityScore || null)
   const [priorityNotes, setPriorityNotes] = useState(paiData?.priorityNotes || '')
   const [priorityStatus, setPriorityStatus] = useState(paiData?.priorityStatus || 'pending')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [isClosing, setIsClosing] = useState(false)
 
   useEffect(() => {
-    if (isOpen && paiData) {
-      setPriorityScore(paiData.priorityScore || null)
-      setPriorityNotes(paiData.priorityNotes || '')
-      setPriorityStatus(paiData.priorityStatus || 'pending')
+    if (isOpen) {
+      setModalState(true)
+      document.body.classList.add('modal-open')
+      if (paiData) {
+        setPriorityScore(paiData.priorityScore || null)
+        setPriorityNotes(paiData.priorityNotes || '')
+        setPriorityStatus(paiData.priorityStatus || 'pending')
+      }
+    } else {
+      setModalState(false)
+      document.body.classList.remove('modal-open')
     }
-  }, [isOpen, paiData])
+
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [isOpen, paiData, setModalState])
+
+  const handleClose = () => {
+    if (isClosing) return
+    
+    setIsClosing(true)
+    
+    // Wait for animation to complete before actually closing
+    setTimeout(() => {
+      setIsClosing(false)
+      onClose()
+    }, 300)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -61,7 +87,7 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
 
       const result = await response.json()
       onSubmit?.(result)
-      onClose()
+      handleClose()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -74,26 +100,53 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
   const selectedPriority = PRIORITY_LEVELS.find(p => p.value === priorityScore)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className={`fixed inset-0 ${isClosing ? 'closing' : ''}`}
+      style={{ zIndex: 1001 }}
+      onClick={() => !isClosing && handleClose()}
+    >
+      {/* Modal positioned at center - Mengikuti pattern PAIFormModal */}
+      <div 
+        className={`fixed bg-white rounded-3xl shadow-2xl max-h-[85vh] flex flex-col ${isClosing ? 'closing' : ''}`}
+        style={{ 
+          zIndex: 1002,
+          maxWidth: '900px', 
+          width: 'calc(100% - 2rem)',
+          left: '50%',
+          top: '50%',
+          transform: 'translateX(-50%) translateY(-50%)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Drag handle indicator */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Skor Prioritas Perbaikan</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {featureData?.name || featureData?.featureId}
-            </p>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-50 to-orange-50 rounded-t-3xl">
+          <div className="flex items-center space-x-2">
+            <Flag className="w-5 h-5 text-red-600" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Skor Prioritas Perbaikan
+              </h2>
+              <p className="text-sm text-gray-600">
+                {featureData?.name || featureData?.featureId}
+              </p>
+            </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={handleClose}
+            className="p-2 hover:bg-white hover:bg-opacity-80 rounded-full transition-all duration-200 bg-white bg-opacity-50"
+            title="Tutup modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4">
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -108,7 +161,7 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-blue-700">Tipe:</span>{' '}
-                  <span className="font-medium">{paiData.paiType === 'saluran' ? 'Saluran' : 'Bangunan'}</span>
+                  <span className="font-medium">{paiData.paiType === 'saluran' ? '🚰 Saluran' : '🏢 Bangunan'}</span>
                 </div>
                 <div>
                   <span className="text-blue-700">Terakhir Update:</span>{' '}
@@ -220,26 +273,40 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
               </div>
             </div>
           )}
+        </form>
 
-          {/* Actions */}
-          <div className="flex gap-3 justify-end">
+        {/* Footer */}
+        <div className="flex items-center justify-between p-6 border-t bg-gray-50 rounded-b-3xl">
+          <div className="text-sm text-gray-500">
+            {!priorityScore && (
+              <span className="text-amber-600">
+                ⚠️ Pilih tingkat prioritas untuk melanjutkan
+              </span>
+            )}
+          </div>
+          
+          <div className="flex gap-3">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              onClick={handleClose}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
               disabled={loading}
             >
               Batal
             </button>
             <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={handleSubmit}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               disabled={loading || !priorityScore}
             >
-              {loading ? 'Menyimpan...' : paiData?.priorityScore ? 'Update Prioritas' : 'Simpan Prioritas'}
+              <Flag className="w-4 h-4" />
+              <span>
+                {loading ? 'Menyimpan...' : paiData?.priorityScore ? 'Update Prioritas' : 'Simpan Prioritas'}
+              </span>
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

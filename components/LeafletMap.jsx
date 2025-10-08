@@ -265,27 +265,26 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         return;
       }
 
-      // Fetch PAI data for this feature
-      const response = await fetch(`/api/pai?featureId=${featureId}`);
+      // ✅ FIX: Fetch PAI with latest=true for consistent response format
+      const response = await fetch(`/api/pai?featureId=${featureId}&latest=true`);
       
       if (!response.ok) {
         throw new Error('Gagal mengambil data PAI');
       }
 
       const data = await response.json();
-      console.log('PAI data for priority:', data);
+      console.log('PAI data for priority (latest=true):', data);
       
-      // Support both response formats
-      const paiList = data.data || data;
+      // ✅ FIX: Response format is { pai: {...} } or { pai: null }
+      const pai = data.pai;
       
-      if (!Array.isArray(paiList) || paiList.length === 0) {
+      if (!pai) {
         alert('⚠️ Data PAI belum tersedia\n\nSilakan buat data PAI terlebih dahulu dengan klik tombol "📝 PAI" sebelum mengatur prioritas perbaikan.');
         return;
       }
       
-      // Use the first/latest PAI
-      const paiData = paiList[0];
-      setSelectedPAI(paiData);
+      // ✅ FIX: Use pai directly (already an object, not array)
+      setSelectedPAI(pai);
       setSelectedFeature(targetFeature);
       setIsPriorityModalOpen(true);
       
@@ -305,7 +304,8 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       // Function to load PAI info in popup
       window.loadPAIInfo = async (featureId) => {
         try {
-          const response = await fetch(`/api/pai?featureId=${featureId}`);
+          // ✅ FIX: Tambahkan latest=true untuk konsistensi response format
+          const response = await fetch(`/api/pai?featureId=${featureId}&latest=true`);
           
           const paiInfoElement = document.getElementById(`pai-info-${featureId}`);
           const priorityBtn = document.getElementById(`priority-btn-${featureId}`);
@@ -326,15 +326,15 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
           }
           
           const data = await response.json();
-          console.log('PAI API Response:', data); // Debug log
+          console.log('PAI API Response (latest=true):', data); // Debug log
           
           if (paiInfoElement) {
-            // Check if PAI data exists - support both response formats
-            const paiList = data.data || data;
-            const hasPAI = Array.isArray(paiList) && paiList.length > 0;
+            // ✅ FIX: Response format dengan latest=true adalah { pai: {...} } atau { pai: null }
+            const pai = data.pai;
+            const hasPAI = pai !== null && pai !== undefined;
             
             if (hasPAI) {
-              const pai = paiList[0]; // Use first/latest PAI
+              // ✅ FIX: pai sudah berupa object, tidak perlu akses array lagi
               const paiTypeIcon = pai.paiType === 'saluran' ? '🚰' : '🏢';
               const paiTypeName = pai.paiType === 'saluran' ? 'Saluran' : 'Bangunan';
               
@@ -380,8 +380,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
                 priorityBtn.style.opacity = '1';
                 priorityBtn.style.cursor = 'pointer';
                 priorityBtn.title = 'Atur prioritas perbaikan';
-                // Remove any previous onclick override
-                priorityBtn.onclick = null;
+                // ✅ FIX: Don't set onclick to null, HTML onclick attribute will handle it
               }
             } else {
               // No PAI data
@@ -403,13 +402,8 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
                 priorityBtn.style.cursor = 'not-allowed';
                 priorityBtn.title = 'Buat data PAI terlebih dahulu untuk mengatur prioritas';
                 
-                // Override onclick to show alert
-                priorityBtn.onclick = function(e) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  alert('⚠️ Data PAI belum tersedia\n\nSilakan buat data PAI terlebih dahulu dengan klik tombol "📝 PAI" sebelum mengatur prioritas perbaikan.');
-                  return false;
-                };
+                // ✅ FIX: Don't override onclick, disabled button won't be clickable anyway
+                // The HTML onclick attribute will work when button is enabled
               }
             }
           }
