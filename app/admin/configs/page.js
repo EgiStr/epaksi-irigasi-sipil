@@ -34,7 +34,7 @@ export default function ConfigsPage() {
     <Layout>
       <div className="h-full">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">⚙️ Config Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900">⚙️ IKSI Management</h1>
           <p className="text-gray-600">Kelola konfigurasi survey dan sistem scoring</p>
         </div>
         <ConfigManagement />

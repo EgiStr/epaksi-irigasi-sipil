@@ -39,19 +39,38 @@
   width: 70px;
 }
 
+.sidebar.closed .logo-icon {
+  padding: 4px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.sidebar.closed .logo-svg {
+  width: 28px !important;
+  height: 28px !important;
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  min-height: 80px;
+  min-height: 140px;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
 }
 
 .logo-icon {
@@ -67,6 +86,39 @@
   justify-content: center;
 }
 
+.logo-icon-large {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+  width: 108px;
+  height: 108px;
+}
+
+.logo-grid .logo-svg {
+  width: 44px !important;
+  height: 44px !important;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 5px;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.logo-grid .logo-svg:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .logo-svg {
   width: 32px !important;
   height: 32px !important;
@@ -75,9 +127,11 @@
 
 .logo-text h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #ffffff;
+  text-align: center;
+  letter-spacing: 0.5px;
 }
 
 .logo-text span {
@@ -85,6 +139,7 @@
   color: rgba(255, 255, 255, 0.8);
   display: block;
   margin-top: 2px;
+  text-align: center;
 }
 
 .toggle-btn {
@@ -95,6 +150,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
+  align-self: flex-start;
 }
 
 .toggle-btn:hover {
@@ -1150,6 +1206,42 @@
   .sidebar.open {
     transform: translateX(0);
     width: 280px;
+  }
+
+  .sidebar-header {
+    min-height: 100px;
+    padding: 1rem;
+  }
+
+  .logo-icon-large {
+    padding: 16px;
+  }
+
+  .logo-grid {
+    width: 84px;
+    height: 84px;
+    gap: 8px;
+  }
+
+  .logo-grid .logo-svg {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 4px;
+  }
+
+  .logo-text h3 {
+    font-size: 1rem;
+  }
+
+  .sidebar.closed .logo-icon {
+    padding: 4px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .sidebar.closed .logo-svg {
+    width: 28px !important;
+    height: 28px !important;
   }
 
   .main-content {
