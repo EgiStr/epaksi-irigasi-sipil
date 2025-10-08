@@ -773,7 +773,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
 
   // Optimized popup content builder with survey button
   const buildPopupContent = useCallback((props, detailData, feature) => {
-    let content = '<div style="font-family: Arial, sans-serif; max-width: 380px;">';
+    let content = '<div style="font-family: Arial, sans-serif; max-width: 420px;">';
     
     // Header with sourceLayer
     if (props.sourceLayer) {
@@ -782,41 +782,81 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       content += `<h3 style="margin: 0 0 12px 0; color: ${categoryColor}; font-size: 16px; font-weight: bold; border-bottom: 2px solid ${categoryColor}; padding-bottom: 6px;">${props.sourceLayer}</h3>`;
     }
     
-    // Main info - use database fields
-    const infoFields = [
-      { key: 'name', label: '📍 Nama', prop: props.name },
-      { key: 'featureId', label: '🆔 Feature ID', prop: props.featureId },
-      { key: 'type', label: '🏷️ Tipe', prop: props.type },
-      { key: 'scheme', label: '📋 Skema', prop: props.scheme },
-      { key: 'NAMOBJ', label: '🗺️ Wilayah', prop: props.NAMOBJ },
-      { key: 'WADMKK', label: '🏛️ Kabupaten', prop: props.WADMKK }
+    // Main info section - display ALL properties from database
+    content += `<div style="margin: 12px 0; padding: 10px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #3b82f6;">`;
+    content += `<div style="font-weight: bold; margin-bottom: 8px; color: #1e40af;">📋 Informasi Utama</div>`;
+    
+    // Collect all available properties
+    const mainFields = [
+      { key: 'name', label: '📍 Nama', value: props.name },
+      { key: 'featureId', label: '🆔 Feature ID', value: props.featureId },
+      { key: 'type', label: '🏷️ Tipe', value: props.type },
+      { key: 'scheme', label: '📋 Skema', value: props.scheme },
+      { key: 'NAMOBJ', label: '🗺️ Wilayah', value: props.NAMOBJ },
+      { key: 'WADMKK', label: '🏛️ Kabupaten', value: props.WADMKK }
     ];
     
-    infoFields.forEach(({ label, prop }) => {
-      if (prop) {
-        content += `<div style="margin: 8px 0; padding: 6px; background: #f8f9fa; border-radius: 4px;">`;
-        content += `<strong style="color: #2c3e50;">${label}:</strong> ${prop}</div>`;
+    mainFields.forEach(({ label, value }) => {
+      if (value) {
+        content += `<div style="margin: 6px 0; font-size: 13px;">`;
+        content += `<span style="font-weight: 600; color: #1e40af;">${label}:</span> `;
+        content += `<span style="color: #374151;">${value}</span></div>`;
+      }
+    });
+    content += `</div>`;
+    
+    // Detail data - Display ALL properties from Description or props field
+    const allDetailData = { ...detailData };
+    
+    // Also include any other properties that might exist
+    Object.keys(props).forEach(key => {
+      if (!['sourceLayer', 'name', 'featureId', 'type', 'scheme', 'NAMOBJ', 'WADMKK', 'Description', 'geom', 'id'].includes(key) && props[key]) {
+        allDetailData[key] = props[key];
       }
     });
     
-    // Detail data
-    if (Object.keys(detailData).length > 0) {
+    if (Object.keys(allDetailData).length > 0) {
       const categoryIndex = categories.indexOf(props.sourceLayer);
-      const categoryColor = generateLayerColor(props.sourceLayer, categoryIndex)?.color || '#333';
-      content += `<div style="margin: 12px 0; padding: 10px; background: #f1f3f4; border-radius: 6px; border-left: 4px solid ${categoryColor};">`;
-      content += `<div style="font-weight: bold; margin-bottom: 8px; color: #2c3e50;">📋 Detail Informasi:</div>`;
+      const categoryColor = generateLayerColor(props.sourceLayer, categoryIndex)?.color || '#10b981';
+      content += `<div style="margin: 12px 0; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid ${categoryColor};">`;
+      content += `<div style="font-weight: bold; margin-bottom: 8px; color: #047857;">� Detail Properti Lengkap</div>`;
       
+      // First, show priority fields if they exist
+      let hasShownFields = false;
       PRIORITY_FIELDS.forEach(field => {
-        if (detailData[field] && detailData[field] !== '0' && detailData[field] !== '') {
+        if (allDetailData[field] && allDetailData[field] !== '0' && allDetailData[field] !== '') {
           const label = FIELD_LABELS[field] || field;
-          let value = detailData[field];
+          let value = allDetailData[field];
           if (field === 'ELEVATION' && value !== '0') value += ' meter';
           
-          content += `<div style="margin: 4px 0; padding: 3px 0; font-size: 13px;">`;
-          content += `<span style="font-weight: 500; color: #495057;">${label}:</span> `;
-          content += `<span style="color: #212529;">${value}</span></div>`;
+          content += `<div style="margin: 5px 0; padding: 4px 6px; background: white; border-radius: 4px; font-size: 13px;">`;
+          content += `<span style="font-weight: 600; color: #047857;">${label}:</span> `;
+          content += `<span style="color: #374151;">${value}</span></div>`;
+          hasShownFields = true;
         }
       });
+      
+      // Then, show all other fields that weren't in priority list
+      Object.keys(allDetailData).forEach(key => {
+        if (!PRIORITY_FIELDS.includes(key) && allDetailData[key] && allDetailData[key] !== '0' && allDetailData[key] !== '') {
+          // Format key for display
+          const displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          let value = String(allDetailData[key]);
+          
+          // Skip very long values (probably not useful for popup)
+          if (value.length > 200) return;
+          
+          content += `<div style="margin: 5px 0; padding: 4px 6px; background: white; border-radius: 4px; font-size: 12px;">`;
+          content += `<span style="font-weight: 600; color: #059669;">${displayKey}:</span> `;
+          content += `<span style="color: #6b7280;">${value}</span></div>`;
+          hasShownFields = true;
+        }
+      });
+      
+      if (!hasShownFields) {
+        content += `<div style="font-size: 12px; color: #6b7280; font-style: italic;">Tidak ada detail tambahan</div>`;
+      }
+      
       content += `</div>`;
     }
 

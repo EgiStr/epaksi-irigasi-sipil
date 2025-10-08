@@ -18,6 +18,8 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
   const [isClosing, setIsClosing] = useState(false);
   const [isChangingScheme, setIsChangingScheme] = useState(false);
   const [showSchemeDropdown, setShowSchemeDropdown] = useState(false);
+  const [existingSurvey, setExistingSurvey] = useState(null); // Store existing survey data
+  const [isLoadingSurvey, setIsLoadingSurvey] = useState(false);
 
   // Handle modal close with animation
   const handleClose = useCallback(() => {
@@ -62,8 +64,49 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
     return 'utama';
   }, []);
 
+  // Load existing survey data for the feature
+  const loadExistingSurvey = useCallback(async (featureId, surveyType) => {
+    if (!featureId) {
+      console.log('No featureId provided, skipping survey load');
+      return null;
+    }
+
+    setIsLoadingSurvey(true);
+    try {
+      console.log(`🔍 Loading existing survey for feature: ${featureId}, scheme: ${surveyType}`);
+      
+      const response = await fetch(`/api/surveys?featureId=${featureId}&scheme=${surveyType}`);
+      
+      if (!response.ok) {
+        console.log('No existing survey found or error loading');
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('📊 Survey API response:', data);
+      
+      // Check if we have surveys in the response
+      if (data.surveys && data.surveys.length > 0) {
+        // Get the most recent survey (first one, as API returns sorted by date)
+        const latestSurvey = data.surveys[0];
+        console.log('✅ Found existing survey:', latestSurvey);
+        
+        setExistingSurvey(latestSurvey);
+        return latestSurvey;
+      }
+      
+      console.log('ℹ️ No existing survey found for this feature');
+      return null;
+    } catch (error) {
+      console.error('❌ Error loading existing survey:', error);
+      return null;
+    } finally {
+      setIsLoadingSurvey(false);
+    }
+  }, []);
+
   // Load survey configuration
-  const loadSurveyConfig = useCallback(async (surveyType) => {
+  const loadSurveyConfig = useCallback(async (surveyType, existingSurveyData = null) => {
     try {
       let configData = null;
       
@@ -107,24 +150,43 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
       configData.categories.forEach(category => {
         if (category.subs && Array.isArray(category.subs)) {
           category.subs.forEach(sub => {
-            // Set appropriate default values based on field type
-            switch (sub.type) {
-              case 'boolean':
-                initialValues[sub.key] = null; // No selection initially
-                break;
-              case 'ordinal':
-              case 'persentase':
-              case 'numerik':
-              default:
-                initialValues[sub.key] = '';
-                break;
+            // Check if we have existing survey data for this field
+            if (existingSurveyData?.values && existingSurveyData.values[sub.key] !== undefined) {
+              // Use existing value from survey
+              initialValues[sub.key] = existingSurveyData.values[sub.key];
+            } else {
+              // Set appropriate default values based on field type
+              switch (sub.type) {
+                case 'boolean':
+                  initialValues[sub.key] = null; // No selection initially
+                  break;
+                case 'ordinal':
+                case 'persentase':
+                case 'numerik':
+                default:
+                  initialValues[sub.key] = '';
+                  break;
+              }
             }
           });
         }
       });
+      
+      console.log('📝 Initialized form values:', initialValues);
       setFormValues(initialValues);
+      
+      // If we have existing survey data with score, set it
+      if (existingSurveyData?.scoreTotal !== undefined) {
+        setScore({
+          score: existingSurveyData.scoreTotal,
+          qualityClass: existingSurveyData.scoreClass,
+          categoryScores: existingSurveyData.scoreDetail?.categoryScores || {}
+        });
+      } else {
+        setScore(null);
+      }
+      
       setErrors({});
-      setScore(null);
       setActiveTab(0);
     } catch (error) {
       console.error('Error loading survey config:', error);
@@ -175,8 +237,11 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         featureData.properties.scheme = newScheme;
       }
 
-      // Reload survey config with new scheme
-      await loadSurveyConfig(newScheme);
+      // Clear existing survey data when changing scheme
+      setExistingSurvey(null);
+
+      // Reload survey config with new scheme (without existing data)
+      await loadSurveyConfig(newScheme, null);
 
       // Show success message
       alert(`✅ Skema berhasil diubah ke "${newScheme === 'utama' ? 'Saluran Utama' : 'Saluran Tersier'}"!\n\nForm telah direset, silakan isi kembali.`);
@@ -187,15 +252,23 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
     } finally {
       setIsChangingScheme(false);
     }
-  }, [featureData, loadSurveyConfig]);
+  }, [featureData, loadSurveyConfig, loadExistingSurvey]);
 
-  // Effect to load config when modal opens
+  // Effect to load config and existing survey when modal opens
   useEffect(() => {
     if (isOpen && featureData) {
       const surveyType = getSurveyType(featureData);
-      loadSurveyConfig(surveyType);
+      const featureId = featureData.properties?.featureId;
+      
+      // Load existing survey first, then load config with that data
+      const loadData = async () => {
+        const existingData = await loadExistingSurvey(featureId, surveyType);
+        await loadSurveyConfig(surveyType, existingData);
+      };
+      
+      loadData();
     }
-  }, [isOpen, featureData, getSurveyType, loadSurveyConfig]);
+  }, [isOpen, featureData, getSurveyType, loadSurveyConfig, loadExistingSurvey]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -375,10 +448,19 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         values: formValues
       };
 
+      console.log('💾 Submitting survey:', surveyData);
+      console.log('📝 Existing survey:', existingSurvey);
 
-      // Save survey to database using API
-      const response = await fetch('/api/surveys', {
-        method: 'POST',
+      // Determine if this is an update or new survey
+      const isUpdate = existingSurvey && existingSurvey.id;
+      const apiUrl = isUpdate ? `/api/surveys/${existingSurvey.id}` : '/api/surveys';
+      const method = isUpdate ? 'PUT' : 'POST';
+
+      console.log(`📤 ${method} request to: ${apiUrl}`);
+
+      // Save or update survey to database using API
+      const response = await fetch(apiUrl, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -405,10 +487,12 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         throw new Error('Response tidak valid - data survey tidak ditemukan');
       }
 
+      console.log('✅ Survey saved successfully:', result);
+
       // Call the callback with the result
       onSurveySubmit({
         ...result.survey,
-        message: result.survey.isUpdate ? 'Survey berhasil diperbarui' : 'Survey berhasil disimpan'
+        message: isUpdate ? 'Survey berhasil diperbarui! ✅' : 'Survey berhasil disimpan! 🎉'
       });
 
       // Close modal
@@ -718,6 +802,25 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
           {/* Form Section */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
+            {/* Info: Editing Existing Survey */}
+            {existingSurvey && !isLoadingSurvey && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-blue-600" />
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-blue-900">Mengedit Survey yang Sudah Ada</span>
+                  <p className="text-xs text-blue-700 mt-0.5">
+                    Survey terakhir diisi: {new Date(existingSurvey.createdAt).toLocaleDateString('id-ID', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Error Display */}
             {errors.general && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center space-x-2">
@@ -727,10 +830,12 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
             )}
 
             {/* Loading State */}
-            {!surveyConfig && (
+            {(!surveyConfig || isLoadingSurvey) && (
               <div className="flex items-center justify-center py-8">
                 <Loader className="w-6 h-6 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Memuat formulir...</span>
+                <span className="ml-2 text-gray-600">
+                  {isLoadingSurvey ? 'Memuat data survey...' : 'Memuat formulir...'}
+                </span>
               </div>
             )}
 
@@ -926,7 +1031,7 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
             
             <button
               onClick={handleSubmit}
-              disabled={isSubmitting || !score}
+              disabled={isSubmitting || !score || isLoadingSurvey}
               className="
                 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md 
                 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
@@ -936,12 +1041,12 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
               {isSubmitting ? (
                 <>
                   <Loader className="w-4 h-4 animate-spin" />
-                  <span>Menyimpan...</span>
+                  <span>{existingSurvey ? 'Memperbarui...' : 'Menyimpan...'}</span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>Simpan Survey</span>
+                  <span>{existingSurvey ? 'Perbarui Survey' : 'Simpan Survey'}</span>
                 </>
               )}
             </button>

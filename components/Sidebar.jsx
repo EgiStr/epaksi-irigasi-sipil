@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
@@ -25,6 +25,47 @@ import { hasPermission, PERMISSIONS } from '../lib/permissions';
 const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const navRef = useRef(null);
+  
+  // Handle scroll indicators
+  useEffect(() => {
+    const navElement = navRef.current;
+    if (!navElement) return;
+
+    const handleScroll = () => {
+      const scrollTop = navElement.scrollTop;
+      const scrollHeight = navElement.scrollHeight;
+      const clientHeight = navElement.clientHeight;
+      const scrollBottom = scrollHeight - scrollTop - clientHeight;
+
+      // Add/remove classes based on scroll position
+      if (scrollTop > 10) {
+        navElement.classList.add('has-scroll-top');
+      } else {
+        navElement.classList.remove('has-scroll-top');
+      }
+
+      if (scrollBottom > 10) {
+        navElement.classList.add('has-scroll-bottom');
+      } else {
+        navElement.classList.remove('has-scroll-bottom');
+      }
+    };
+
+    // Initial check
+    handleScroll();
+
+    // Add scroll listener
+    navElement.addEventListener('scroll', handleScroll);
+    
+    // Check on resize
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      navElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [isOpen]);
   
   const allMenuItems = [
     {
@@ -177,7 +218,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
         </button>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" ref={navRef}>
         <ul className="nav-list">
           {/* Regular Menu Items */}
           {regularMenuItems.map((item) => {

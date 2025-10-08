@@ -85,7 +85,7 @@ const Layout = ({ children }) => {
         </main>
         
         <footer className="footer">
-          <p className='font-bold'>Copyright © 2025</p>
+          <p className='font-bold'>Copyright SINTARA © 2025</p>
         </footer>
       </div>
     </div>
