@@ -661,9 +661,9 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         content += `<div style="margin: 12px 0; padding: 10px; background: #e3f2fd; border-radius: 6px; text-align: center; border: 1px solid #2196f3;">`;
         content += `<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 4px;">`;
         content += `<button onclick="window.openSurveyModal && window.openSurveyModal('${props.featureId}')" 
-                      style="background: #2196f3; color: white; border: none; padding: 8px 12px; border-radius: 4px; 
-                             cursor: pointer; font-weight: 500; font-size: 12px;">
-                      📋 Survey
+                      style="background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; 
+                             cursor: pointer; font-weight: 500; font-size: 13px;">
+                      📋 IKSI
                     </button>`;
         content += `<button onclick="window.openPAIModal && window.openPAIModal('${props.featureId}')" 
                      style="background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 4px; 

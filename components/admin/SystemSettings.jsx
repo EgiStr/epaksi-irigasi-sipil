@@ -23,7 +23,7 @@ const SystemSettings = () => {
   const { data: session } = useSession()
   const [settings, setSettings] = useState({
     // Application Settings
-    appName: 'Sistem Pemetaan Irigasi Sipil',
+    appName: 'Sistem Pengelolaan Irigasi Sinergi Unila - Itera',
     appVersion: '1.0.0',
     maintenanceMode: false,
     debugMode: false,

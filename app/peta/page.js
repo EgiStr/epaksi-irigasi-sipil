@@ -30,7 +30,7 @@ export default function PetaPage() {
         }}>
           <div className="mb-4">
             <h1 className="text-2xl font-bold text-gray-900">🗺️ PETA IRIGASI</h1>
-            <p className="text-gray-600">Sistem informasi kinerja irigasi sinergi UNILA ITERA</p>
+            <p className="text-gray-600">Sistem Pengelolaan Irigasi Sinergi Unila - Itera</p>
           </div>
           <IrigasiMap />
         </div>

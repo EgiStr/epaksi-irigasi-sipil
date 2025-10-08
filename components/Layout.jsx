@@ -55,7 +55,7 @@ const Layout = ({ children }) => {
           
           <div className="header-title">
             <h1>SINTARA</h1>
-            <p>Sistem Informasi Kinerja Irigasi Sinergi UNILA ITERA</p>
+            <p>Sistem Pengelolaan Irigasi Sinergi Unila - Itera</p>
           </div>
           
           {/* Admin Info & Logout */}
