@@ -6,6 +6,46 @@ import { ArrowLeft, MapPin, Calendar, User, FileText, Image, Star, Download } fr
 import Layout from '../../../components/Layout'
 import { useRequireAuth } from '../../../hooks/useAuth'
 
+// Priority animations and styles
+const priorityStyles = `
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(251, 146, 60, 0.6);
+    }
+  }
+  
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .priority-card {
+    animation: slide-in 0.5s ease-out;
+  }
+  
+  .priority-score-badge {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .priority-stat-card {
+    transition: all 0.3s ease;
+  }
+  
+  .priority-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+`
+
 export default function FeatureDetailPage() {
   const { loading: authLoading } = useRequireAuth()
   const params = useParams()
@@ -14,12 +54,20 @@ export default function FeatureDetailPage() {
 
   const [feature, setFeature] = useState(null)
   const [pai, setPai] = useState(null)
+  const [paiList, setPaiList] = useState([]) // All PAI records
   const [surveys, setSurveys] = useState([])
+  const [allSurveys, setAllSurveys] = useState([]) // All surveys
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isExporting, setIsExporting] = useState(false)
   const contentRef = useRef(null)
   const exportAbortRef = useRef(false)
+  
+  // Filter states
+  const [selectedSurveyYear, setSelectedSurveyYear] = useState('all')
+  const [selectedPAIYear, setSelectedPAIYear] = useState('all')
+  const [availableSurveyYears, setAvailableSurveyYears] = useState([])
+  const [availablePAIYears, setAvailablePAIYears] = useState([])
 
   useEffect(() => {
     if (featureId) {
@@ -36,8 +84,30 @@ export default function FeatureDetailPage() {
       if (featureResponse.ok) {
         const featureData = await featureResponse.json()
         setFeature(featureData)
-        setSurveys(featureData.surveys || [])
-        setPai(featureData.pai && featureData.pai.length > 0 ? featureData.pai[0] : null)
+        
+        // Store all surveys and extract unique years
+        const allSurveyData = featureData.surveys || []
+        setAllSurveys(allSurveyData)
+        setSurveys(allSurveyData)
+        
+        // Extract unique survey years (sorted desc)
+        const surveyYears = [...new Set(allSurveyData.map(s => s.tahun || new Date(s.createdAt).getFullYear()))]
+          .sort((a, b) => b - a)
+        setAvailableSurveyYears(surveyYears)
+        
+        // Store all PAI and extract unique years
+        const allPAIData = featureData.pai || []
+        setPaiList(allPAIData)
+        setPai(allPAIData.length > 0 ? allPAIData[0] : null)
+        
+        // Extract unique PAI years (sorted desc)
+        const paiYears = [...new Set(allPAIData.map(p => p.tahun || new Date(p.createdAt).getFullYear()))]
+          .sort((a, b) => b - a)
+        setAvailablePAIYears(paiYears)
+        
+        // Default to latest year
+        if (surveyYears.length > 0) setSelectedSurveyYear(surveyYears[0])
+        if (paiYears.length > 0) setSelectedPAIYear(paiYears[0])
       } else {
         throw new Error('Gagal mengambil data feature')
       }
@@ -49,6 +119,30 @@ export default function FeatureDetailPage() {
       setLoading(false)
     }
   }
+
+  // Filter surveys based on selected year
+  useEffect(() => {
+    if (selectedSurveyYear === 'all') {
+      setSurveys(allSurveys)
+    } else {
+      const filtered = allSurveys.filter(s => 
+        (s.tahun || new Date(s.createdAt).getFullYear()) === selectedSurveyYear
+      )
+      setSurveys(filtered)
+    }
+  }, [selectedSurveyYear, allSurveys])
+
+  // Filter PAI based on selected year
+  useEffect(() => {
+    if (selectedPAIYear === 'all') {
+      setPai(paiList.length > 0 ? paiList[0] : null)
+    } else {
+      const filtered = paiList.filter(p => 
+        (p.tahun || new Date(p.createdAt).getFullYear()) === selectedPAIYear
+      )
+      setPai(filtered.length > 0 ? filtered[0] : null)
+    }
+  }, [selectedPAIYear, paiList])
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -312,6 +406,95 @@ export default function FeatureDetailPage() {
                 /* Rounded corners minimal */
                 .rounded, .rounded-lg, .rounded-xl {
                   border-radius: 2pt !important;
+                }
+                
+                /* Priority Section - Print Styles */
+                .bg-gradient-to-br.from-orange-50 {
+                  background: linear-gradient(135deg, #fff7ed 0%, #fef2f2 50%, #fdf2f8 100%) !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                  border: 2pt solid #fed7aa !important;
+                  page-break-inside: avoid !important;
+                  margin-bottom: 8pt !important;
+                }
+                
+                /* Priority Score Badge */
+                .bg-gradient-to-br.from-red-600,
+                .bg-gradient-to-br.from-orange-500,
+                .bg-gradient-to-br.from-yellow-500,
+                .bg-gradient-to-br.from-blue-500,
+                .bg-gradient-to-br.from-green-500 {
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                  box-shadow: 0 2pt 4pt rgba(0,0,0,0.15) !important;
+                }
+                
+                /* Priority containers */
+                .bg-white\\/80 {
+                  background-color: white !important;
+                  border: 1pt solid #e5e7eb !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                
+                /* Priority level badges */
+                .bg-red-100 { 
+                  background-color: #fee2e2 !important; 
+                  border-color: #fca5a5 !important;
+                  -webkit-print-color-adjust: exact !important;
+                }
+                .bg-orange-100 { 
+                  background-color: #ffedd5 !important; 
+                  border-color: #fdba74 !important;
+                  -webkit-print-color-adjust: exact !important;
+                }
+                .bg-yellow-100 { 
+                  background-color: #fef9c3 !important; 
+                  border-color: #fde047 !important;
+                  -webkit-print-color-adjust: exact !important;
+                }
+                .bg-blue-100 { 
+                  background-color: #dbeafe !important; 
+                  border-color: #93c5fd !important;
+                  -webkit-print-color-adjust: exact !important;
+                }
+                .bg-green-100 { 
+                  background-color: #dcfce7 !important; 
+                  border-color: #86efac !important;
+                  -webkit-print-color-adjust: exact !important;
+                }
+                .bg-purple-100 { 
+                  background-color: #f3e8ff !important; 
+                  border-color: #d8b4fe !important;
+                  -webkit-print-color-adjust: exact !important;
+                }
+                
+                /* Ensure text colors print */
+                .text-red-800 { color: #991b1b !important; }
+                .text-orange-800 { color: #9a3412 !important; }
+                .text-yellow-800 { color: #854d0e !important; }
+                .text-blue-800 { color: #1e40af !important; }
+                .text-green-800 { color: #166534 !important; }
+                .text-purple-800 { color: #6b21a8 !important; }
+                
+                /* Priority progress bar */
+                .bg-gradient-to-r.from-green-500,
+                .bg-gradient-to-r.from-blue-500,
+                .bg-gradient-to-r.from-purple-500 {
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                
+                /* Backdrop blur fallback for print */
+                .backdrop-blur-sm {
+                  backdrop-filter: none !important;
+                  background-color: rgba(255, 255, 255, 0.95) !important;
+                }
+                
+                /* Priority section emojis - ensure visibility */
+                .bg-gradient-to-br.from-orange-500.to-red-500 {
+                  background: linear-gradient(135deg, #f97316 0%, #dc2626 100%) !important;
+                  -webkit-print-color-adjust: exact !important;
                 }
                 
                 /* SPACING FIX: Detail Inputan Penilaian */
@@ -725,6 +908,9 @@ export default function FeatureDetailPage() {
 
   return (
     <Layout>
+      {/* Inject priority styles */}
+      <style jsx global>{priorityStyles}</style>
+      
       <div className="h-full">
         {/* Header Section */}
         <div className="dashboard-header mb-4">
@@ -770,6 +956,20 @@ export default function FeatureDetailPage() {
             {feature?.name && (
               <div className="mt-2 text-lg font-semibold text-gray-800">
                 {feature.name}
+              </div>
+            )}
+            {/* Filter info for PDF */}
+            {(selectedSurveyYear !== 'all' || selectedPAIYear !== 'all') && (
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-sm font-medium text-blue-800">
+                  📅 Filter Tahun Aktif:
+                  {selectedSurveyYear !== 'all' && (
+                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded">Survey: {selectedSurveyYear}</span>
+                  )}
+                  {selectedPAIYear !== 'all' && (
+                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded">PAI: {selectedPAIYear}</span>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -826,7 +1026,24 @@ export default function FeatureDetailPage() {
                 <Star className="w-5 h-5 mr-2" />
                 Hasil Penilaian Survey
               </h3>
-              <span className="activity-count">{surveys.length} Survey</span>
+              <div className="flex items-center gap-3">
+                {availableSurveyYears.length > 0 && (
+                  <div className="flex items-center gap-2 no-print">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <select
+                      value={selectedSurveyYear}
+                      onChange={(e) => setSelectedSurveyYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                      className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">Semua Tahun</option>
+                      {availableSurveyYears.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <span className="activity-count">{surveys.length} Survey</span>
+              </div>
             </div>
             <div className="p-6">
               {surveys.length > 0 ? (
@@ -834,8 +1051,15 @@ export default function FeatureDetailPage() {
                   {surveys.map((survey, index) => (
                     <div key={survey.id} className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-white">
                       <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <span className="text-sm font-medium text-gray-600">Survey #{index + 1}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium text-gray-600">Survey #{index + 1}</span>
+                            {/* Tahun Badge */}
+                            <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {survey.tahun || new Date(survey.createdAt).getFullYear()}
+                            </span>
+                          </div>
                           <div className="text-sm text-gray-500">{formatDate(survey.createdAt)}</div>
                         </div>
                         <div className="text-right">
@@ -986,11 +1210,216 @@ export default function FeatureDetailPage() {
                 <FileText className="w-5 h-5 mr-2" />
                 Data PAI ({pai.paiType})
               </h3>
-              <span className="text-sm text-gray-600">
-                Dibuat: {formatDate(pai.createdAt)} oleh {pai.user?.name}
-              </span>
+              <div className="flex items-center gap-3">
+                {availablePAIYears.length > 0 && (
+                  <div className="flex items-center gap-2 no-print">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <select
+                      value={selectedPAIYear}
+                      onChange={(e) => setSelectedPAIYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                      className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">Semua Tahun</option>
+                      {availablePAIYears.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <span className="text-sm text-gray-600">
+                  Dibuat: {formatDate(pai.createdAt)} oleh {pai.user?.name}
+                </span>
+              </div>
             </div>
             <div className="p-6">
+              {/* Tahun PAI Badge */}
+              <div className="mb-4 flex items-center gap-2">
+                <span className="px-3 py-1.5 bg-purple-600 text-white text-sm font-semibold rounded-lg flex items-center gap-2 shadow-md">
+                  <Calendar className="w-4 h-4" />
+                  Tahun Penilaian: {pai.tahun || new Date(pai.createdAt).getFullYear()}
+                </span>
+              </div>
+              
+              {/* Prioritas Perbaikan - Modern Card */}
+              {(pai.priorityScore || pai.priorityStatus || pai.priorityNotes) && (
+                <div className="priority-card mb-6 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-2 border-orange-200 rounded-xl p-6 shadow-lg relative overflow-hidden">
+                  {/* Background Decoration */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200/30 to-transparent rounded-full blur-2xl"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200/30 to-transparent rounded-full blur-2xl"></div>
+                  
+                  <div className="relative">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h4 className="font-bold text-xl text-gray-900 mb-1 flex items-center">
+                          <span className="mr-2 text-2xl">🔧</span>
+                          Prioritas Perbaikan & Pemeliharaan
+                        </h4>
+                        <p className="text-sm text-gray-600">Tingkat urgensi perbaikan infrastruktur</p>
+                      </div>
+                      
+                      {/* Priority Score Badge - Large & Modern */}
+                      {pai.priorityScore && (
+                        <div className="flex flex-col items-center">
+                          <div className={`
+                            priority-score-badge relative flex items-center justify-center w-20 h-20 rounded-2xl shadow-xl font-bold text-3xl
+                            transform transition-transform hover:scale-110
+                            ${pai.priorityScore === 5 ? 'bg-gradient-to-br from-red-600 to-red-700 text-white' :
+                              pai.priorityScore === 4 ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white' :
+                              pai.priorityScore === 3 ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white' :
+                              pai.priorityScore === 2 ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' :
+                              'bg-gradient-to-br from-green-500 to-green-600 text-white'
+                            }
+                          `}>
+                            <span className="relative z-10">{pai.priorityScore}</span>
+                            {/* Glow effect */}
+                            <div className="absolute inset-0 rounded-2xl blur-md opacity-50"
+                              style={{
+                                background: pai.priorityScore === 5 ? 'radial-gradient(circle, rgba(220,38,38,0.8) 0%, transparent 70%)' :
+                                          pai.priorityScore === 4 ? 'radial-gradient(circle, rgba(249,115,22,0.8) 0%, transparent 70%)' :
+                                          pai.priorityScore === 3 ? 'radial-gradient(circle, rgba(234,179,8,0.8) 0%, transparent 70%)' :
+                                          pai.priorityScore === 2 ? 'radial-gradient(circle, rgba(59,130,246,0.8) 0%, transparent 70%)' :
+                                          'radial-gradient(circle, rgba(34,197,94,0.8) 0%, transparent 70%)'
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold text-gray-600 mt-2">Skor</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      {/* Priority Level Indicator */}
+                      {pai.priorityScore && (
+                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-orange-200/50 shadow-md">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-gray-700">Tingkat Prioritas</span>
+                            <span className="text-xs text-gray-500">Skala 1-5</span>
+                          </div>
+                          <div className={`
+                            px-4 py-2 rounded-lg text-center font-bold text-lg
+                            ${pai.priorityScore === 5 ? 'bg-red-100 text-red-800 border-2 border-red-300' :
+                              pai.priorityScore === 4 ? 'bg-orange-100 text-orange-800 border-2 border-orange-300' :
+                              pai.priorityScore === 3 ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300' :
+                              pai.priorityScore === 2 ? 'bg-blue-100 text-blue-800 border-2 border-blue-300' :
+                              'bg-green-100 text-green-800 border-2 border-green-300'
+                            }
+                          `}>
+                            {pai.priorityScore === 5 ? '🔴 SANGAT MENDESAK' :
+                             pai.priorityScore === 4 ? '🟠 MENDESAK' :
+                             pai.priorityScore === 3 ? '🟡 SEDANG' :
+                             pai.priorityScore === 2 ? '🔵 RENDAH' :
+                             '🟢 SANGAT RENDAH'}
+                          </div>
+                          
+                          {/* Priority Description */}
+                          <div className="mt-3 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
+                            {pai.priorityScore === 5 && '⚠️ Memerlukan perbaikan segera untuk menghindari kerusakan lebih parah atau kegagalan sistem'}
+                            {pai.priorityScore === 4 && '⏰ Perlu diperbaiki dalam waktu dekat untuk mencegah dampak operasional'}
+                            {pai.priorityScore === 3 && '📋 Dapat dijadwalkan dalam rencana pemeliharaan rutin'}
+                            {pai.priorityScore === 2 && '📌 Pemeliharaan preventif dapat dilakukan sesuai jadwal normal'}
+                            {pai.priorityScore === 1 && '✅ Kondisi baik, pemantauan berkala sudah cukup'}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Status Badge */}
+                      {pai.priorityStatus && (
+                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-orange-200/50 shadow-md">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-gray-700">Status Perbaikan</span>
+                            <span className="text-xs text-gray-500">Status Terkini</span>
+                          </div>
+                          <div className={`
+                            px-4 py-2 rounded-lg text-center font-bold text-lg flex items-center justify-center gap-2
+                            ${pai.priorityStatus === 'completed' ? 'bg-green-100 text-green-800 border-2 border-green-300' :
+                              pai.priorityStatus === 'in_progress' ? 'bg-blue-100 text-blue-800 border-2 border-blue-300' :
+                              pai.priorityStatus === 'approved' ? 'bg-purple-100 text-purple-800 border-2 border-purple-300' :
+                              'bg-gray-100 text-gray-800 border-2 border-gray-300'
+                            }
+                          `}>
+                            {pai.priorityStatus === 'completed' && '✅ Selesai'}
+                            {pai.priorityStatus === 'in_progress' && '⚙️ Dalam Proses'}
+                            {pai.priorityStatus === 'approved' && '✔️ Disetujui'}
+                            {pai.priorityStatus === 'pending' && '⏳ Menunggu'}
+                          </div>
+                          
+                          {/* Status Timeline Indicator */}
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="text-gray-600">Progress</span>
+                              <span className="font-semibold text-gray-700">
+                                {pai.priorityStatus === 'completed' ? '100%' :
+                                 pai.priorityStatus === 'in_progress' ? '50%' :
+                                 pai.priorityStatus === 'approved' ? '25%' : '0%'}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  pai.priorityStatus === 'completed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                  pai.priorityStatus === 'in_progress' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                                  pai.priorityStatus === 'approved' ? 'bg-gradient-to-r from-purple-500 to-purple-600' :
+                                  'bg-gray-400'
+                                }`}
+                                style={{
+                                  width: pai.priorityStatus === 'completed' ? '100%' :
+                                         pai.priorityStatus === 'in_progress' ? '50%' :
+                                         pai.priorityStatus === 'approved' ? '25%' : '0%'
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Priority Notes */}
+                    {pai.priorityNotes && (
+                      <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-orange-200/50 shadow-md">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white text-xl shadow-lg">
+                            📝
+                          </div>
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-gray-900 mb-2 text-sm">Catatan & Rekomendasi:</h5>
+                            <p className="text-gray-700 text-sm leading-relaxed bg-gradient-to-r from-orange-50/50 to-transparent p-3 rounded-lg border-l-4 border-orange-400">
+                              {pai.priorityNotes}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quick Stats */}
+                    <div className="mt-4 grid grid-cols-3 gap-3">
+                      <div className="priority-stat-card bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-orange-100 text-center">
+                        <div className="text-2xl mb-1">
+                          {pai.priorityScore >= 4 ? '🚨' : pai.priorityScore === 3 ? '⚠️' : '✅'}
+                        </div>
+                        <div className="text-xs text-gray-600 font-medium">
+                          {pai.priorityScore >= 4 ? 'Perlu Perhatian' : pai.priorityScore === 3 ? 'Terpantau' : 'Kondisi Baik'}
+                        </div>
+                      </div>
+                      <div className="priority-stat-card bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-orange-100 text-center">
+                        <div className="text-2xl mb-1">
+                          {pai.priorityStatus === 'completed' ? '🎉' : pai.priorityStatus === 'in_progress' ? '⏳' : '📋'}
+                        </div>
+                        <div className="text-xs text-gray-600 font-medium">
+                          {pai.priorityStatus === 'completed' ? 'Sudah Ditangani' : 
+                           pai.priorityStatus === 'in_progress' ? 'Sedang Proses' : 'Belum Dimulai'}
+                        </div>
+                      </div>
+                      <div className="priority-stat-card bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-orange-100 text-center">
+                        <div className="text-2xl mb-1">📅</div>
+                        <div className="text-xs text-gray-600 font-medium">
+                          Dicatat {new Date(pai.updatedAt).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* DI Information */}
                 {pai.paiData.di && (

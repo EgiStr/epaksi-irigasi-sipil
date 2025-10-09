@@ -97,6 +97,7 @@ model Survey {
   id          String   @id @default(cuid())
   featureId   String   @map("feature_id")
   scheme      String
+  tahun       Int      @default(2025) // Tahun penilaian IKSI
   values      Json     @map("values")
   scoreTotal  Float?   @map("score_total")
   scoreClass  String?  @map("score_class") // 'A' | 'B' | 'C' | 'D'
@@ -111,9 +112,11 @@ model Survey {
   user        User     @relation(fields: [createdBy], references: [id])
   
   @@map("surveys")
+  @@unique([featureId, scheme, tahun]) // Unique constraint: 1 survey per feature+scheme+tahun
   @@index([featureId])
   @@index([scheme])
   @@index([scoreClass])
+  @@index([tahun])
   @@index([createdAt])
 }
 
@@ -158,6 +161,7 @@ model PAI {
   id              String   @id @default(cuid())
   featureId       String   @map("feature_id")
   paiType         String   @map("pai_type") // 'saluran' | 'bangunan'
+  tahun           Int      @default(2025) // Tahun penilaian PAI
   paiData         Json     @map("pai_data") // Structured PAI data
   photos          Json?    // Legacy field for base64 photos (deprecated)
   priorityScore   Int?     @map("priority_score") // Skor prioritas perbaikan (1-5)
@@ -172,8 +176,10 @@ model PAI {
   paiPhotos     Photo[]  @relation("PAIPhotos") // New relation to Photo model
 
   @@map("pai")
+  @@unique([featureId, tahun]) // Unique constraint: 1 PAI per feature per tahun
   @@index([featureId])
   @@index([paiType])
+  @@index([tahun])
   @@index([createdAt])
   @@index([priorityScore])
   @@index([priorityStatus])
