@@ -131,7 +131,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { featureId, scheme, values, configId } = body;
+    const { featureId, scheme, values, configId, tahun } = body;
 
     // Validate required fields
     if (!featureId || !scheme || !values) {
@@ -140,6 +140,9 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
+    // Default tahun ke tahun saat ini jika tidak diberikan
+    const surveyTahun = tahun || new Date().getFullYear();
 
     // Validate scheme
     if (!['utama', 'tersier'].includes(scheme)) {
@@ -221,15 +224,21 @@ export async function POST(request) {
       );
     }
 
-    // Create or update survey
-    const existingSurvey = await prisma.survey.findFirst({
-      where: { featureId, scheme },
-      orderBy: { createdAt: 'desc' }
+    // Create or update survey based on tahun
+    // Logic: Same year → UPDATE, Different year → INSERT
+    const existingSurvey = await prisma.survey.findUnique({
+      where: { 
+        featureId_scheme_tahun: {
+          featureId, 
+          scheme,
+          tahun: surveyTahun
+        }
+      }
     });
 
     let survey;
     if (existingSurvey) {
-      // Update existing survey
+      // Update existing survey (same year)
       survey = await prisma.survey.update({
         where: { id: existingSurvey.id },
         data: {
@@ -250,11 +259,12 @@ export async function POST(request) {
         }
       });
     } else {
-      // Create new survey
+      // Create new survey (different year or first time)
       survey = await prisma.survey.create({
         data: {
           featureId,
           scheme,
+          tahun: surveyTahun,
           values,
           scoreTotal: scoreResult.totalScore,
           scoreClass: scoreResult.qualityClass,
@@ -281,13 +291,17 @@ export async function POST(request) {
         featureName: survey.feature?.name,
         sourceLayer: survey.feature?.sourceLayer,
         scheme: survey.scheme,
+        tahun: survey.tahun || surveyTahun,
         scoreTotal: survey.scoreTotal,
         scoreClass: survey.scoreClass,
         scoreDetail: survey.scoreDetail,
         values: survey.values,
         createdAt: survey.createdAt,
         updatedAt: survey.updatedAt,
-        isUpdate: !!existingSurvey
+        isUpdate: !!existingSurvey,
+        message: existingSurvey 
+          ? `Survey tahun ${surveyTahun} berhasil diperbarui` 
+          : `Survey tahun ${surveyTahun} berhasil dibuat`
       },
       scoring: scoreResult,
       validation: {

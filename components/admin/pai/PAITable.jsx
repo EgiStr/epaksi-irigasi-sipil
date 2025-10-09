@@ -161,34 +161,6 @@ export default function PAITable({
               <option value="bangunan">Bangunan</option>
             </select>
 
-            {/* Filter Prioritas */}
-            <select
-              value={filters.priorityScore || ''}
-              onChange={(e) => onFilterChange({ ...filters, priorityScore: e.target.value || undefined })}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Semua Prioritas</option>
-              <option value="5">🔴 Sangat Mendesak</option>
-              <option value="4">🟠 Mendesak</option>
-              <option value="3">🟡 Sedang</option>
-              <option value="2">🔵 Rendah</option>
-              <option value="1">⚪ Sangat Rendah</option>
-              <option value="0">⚪ Belum Diatur</option>
-            </select>
-
-            {/* Filter Status Prioritas */}
-            <select
-              value={filters.priorityStatus || ''}
-              onChange={(e) => onFilterChange({ ...filters, priorityStatus: e.target.value || undefined })}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Semua Status</option>
-              <option value="pending">Menunggu</option>
-              <option value="approved">Disetujui</option>
-              <option value="in_progress">Dalam Proses</option>
-              <option value="completed">Selesai</option>
-            </select>
-
             {/* Bulk Actions */}
             {selectedRows.length > 0 && (
               <div className="flex items-center space-x-2">
@@ -247,20 +219,6 @@ export default function PAITable({
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Nomenklatur
               </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('priorityScore')}
-              >
-                <div className="flex items-center space-x-1">
-                  <span>⚠️ Prioritas Penanganan</span>
-                  {sortField === 'priorityScore' && (
-                    <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </div>
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Status Prioritas
-              </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Tahun
               </th>
@@ -284,7 +242,7 @@ export default function PAITable({
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedData.length === 0 ? (
               <tr>
-                <td colSpan="12" className="px-6 py-12 text-center">
+                <td colSpan="9" className="px-6 py-12 text-center">
                   <div className="text-gray-500">
                     <Image className="mx-auto h-12 w-12 mb-4" />
                     <p className="text-lg font-medium">Belum ada data PAI</p>
@@ -332,35 +290,6 @@ export default function PAITable({
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {pai.paiData?.aset?.nomenklatur || '-'}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col space-y-1">
-                      <span 
-                        className={`inline-flex items-center justify-center px-3 py-1 text-xs font-bold rounded-full ${priority.color}`}
-                        title={pai.priorityNotes || 'Tidak ada catatan'}
-                      >
-                        {priority.icon} {priority.label}
-                      </span>
-                      {pai.priorityScore && (
-                        <span className="text-xs text-gray-500 text-center">
-                          Skor: {pai.priorityScore}/5
-                        </span>
-                      )}
-                      {pai.priorityNotes && (
-                        <div className="text-xs text-gray-600 italic mt-1 max-w-xs truncate" title={pai.priorityNotes}>
-                          💬 {pai.priorityNotes}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {pai.priorityStatus ? (
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${priorityStatus.color}`}>
-                        {priorityStatus.label}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400">-</span>
-                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {pai.paiData?.tahun_dibangun || '-'}

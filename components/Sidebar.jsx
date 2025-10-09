@@ -18,7 +18,8 @@ import {
   Database,
   FileText,
   Activity,
-  Layers
+  Layers,
+  AlertTriangle
 } from 'lucide-react';
 import { hasPermission, PERMISSIONS } from '../lib/permissions';
 
@@ -80,6 +81,13 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
       label: 'Peta Irigasi',
       icon: Map,
       path: '/peta',
+      permission: PERMISSIONS.FEATURE_VIEW
+    },
+    {
+      id: 'prioritas',
+      label: 'Prioritas Penanganan',
+      icon: AlertTriangle,
+      path: '/prioritas',
       permission: PERMISSIONS.FEATURE_VIEW
     },
     // Admin Menu Section

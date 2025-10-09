@@ -141,7 +141,10 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    const { featureId, paiType, paiData, paiGeomGeoJSON } = validationResult.data
+    const { featureId, paiType, paiData, paiGeomGeoJSON, tahun } = validationResult.data
+
+    // Default tahun ke tahun saat ini jika tidak diberikan
+    const paiTahun = tahun || new Date().getFullYear()
 
     // Check if feature exists
     const feature = await prisma.feature.findUnique({
@@ -157,39 +160,86 @@ export async function POST(request) {
     // Normalize PAI data (geometri akan diambil dari Feature)
     const normalizedPaiData = normalizePAIData(paiType, paiData, null)
 
-    // Create PAI record (photos are now managed separately)
-    const newPAI = await prisma.pAI.create({
-      data: {
-        featureId,
-        paiType,
-        paiData: normalizedPaiData,
-        photos: null, // Legacy field, photos now managed via PhotoManager
-        createdBy: session.user.id
-      },
-      include: {
-        feature: {
-          select: {
-            featureId: true,
-            name: true,
-            type: true,
-            scheme: true,
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
+    // Check if PAI exists for this feature and year
+    const existingPAI = await prisma.pAI.findUnique({
+      where: {
+        featureId_tahun: {
+          featureId,
+          tahun: paiTahun
         }
       }
     })
 
+    let pai
+    if (existingPAI) {
+      // Update existing PAI (same year)
+      pai = await prisma.pAI.update({
+        where: { id: existingPAI.id },
+        data: {
+          paiType,
+          paiData: normalizedPaiData,
+          updatedAt: new Date()
+        },
+        include: {
+          feature: {
+            select: {
+              featureId: true,
+              name: true,
+              type: true,
+              scheme: true,
+            }
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          }
+        }
+      })
 
-    return NextResponse.json({
-      message: 'PAI berhasil dibuat',
-      pai: formatPAIResponse(newPAI)
-    }, { status: 201 })
+      return NextResponse.json({
+        message: `PAI tahun ${paiTahun} berhasil diperbarui`,
+        pai: formatPAIResponse(pai),
+        isUpdate: true
+      })
+    } else {
+      // Create new PAI record (different year or first time)
+      pai = await prisma.pAI.create({
+        data: {
+          featureId,
+          paiType,
+          tahun: paiTahun,
+          paiData: normalizedPaiData,
+          photos: null, // Legacy field, photos now managed via PhotoManager
+          createdBy: session.user.id
+        },
+        include: {
+          feature: {
+            select: {
+              featureId: true,
+              name: true,
+              type: true,
+              scheme: true,
+            }
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          }
+        }
+      })
+
+      return NextResponse.json({
+        message: `PAI tahun ${paiTahun} berhasil dibuat`,
+        pai: formatPAIResponse(pai),
+        isUpdate: false
+      }, { status: 201 })
+    }
 
   } catch (error) {
     console.error('Error creating PAI:', error)
