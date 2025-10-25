@@ -23,12 +23,14 @@ export async function PATCH(request, { params }) {
     const body = await request.json()
     const { priorityScore, priorityNotes, priorityStatus } = body
 
-    // Validate priority score
-    if (priorityScore && (priorityScore < 1 || priorityScore > 5)) {
-      return NextResponse.json(
-        { error: 'Skor prioritas harus antara 1-5' },
-        { status: 400 }
-      )
+    // Validate priority score (0-1, desimal)
+    if (priorityScore !== null && priorityScore !== undefined) {
+      if (typeof priorityScore !== 'number' || priorityScore < 0 || priorityScore > 1) {
+        return NextResponse.json(
+          { error: 'Skor prioritas harus berupa angka desimal antara 0-1 (contoh: 0.25, 0.5, 0.75, 1)' },
+          { status: 400 }
+        )
+      }
     }
 
     // Get existing PAI for audit log

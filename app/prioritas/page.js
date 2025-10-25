@@ -121,21 +121,18 @@ export default function PrioritasPenangananPage() {
   }
 
   const getPriorityBadge = (score) => {
-    if (!score) return { text: 'Belum Dinilai', color: 'bg-gray-100 text-gray-800', icon: '⚪' }
+    if (!score && score !== 0) return { text: 'Belum Dinilai', color: 'bg-gray-100 text-gray-800', icon: '⚪' }
     
-    switch (score) {
-      case 5:
-        return { text: 'SANGAT MENDESAK', color: 'bg-red-100 text-red-800 border-red-300', icon: '🔴' }
-      case 4:
-        return { text: 'MENDESAK', color: 'bg-orange-100 text-orange-800 border-orange-300', icon: '🟠' }
-      case 3:
-        return { text: 'SEDANG', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: '🟡' }
-      case 2:
-        return { text: 'RENDAH', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: '🔵' }
-      case 1:
-        return { text: 'SANGAT RENDAH', color: 'bg-green-100 text-green-800 border-green-300', icon: '🟢' }
-      default:
-        return { text: 'Tidak Diketahui', color: 'bg-gray-100 text-gray-800', icon: '⚪' }
+    if (score >= 0.875) {
+      return { text: 'SANGAT MENDESAK', color: 'bg-red-100 text-red-800 border-red-300', icon: '🔴' }
+    } else if (score >= 0.625) {
+      return { text: 'MENDESAK', color: 'bg-orange-100 text-orange-800 border-orange-300', icon: '🟠' }
+    } else if (score >= 0.375) {
+      return { text: 'SEDANG', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: '🟡' }
+    } else if (score >= 0.125) {
+      return { text: 'RENDAH', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: '🔵' }
+    } else {
+      return { text: 'SANGAT RENDAH', color: 'bg-green-100 text-green-800 border-green-300', icon: '🟢' }
     }
   }
 
@@ -169,10 +166,10 @@ export default function PrioritasPenangananPage() {
   // Statistics
   const stats = {
     total: paiData.length,
-    mendesak: paiData.filter(p => p.priorityScore >= 4).length,
-    sedang: paiData.filter(p => p.priorityScore === 3).length,
-    rendah: paiData.filter(p => p.priorityScore && p.priorityScore <= 2).length,
-    belumDinilai: paiData.filter(p => !p.priorityScore).length,
+    mendesak: paiData.filter(p => p.priorityScore >= 0.625).length, // >= 0.625 = Mendesak + Sangat Mendesak
+    sedang: paiData.filter(p => p.priorityScore >= 0.375 && p.priorityScore < 0.625).length,
+    rendah: paiData.filter(p => p.priorityScore && p.priorityScore < 0.375).length,
+    belumDinilai: paiData.filter(p => !p.priorityScore && p.priorityScore !== 0).length,
     completed: paiData.filter(p => p.priorityStatus === 'completed').length,
     inProgress: paiData.filter(p => p.priorityStatus === 'in_progress').length,
   }
@@ -418,9 +415,9 @@ export default function PrioritasPenangananPage() {
                               <div className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${priorityBadge.color}`}>
                                 {priorityBadge.text}
                               </div>
-                              {item.priorityScore && (
+                              {(item.priorityScore !== null && item.priorityScore !== undefined) && (
                                 <div className="text-xs text-gray-500 mt-1">
-                                  Skor: {item.priorityScore}/5
+                                  Skor: {item.priorityScore.toFixed(2)}
                                 </div>
                               )}
                             </div>
