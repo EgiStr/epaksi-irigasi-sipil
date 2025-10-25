@@ -164,7 +164,7 @@ model PAI {
   tahun           Int      @default(2025) // Tahun penilaian PAI
   paiData         Json     @map("pai_data") // Structured PAI data
   photos          Json?    // Legacy field for base64 photos (deprecated)
-  priorityScore   Int?     @map("priority_score") // Skor prioritas perbaikan (1-5)
+  priorityScore   Float?   @map("priority_score") // Skor prioritas perbaikan (0-1, desimal)
   priorityNotes   String?  @map("priority_notes") @db.Text // Catatan prioritas
   priorityStatus  String?  @map("priority_status") @default("pending") // 'pending' | 'approved' | 'in_progress' | 'completed'
   createdAt       DateTime @default(now()) @map("created_at")

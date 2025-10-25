@@ -5,11 +5,11 @@ import { X, AlertTriangle, CheckCircle, Clock, PlayCircle, Flag } from 'lucide-r
 import { useSidebar } from '../contexts/SidebarContext'
 
 const PRIORITY_LEVELS = [
-  { value: 5, label: 'Sangat Mendesak', color: '#ef4444', description: 'Kerusakan parah, perlu perbaikan segera' },
-  { value: 4, label: 'Mendesak', color: '#f97316', description: 'Kerusakan signifikan, prioritas tinggi' },
-  { value: 3, label: 'Sedang', color: '#f59e0b', description: 'Perlu perbaikan dalam waktu dekat' },
-  { value: 2, label: 'Rendah', color: '#3b82f6', description: 'Dapat dijadwalkan untuk perbaikan rutin' },
-  { value: 1, label: 'Sangat Rendah', color: '#6b7280', description: 'Perbaikan dapat ditunda' }
+  { value: 1, label: 'Sangat Mendesak', color: '#ef4444', description: 'Kerusakan parah, perlu perbaikan segera' },
+  { value: 0.75, label: 'Mendesak', color: '#f97316', description: 'Kerusakan signifikan, prioritas tinggi' },
+  { value: 0.5, label: 'Sedang', color: '#f59e0b', description: 'Perlu perbaikan dalam waktu dekat' },
+  { value: 0.25, label: 'Rendah', color: '#3b82f6', description: 'Dapat dijadwalkan untuk perbaikan rutin' },
+  { value: 0, label: 'Sangat Rendah', color: '#6b7280', description: 'Perbaikan dapat ditunda' }
 ]
 
 const STATUS_OPTIONS = [
@@ -18,6 +18,24 @@ const STATUS_OPTIONS = [
   { value: 'in_progress', label: 'Dalam Pengerjaan', icon: PlayCircle, color: '#f59e0b' },
   { value: 'completed', label: 'Selesai', icon: CheckCircle, color: '#10b981' }
 ]
+
+// Helper function to get priority color based on score
+const getPriorityColor = (score) => {
+  if (score >= 0.875) return '#ef4444' // Red - Sangat Mendesak
+  if (score >= 0.625) return '#f97316' // Orange - Mendesak
+  if (score >= 0.375) return '#f59e0b' // Amber - Sedang
+  if (score >= 0.125) return '#3b82f6' // Blue - Rendah
+  return '#6b7280' // Gray - Sangat Rendah
+}
+
+// Helper function to get priority label based on score
+const getPriorityLabel = (score) => {
+  if (score >= 0.875) return 'Sangat Mendesak'
+  if (score >= 0.625) return 'Mendesak'
+  if (score >= 0.375) return 'Sedang'
+  if (score >= 0.125) return 'Rendah'
+  return 'Sangat Rendah'
+}
 
 export default function PriorityScoreModal({ isOpen, onClose, featureData, paiData, onSubmit }) {
   const { setModalState } = useSidebar()
@@ -159,8 +177,6 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
 
   if (!isOpen) return null
 
-  const selectedPriority = PRIORITY_LEVELS.find(p => p.value === priorityScore)
-
   return (
     <div 
       className={`fixed inset-0 ${isClosing ? 'closing' : ''}`}
@@ -256,11 +272,11 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
                   <span className="text-blue-700">Terakhir Update:</span>{' '}
                   <span className="font-medium">{new Date(existingPAI.updatedAt).toLocaleDateString('id-ID')}</span>
                 </div>
-                {existingPAI.priorityScore && (
+                {existingPAI.priorityScore !== null && existingPAI.priorityScore !== undefined && (
                   <div>
                     <span className="text-blue-700">Prioritas Saat Ini:</span>{' '}
-                    <span className="font-semibold" style={{ color: PRIORITY_LEVELS.find(p => p.value === existingPAI.priorityScore)?.color }}>
-                      {PRIORITY_LEVELS.find(p => p.value === existingPAI.priorityScore)?.label}
+                    <span className="font-semibold" style={{ color: getPriorityColor(existingPAI.priorityScore) }}>
+                      {existingPAI.priorityScore.toFixed(2)} - {getPriorityLabel(existingPAI.priorityScore)}
                     </span>
                   </div>
                 )}
@@ -290,40 +306,95 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
           {/* Priority Score Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Pilih Tingkat Prioritas <span className="text-red-500">*</span>
+              Skor Prioritas Perbaikan (0-1) <span className="text-red-500">*</span>
             </label>
-            <div className="space-y-2">
-              {PRIORITY_LEVELS.map((level) => (
-                <button
-                  key={level.value}
-                  type="button"
-                  onClick={() => setPriorityScore(level.value)}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    priorityScore === level.value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
-                        style={{ backgroundColor: level.color }}
-                      >
-                        {level.value}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-900">{level.label}</div>
-                        <div className="text-sm text-gray-600">{level.description}</div>
-                      </div>
-                    </div>
-                    {priorityScore === level.value && (
-                      <CheckCircle className="w-6 h-6 text-blue-500" />
-                    )}
-                  </div>
-                </button>
-              ))}
+            <p className="text-sm text-gray-600 mb-4">
+              Masukkan nilai desimal antara 0 (sangat rendah) hingga 1 (sangat mendesak).
+              Contoh: 0.25, 0.5, 0.75, 1
+            </p>
+            
+            {/* Number Input */}
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                max="1"
+                step="0.01"
+                value={priorityScore !== null ? priorityScore : ''}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value)
+                  if (e.target.value === '') {
+                    setPriorityScore(null)
+                  } else if (!isNaN(value) && value >= 0 && value <= 1) {
+                    setPriorityScore(value)
+                  }
+                }}
+                className="w-full px-4 py-3 text-lg font-semibold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0.00"
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <span className="text-sm">Max: 1.00</span>
+              </div>
             </div>
+
+            {/* Quick Select Buttons */}
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 mb-2">Pilihan Cepat:</p>
+              <div className="grid grid-cols-5 gap-2">
+                {PRIORITY_LEVELS.map((level) => (
+                  <button
+                    key={level.value}
+                    type="button"
+                    onClick={() => setPriorityScore(level.value)}
+                    className={`p-2 rounded-lg border-2 transition-all text-center ${
+                      priorityScore === level.value
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    title={level.description}
+                  >
+                    <div
+                      className="w-6 h-6 mx-auto rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
+                      style={{ backgroundColor: level.color }}
+                    >
+                      {level.value}
+                    </div>
+                    <div className="text-xs text-gray-700 font-medium truncate">{level.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Visual Indicator */}
+            {priorityScore !== null && (
+              <div className="mt-4 p-4 rounded-lg border-2" style={{ 
+                backgroundColor: `${getPriorityColor(priorityScore)}15`,
+                borderColor: getPriorityColor(priorityScore)
+              }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Tingkat Prioritas:</span>
+                  <span className="text-lg font-bold" style={{ color: getPriorityColor(priorityScore) }}>
+                    {getPriorityLabel(priorityScore)}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="h-full transition-all duration-300 rounded-full"
+                    style={{ 
+                      width: `${priorityScore * 100}%`,
+                      backgroundColor: getPriorityColor(priorityScore)
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0.0</span>
+                  <span className="font-semibold" style={{ color: getPriorityColor(priorityScore) }}>
+                    {priorityScore.toFixed(2)}
+                  </span>
+                  <span>1.0</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Status Selection */}
@@ -370,14 +441,20 @@ export default function PriorityScoreModal({ isOpen, onClose, featureData, paiDa
           </div>
 
           {/* Summary */}
-          {selectedPriority && (
-            <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: `${selectedPriority.color}15` }}>
+          {priorityScore !== null && (
+            <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: `${getPriorityColor(priorityScore)}15` }}>
               <h3 className="font-semibold text-gray-900 mb-2">Ringkasan Prioritas</h3>
               <div className="space-y-1 text-sm">
                 <div className="flex items-center gap-2">
+                  <span className="text-gray-700">Skor:</span>
+                  <span className="font-semibold text-lg" style={{ color: getPriorityColor(priorityScore) }}>
+                    {priorityScore.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
                   <span className="text-gray-700">Tingkat:</span>
-                  <span className="font-semibold" style={{ color: selectedPriority.color }}>
-                    {selectedPriority.label} (Skor: {selectedPriority.value})
+                  <span className="font-semibold" style={{ color: getPriorityColor(priorityScore) }}>
+                    {getPriorityLabel(priorityScore)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
