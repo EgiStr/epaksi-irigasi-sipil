@@ -46,6 +46,56 @@ const priorityStyles = `
   }
 `
 
+// Helper function to get priority info based on score (0-1)
+const getPriorityInfo = (score) => {
+  if (score >= 0.875) {
+    return {
+      label: 'SANGAT MENDESAK',
+      icon: '🔴',
+      bgClass: 'bg-gradient-to-br from-red-600 to-red-700 text-white',
+      borderClass: 'bg-red-100 text-red-800 border-2 border-red-300',
+      glowBg: 'radial-gradient(circle, rgba(220,38,38,0.8) 0%, transparent 70%)',
+      description: '⚠️ Memerlukan perbaikan segera untuk menghindari kerusakan lebih parah atau kegagalan sistem'
+    }
+  } else if (score >= 0.625) {
+    return {
+      label: 'MENDESAK',
+      icon: '🟠',
+      bgClass: 'bg-gradient-to-br from-orange-500 to-orange-600 text-white',
+      borderClass: 'bg-orange-100 text-orange-800 border-2 border-orange-300',
+      glowBg: 'radial-gradient(circle, rgba(249,115,22,0.8) 0%, transparent 70%)',
+      description: '⏰ Perlu diperbaiki dalam waktu dekat untuk mencegah dampak operasional'
+    }
+  } else if (score >= 0.375) {
+    return {
+      label: 'SEDANG',
+      icon: '🟡',
+      bgClass: 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white',
+      borderClass: 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300',
+      glowBg: 'radial-gradient(circle, rgba(234,179,8,0.8) 0%, transparent 70%)',
+      description: '📋 Dapat dijadwalkan dalam rencana pemeliharaan rutin'
+    }
+  } else if (score >= 0.125) {
+    return {
+      label: 'RENDAH',
+      icon: '🔵',
+      bgClass: 'bg-gradient-to-br from-blue-500 to-blue-600 text-white',
+      borderClass: 'bg-blue-100 text-blue-800 border-2 border-blue-300',
+      glowBg: 'radial-gradient(circle, rgba(59,130,246,0.8) 0%, transparent 70%)',
+      description: '📌 Pemeliharaan preventif dapat dilakukan sesuai jadwal normal'
+    }
+  } else {
+    return {
+      label: 'SANGAT RENDAH',
+      icon: '🟢',
+      bgClass: 'bg-gradient-to-br from-green-500 to-green-600 text-white',
+      borderClass: 'bg-green-100 text-green-800 border-2 border-green-300',
+      glowBg: 'radial-gradient(circle, rgba(34,197,94,0.8) 0%, transparent 70%)',
+      description: '✅ Kondisi baik, pemantauan berkala sudah cukup'
+    }
+  }
+}
+
 export default function FeatureDetailPage() {
   const { loading: authLoading } = useRequireAuth()
   const params = useParams()
@@ -1263,22 +1313,13 @@ export default function FeatureDetailPage() {
                           <div className={`
                             priority-score-badge relative flex items-center justify-center w-20 h-20 rounded-2xl shadow-xl font-bold text-3xl
                             transform transition-transform hover:scale-110
-                            ${pai.priorityScore === 5 ? 'bg-gradient-to-br from-red-600 to-red-700 text-white' :
-                              pai.priorityScore === 4 ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white' :
-                              pai.priorityScore === 3 ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white' :
-                              pai.priorityScore === 2 ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' :
-                              'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            }
+                            ${getPriorityInfo(pai.priorityScore).bgClass}
                           `}>
-                            <span className="relative z-10">{pai.priorityScore}</span>
+                            <span className="relative z-10">{pai.priorityScore.toFixed(2)}</span>
                             {/* Glow effect */}
                             <div className="absolute inset-0 rounded-2xl blur-md opacity-50"
                               style={{
-                                background: pai.priorityScore === 5 ? 'radial-gradient(circle, rgba(220,38,38,0.8) 0%, transparent 70%)' :
-                                          pai.priorityScore === 4 ? 'radial-gradient(circle, rgba(249,115,22,0.8) 0%, transparent 70%)' :
-                                          pai.priorityScore === 3 ? 'radial-gradient(circle, rgba(234,179,8,0.8) 0%, transparent 70%)' :
-                                          pai.priorityScore === 2 ? 'radial-gradient(circle, rgba(59,130,246,0.8) 0%, transparent 70%)' :
-                                          'radial-gradient(circle, rgba(34,197,94,0.8) 0%, transparent 70%)'
+                                background: getPriorityInfo(pai.priorityScore).glowBg
                               }}
                             />
                           </div>
@@ -1293,31 +1334,18 @@ export default function FeatureDetailPage() {
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-orange-200/50 shadow-md">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-semibold text-gray-700">Tingkat Prioritas</span>
-                            <span className="text-xs text-gray-500">Skala 1-5</span>
+                            <span className="text-xs text-gray-500">Skala 0-1</span>
                           </div>
                           <div className={`
                             px-4 py-2 rounded-lg text-center font-bold text-lg
-                            ${pai.priorityScore === 5 ? 'bg-red-100 text-red-800 border-2 border-red-300' :
-                              pai.priorityScore === 4 ? 'bg-orange-100 text-orange-800 border-2 border-orange-300' :
-                              pai.priorityScore === 3 ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300' :
-                              pai.priorityScore === 2 ? 'bg-blue-100 text-blue-800 border-2 border-blue-300' :
-                              'bg-green-100 text-green-800 border-2 border-green-300'
-                            }
+                            ${getPriorityInfo(pai.priorityScore).borderClass}
                           `}>
-                            {pai.priorityScore === 5 ? '🔴 SANGAT MENDESAK' :
-                             pai.priorityScore === 4 ? '🟠 MENDESAK' :
-                             pai.priorityScore === 3 ? '🟡 SEDANG' :
-                             pai.priorityScore === 2 ? '🔵 RENDAH' :
-                             '🟢 SANGAT RENDAH'}
+                            {getPriorityInfo(pai.priorityScore).icon} {getPriorityInfo(pai.priorityScore).label}
                           </div>
                           
                           {/* Priority Description */}
                           <div className="mt-3 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
-                            {pai.priorityScore === 5 && '⚠️ Memerlukan perbaikan segera untuk menghindari kerusakan lebih parah atau kegagalan sistem'}
-                            {pai.priorityScore === 4 && '⏰ Perlu diperbaiki dalam waktu dekat untuk mencegah dampak operasional'}
-                            {pai.priorityScore === 3 && '📋 Dapat dijadwalkan dalam rencana pemeliharaan rutin'}
-                            {pai.priorityScore === 2 && '📌 Pemeliharaan preventif dapat dilakukan sesuai jadwal normal'}
-                            {pai.priorityScore === 1 && '✅ Kondisi baik, pemantauan berkala sudah cukup'}
+                            {getPriorityInfo(pai.priorityScore).description}
                           </div>
                         </div>
                       )}
@@ -1394,10 +1422,10 @@ export default function FeatureDetailPage() {
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       <div className="priority-stat-card bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-orange-100 text-center">
                         <div className="text-2xl mb-1">
-                          {pai.priorityScore >= 4 ? '🚨' : pai.priorityScore === 3 ? '⚠️' : '✅'}
+                          {pai.priorityScore >= 0.625 ? '🚨' : pai.priorityScore >= 0.375 ? '⚠️' : '✅'}
                         </div>
                         <div className="text-xs text-gray-600 font-medium">
-                          {pai.priorityScore >= 4 ? 'Perlu Perhatian' : pai.priorityScore === 3 ? 'Terpantau' : 'Kondisi Baik'}
+                          {pai.priorityScore >= 0.625 ? 'Perlu Perhatian' : pai.priorityScore >= 0.375 ? 'Terpantau' : 'Kondisi Baik'}
                         </div>
                       </div>
                       <div className="priority-stat-card bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-orange-100 text-center">

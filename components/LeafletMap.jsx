@@ -579,15 +579,23 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
               }
               
               // Add priority info if exists
-              if (pai.priorityScore) {
-                const priorityLabels = {
-                  5: { label: 'Sangat Mendesak', color: '#ef4444' },
-                  4: { label: 'Mendesak', color: '#f97316' },
-                  3: { label: 'Sedang', color: '#f59e0b' },
-                  2: { label: 'Rendah', color: '#3b82f6' },
-                  1: { label: 'Sangat Rendah', color: '#6b7280' }
+              if (pai.priorityScore !== null && pai.priorityScore !== undefined) {
+                // Helper function to get priority info based on score (0-1)
+                const getPriorityInfo = (score) => {
+                  if (score >= 0.875) {
+                    return { label: 'Sangat Mendesak', color: '#ef4444', priority: score.toFixed(2) };
+                  } else if (score >= 0.625) {
+                    return { label: 'Mendesak', color: '#f97316', priority: score.toFixed(2) };
+                  } else if (score >= 0.375) {
+                    return { label: 'Sedang', color: '#f59e0b', priority: score.toFixed(2) };
+                  } else if (score >= 0.125) {
+                    return { label: 'Rendah', color: '#3b82f6', priority: score.toFixed(2) };
+                  } else {
+                    return { label: 'Sangat Rendah', color: '#6b7280', priority: score.toFixed(2) };
+                  }
                 };
-                const priorityInfo = priorityLabels[pai.priorityScore];
+                
+                const priorityInfo = getPriorityInfo(pai.priorityScore);
                 infoHTML += `<div style="margin-top: 6px; padding: 4px 8px; background: ${priorityInfo.color}20; border-left: 3px solid ${priorityInfo.color}; border-radius: 4px;">`;
                 infoHTML += `<div style="font-size: 11px; font-weight: 600; color: ${priorityInfo.color};">⚠️ Prioritas: ${priorityInfo.label} (${priorityInfo.priority})</div>`;
                 if (pai.priorityNotes) {
