@@ -806,7 +806,7 @@ export default function FeatureDetailPage() {
                       background: #10b981; color: white; padding: 16px 24px; 
                       border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
                       z-index: 9999; font-weight: 500; animation: slideIn 0.3s ease-out;">
-            ✅ Jendela print dibuka! Pilih "Save as PDF" di dialog print untuk menyimpan.
+            ✅ Jendela print dibuka! Pilih &ldquo;Save as PDF&rdquo; di dialog print untuk menyimpan.
           </div>
           <style>
             @keyframes slideIn {
