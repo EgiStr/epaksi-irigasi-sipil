@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "NEXTAUTH_URL": "@nextauth-url",
+    "NEXTAUTH_SECRET": "@nextauth-secret",
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key"
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database-url"
+    }
+  },
+  "regions": ["sin1"],
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 10
+    }
+  }
+}
