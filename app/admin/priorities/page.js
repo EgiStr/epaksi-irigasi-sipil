@@ -3,12 +3,19 @@
 import { useState, useEffect } from 'react'
 import { AlertTriangle, CheckCircle, Clock, PlayCircle, Filter, Download } from 'lucide-react'
 
-const PRIORITY_COLORS = {
-  5: { bg: '#fee2e2', text: '#991b1b', label: 'Sangat Mendesak' },
-  4: { bg: '#fed7aa', text: '#9a3412', label: 'Mendesak' },
-  3: { bg: '#fef3c7', text: '#92400e', label: 'Sedang' },
-  2: { bg: '#dbeafe', text: '#1e40af', label: 'Rendah' },
-  1: { bg: '#f3f4f6', text: '#374151', label: 'Sangat Rendah' }
+// Helper function untuk mendapatkan info prioritas berdasarkan score (0-1)
+const getPriorityConfig = (score) => {
+  if (score >= 0.875) {
+    return { bg: '#fee2e2', text: '#991b1b', label: 'Sangat Mendesak', range: '≥0.875' }
+  } else if (score >= 0.625) {
+    return { bg: '#fed7aa', text: '#9a3412', label: 'Mendesak', range: '0.625-0.874' }
+  } else if (score >= 0.375) {
+    return { bg: '#fef3c7', text: '#92400e', label: 'Sedang', range: '0.375-0.624' }
+  } else if (score >= 0.125) {
+    return { bg: '#dbeafe', text: '#1e40af', label: 'Rendah', range: '0.125-0.374' }
+  } else {
+    return { bg: '#f3f4f6', text: '#374151', label: 'Sangat Rendah', range: '<0.125' }
+  }
 }
 
 const STATUS_CONFIG = {
@@ -54,17 +61,25 @@ export default function PriorityManagement() {
 
   const filteredPriorities = priorities.filter(item => {
     if (filter.status !== 'all' && item.priorityStatus !== filter.status) return false
-    if (filter.priority !== 'all' && item.priorityScore !== parseInt(filter.priority)) return false
+    if (filter.priority !== 'all') {
+      const score = item.priorityScore
+      if (filter.priority === 'very_high' && score < 0.875) return false
+      if (filter.priority === 'high' && (score < 0.625 || score >= 0.875)) return false
+      if (filter.priority === 'medium' && (score < 0.375 || score >= 0.625)) return false
+      if (filter.priority === 'low' && (score < 0.125 || score >= 0.375)) return false
+      if (filter.priority === 'very_low' && score >= 0.125) return false
+    }
     return true
   })
 
   const exportToCSV = () => {
-    const headers = ['Feature ID', 'Nama', 'Tipe PAI', 'Skor Prioritas', 'Status', 'Catatan', 'Tanggal Update']
+    const headers = ['Feature ID', 'Nama', 'Tipe PAI', 'Skor Prioritas', 'Kategori Prioritas', 'Status', 'Catatan', 'Tanggal Update']
     const rows = filteredPriorities.map(item => [
       item.featureId,
       item.feature?.name || '-',
       item.paiType === 'saluran' ? 'Saluran' : 'Bangunan',
-      item.priorityScore || '-',
+      item.priorityScore?.toFixed(2) || '-',
+      getPriorityConfig(item.priorityScore).label,
       STATUS_CONFIG[item.priorityStatus]?.label || '-',
       (item.priorityNotes || '-').replace(/,/g, ';'),
       new Date(item.updatedAt).toLocaleDateString('id-ID')
@@ -110,22 +125,37 @@ export default function PriorityManagement() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {[5, 4, 3, 2].map(priority => {
-            const count = priorities.filter(p => p.priorityScore === priority).length
-            const config = PRIORITY_COLORS[priority]
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          {[
+            { min: 0.875, label: 'Sangat Mendesak', key: 'very_high' },
+            { min: 0.625, max: 0.875, label: 'Mendesak', key: 'high' },
+            { min: 0.375, max: 0.625, label: 'Sedang', key: 'medium' },
+            { min: 0.125, max: 0.375, label: 'Rendah', key: 'low' },
+            { max: 0.125, label: 'Sangat Rendah', key: 'very_low' }
+          ].map(({ min, max, label, key }) => {
+            const count = priorities.filter(p => {
+              const score = p.priorityScore
+              if (min !== undefined && max !== undefined) {
+                return score >= min && score < max
+              } else if (min !== undefined) {
+                return score >= min
+              } else {
+                return score < max
+              }
+            }).length
+            const config = getPriorityConfig(min !== undefined ? min : 0)
             return (
-              <div key={priority} className="bg-white rounded-lg shadow p-4">
+              <div key={key} className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">{config.label}</p>
+                    <p className="text-sm text-gray-600">{label}</p>
                     <p className="text-2xl font-bold" style={{ color: config.text }}>{count}</p>
                   </div>
                   <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold"
                     style={{ backgroundColor: config.bg, color: config.text }}
                   >
-                    {priority}
+                    {config.range}
                   </div>
                 </div>
               </div>
@@ -144,11 +174,11 @@ export default function PriorityManagement() {
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">Semua Prioritas</option>
-                <option value="5">Sangat Mendesak (5)</option>
-                <option value="4">Mendesak (4)</option>
-                <option value="3">Sedang (3)</option>
-                <option value="2">Rendah (2)</option>
-                <option value="1">Sangat Rendah (1)</option>
+                <option value="very_high">Sangat Mendesak (≥0.875)</option>
+                <option value="high">Mendesak (0.625-0.874)</option>
+                <option value="medium">Sedang (0.375-0.624)</option>
+                <option value="low">Rendah (0.125-0.374)</option>
+                <option value="very_low">Sangat Rendah (&lt;0.125)</option>
               </select>
 
               <select
@@ -208,7 +238,7 @@ export default function PriorityManagement() {
                 </tr>
               ) : (
                 filteredPriorities.map((item) => {
-                  const priorityConfig = PRIORITY_COLORS[item.priorityScore]
+                  const priorityConfig = getPriorityConfig(item.priorityScore)
                   const statusConfig = STATUS_CONFIG[item.priorityStatus]
                   const StatusIcon = statusConfig?.icon
 
@@ -217,14 +247,19 @@ export default function PriorityManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+                            className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xs"
                             style={{ backgroundColor: priorityConfig.bg, color: priorityConfig.text }}
                           >
-                            {item.priorityScore}
+                            {item.priorityScore.toFixed(2)}
                           </div>
-                          <span className="text-sm font-medium" style={{ color: priorityConfig.text }}>
-                            {priorityConfig.label}
-                          </span>
+                          <div>
+                            <div className="text-sm font-medium" style={{ color: priorityConfig.text }}>
+                              {priorityConfig.label}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {priorityConfig.range}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">

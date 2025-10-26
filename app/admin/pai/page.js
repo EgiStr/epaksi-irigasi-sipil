@@ -184,8 +184,8 @@ export default function PAIManagementPage() {
                 className="pl-10 pr-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 appearance-none"
               >
                 <option value="">Tambah PAI untuk Feature...</option>
-                {features.map((feature) => (
-                  <option key={feature.featureId} value={feature.featureId}>
+                {features.map((feature, index) => (
+                  <option key={feature.id || feature.featureId || `feature-${index}`} value={feature.featureId}>
                     {feature.name || feature.featureId}
                   </option>
                 ))}

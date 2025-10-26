@@ -72,8 +72,25 @@ export default function PrioritasPenangananPage() {
 
     // Filter berdasarkan score
     if (filterScore !== 'all') {
-      const score = parseInt(filterScore)
-      result = result.filter(item => item.priorityScore === score)
+      result = result.filter(item => {
+        const score = item.priorityScore
+        if (!score && score !== 0) return false
+        
+        switch (filterScore) {
+          case 'very_high':
+            return score >= 0.875
+          case 'high':
+            return score >= 0.625 && score < 0.875
+          case 'medium':
+            return score >= 0.375 && score < 0.625
+          case 'low':
+            return score >= 0.125 && score < 0.375
+          case 'very_low':
+            return score < 0.125
+          default:
+            return true
+        }
+      })
     }
 
     // Sort
@@ -215,7 +232,7 @@ export default function PrioritasPenangananPage() {
               <div>
                 <p className="text-sm text-red-600 font-medium">Mendesak</p>
                 <p className="text-3xl font-bold text-red-700">{stats.mendesak}</p>
-                <p className="text-xs text-red-500 mt-1">Prioritas 4-5</p>
+                <p className="text-xs text-red-500 mt-1">≥0.625</p>
               </div>
               <div className="text-4xl">🔴</div>
             </div>
@@ -226,7 +243,7 @@ export default function PrioritasPenangananPage() {
               <div>
                 <p className="text-sm text-yellow-600 font-medium">Sedang</p>
                 <p className="text-3xl font-bold text-yellow-700">{stats.sedang}</p>
-                <p className="text-xs text-yellow-500 mt-1">Prioritas 3</p>
+                <p className="text-xs text-yellow-500 mt-1">0.375-0.624</p>
               </div>
               <div className="text-4xl">🟡</div>
             </div>
@@ -237,7 +254,7 @@ export default function PrioritasPenangananPage() {
               <div>
                 <p className="text-sm text-blue-600 font-medium">Rendah</p>
                 <p className="text-3xl font-bold text-blue-700">{stats.rendah}</p>
-                <p className="text-xs text-blue-500 mt-1">Prioritas 1-2</p>
+                <p className="text-xs text-blue-500 mt-1">&lt;0.375</p>
               </div>
               <div className="text-4xl">🔵</div>
             </div>
@@ -304,11 +321,11 @@ export default function PrioritasPenangananPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">Semua Prioritas</option>
-                <option value="5">🔴 Sangat Mendesak (5)</option>
-                <option value="4">🟠 Mendesak (4)</option>
-                <option value="3">🟡 Sedang (3)</option>
-                <option value="2">🔵 Rendah (2)</option>
-                <option value="1">🟢 Sangat Rendah (1)</option>
+                <option value="very_high">🔴 Sangat Mendesak (≥0.875)</option>
+                <option value="high">🟠 Mendesak (0.625-0.874)</option>
+                <option value="medium">🟡 Sedang (0.375-0.624)</option>
+                <option value="low">🔵 Rendah (0.125-0.374)</option>
+                <option value="very_low">🟢 Sangat Rendah (&lt;0.125)</option>
               </select>
             </div>
           </div>
