@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, MapPin, Calendar, User, FileText, Image, Star, Download } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, User, FileText, Image, Star, Download, ClipboardList } from 'lucide-react'
 import Layout from '../../../components/Layout'
 import { useRequireAuth } from '../../../hooks/useAuth'
+import KuesionerModal from '../../../components/KuesionerModal'
 
 // Priority animations and styles
 const priorityStyles = `
@@ -107,6 +108,9 @@ export default function FeatureDetailPage() {
   const [paiList, setPaiList] = useState([]) // All PAI records
   const [surveys, setSurveys] = useState([])
   const [allSurveys, setAllSurveys] = useState([]) // All surveys
+  const [kuesionerList, setKuesionerList] = useState([]) // All kuesioner records
+  const [allKuesioner, setAllKuesioner] = useState([]) // All kuesioner data
+  const [showKuesionerModal, setShowKuesionerModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isExporting, setIsExporting] = useState(false)
@@ -116,8 +120,10 @@ export default function FeatureDetailPage() {
   // Filter states
   const [selectedSurveyYear, setSelectedSurveyYear] = useState('all')
   const [selectedPAIYear, setSelectedPAIYear] = useState('all')
+  const [selectedKuesionerYear, setSelectedKuesionerYear] = useState('all')
   const [availableSurveyYears, setAvailableSurveyYears] = useState([])
   const [availablePAIYears, setAvailablePAIYears] = useState([])
+  const [availableKuesionerYears, setAvailableKuesionerYears] = useState([])
 
   useEffect(() => {
     if (featureId) {
@@ -162,6 +168,23 @@ export default function FeatureDetailPage() {
         throw new Error('Gagal mengambil data feature')
       }
 
+      // Fetch kuesioner data separately
+      const kuesionerResponse = await fetch(`/api/kuesioner?featureId=${featureId}`)
+      if (kuesionerResponse.ok) {
+        const kuesionerData = await kuesionerResponse.json()
+        const allKuesionerData = kuesionerData.kuesioner || []
+        setAllKuesioner(allKuesionerData)
+        setKuesionerList(allKuesionerData)
+        
+        // Extract unique kuesioner years (sorted desc)
+        const kuesionerYears = [...new Set(allKuesionerData.map(k => k.tahun || new Date(k.createdAt).getFullYear()))]
+          .sort((a, b) => b - a)
+        setAvailableKuesionerYears(kuesionerYears)
+        
+        // Default to latest year
+        if (kuesionerYears.length > 0) setSelectedKuesionerYear(kuesionerYears[0])
+      }
+
     } catch (error) {
       console.error('Error fetching feature detail:', error)
       setError('Gagal memuat detail feature')
@@ -194,6 +217,18 @@ export default function FeatureDetailPage() {
     }
   }, [selectedPAIYear, paiList])
 
+  // Filter Kuesioner based on selected year
+  useEffect(() => {
+    if (selectedKuesionerYear === 'all') {
+      setKuesionerList(allKuesioner)
+    } else {
+      const filtered = allKuesioner.filter(k => 
+        (k.tahun || new Date(k.createdAt).getFullYear()) === selectedKuesionerYear
+      )
+      setKuesionerList(filtered)
+    }
+  }, [selectedKuesionerYear, allKuesioner])
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
@@ -210,6 +245,15 @@ export default function FeatureDetailPage() {
       case 'B': return 'text-blue-600 bg-blue-100'
       case 'C': return 'text-yellow-600 bg-yellow-100'
       case 'D': return 'text-red-600 bg-red-100'
+      default: return 'text-gray-600 bg-gray-100'
+    }
+  }
+
+  const getKuesionerScoreColor = (scoreClass) => {
+    switch (scoreClass) {
+      case 'BAIK': return 'text-green-600 bg-green-100'
+      case 'SEDANG': return 'text-yellow-600 bg-yellow-100'
+      case 'JELEK': return 'text-red-600 bg-red-100'
       default: return 'text-gray-600 bg-gray-100'
     }
   }
@@ -1603,6 +1647,173 @@ export default function FeatureDetailPage() {
           </div>
         )}
 
+        {/* Kuesioner Information */}
+        <div className="mt-6 content-card">
+          <div className="card-header">
+            <h3 className="flex items-center">
+              <ClipboardList className="w-5 h-5 mr-2" />
+              Data Kuesioner Penilaian
+            </h3>
+            <div className="flex items-center gap-3">
+              {availableKuesionerYears.length > 0 && (
+                <div className="flex items-center gap-2 no-print">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <select
+                    value={selectedKuesionerYear}
+                    onChange={(e) => setSelectedKuesionerYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                    className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="all">Semua Tahun</option>
+                    {availableKuesionerYears.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <span className="activity-count">{kuesionerList.length} Kuesioner</span>
+              <button
+                onClick={() => setShowKuesionerModal(true)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-2 no-print"
+              >
+                <ClipboardList className="w-4 h-4" />
+                Isi Kuesioner
+              </button>
+            </div>
+          </div>
+          <div className="p-6">
+            {kuesionerList.length > 0 ? (
+              <div className="space-y-4">
+                {kuesionerList.map((kuesioner, index) => (
+                  <div key={kuesioner.id} className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-white">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-medium text-gray-600">Kuesioner #{index + 1}</span>
+                          {/* Tahun Badge */}
+                          <span className="px-2 py-0.5 bg-purple-600 text-white text-xs font-semibold rounded-full flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {kuesioner.tahun || new Date(kuesioner.createdAt).getFullYear()}
+                          </span>
+                          {/* Scheme Badge */}
+                          <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                            kuesioner.scheme === 'primer' ? 'bg-blue-100 text-blue-700 border border-blue-300' :
+                            kuesioner.scheme === 'sekunder' ? 'bg-green-100 text-green-700 border border-green-300' :
+                            'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                          }`}>
+                            {kuesioner.scheme === 'primer' && '🔵 Primer'}
+                            {kuesioner.scheme === 'sekunder' && '🟢 Sekunder'}
+                            {kuesioner.scheme === 'tersier' && '🟡 Tersier'}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-500">{formatDate(kuesioner.createdAt)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-gray-900">
+                          {kuesioner.scoreTotal?.toFixed(2) || 'N/A'}%
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getKuesionerScoreColor(kuesioner.scoreClass)}`}>
+                          {kuesioner.scoreClass || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid gap-4 mb-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-bold text-gray-600">Skema :</span>
+                        <span className="text-gray-900 font-semibold capitalize">{kuesioner.scheme}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold text-gray-600">Surveyor :</span>
+                        <span className="text-gray-900 font-semibold">{kuesioner.user?.name || 'Tidak diketahui'}</span>
+                      </div>
+                    </div>
+
+                    {/* Detail Inputan Penilaian */}
+                    {kuesioner.values && Object.keys(kuesioner.values).length > 0 && (
+                      <div className="mt-3 p-4 bg-white rounded-lg border">
+                        <h4 className="font-semibold text-gray-900 mb-3 text-sm flex items-center">
+                          <FileText className="w-4 h-4 mr-2 text-purple-600" />
+                          Detail Inputan Penilaian ({Object.keys(kuesioner.values).length} Parameter)
+                        </h4>
+                        
+                        <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                          {Object.entries(kuesioner.values).map(([key, value]) => {
+                            let displayValue = value;
+                            let valueColor = 'text-gray-900';
+                            
+                            if (!value || value === '') {
+                              displayValue = '—';
+                              valueColor = 'text-gray-400 italic';
+                            } else {
+                              displayValue = parseFloat(value).toFixed(1);
+                              // Color based on value (assuming 1-100 scale)
+                              if (value >= 70) {
+                                valueColor = 'text-green-600 font-semibold';
+                              } else if (value >= 40) {
+                                valueColor = 'text-yellow-600 font-semibold';
+                              } else {
+                                valueColor = 'text-red-600 font-semibold';
+                              }
+                            }
+                            
+                            return (
+                              <div key={key} className="flex justify-between items-start py-2 px-3 bg-gradient-to-r from-gray-50 to-white rounded border border-gray-200 hover:border-purple-300 transition-colors">
+                                <span className="font-medium text-gray-700 text-xs max-w-[60%]">
+                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </span>
+                                <span className={`${valueColor} font-medium text-xs text-right max-w-[40%] break-words`}>
+                                  {String(displayValue)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Detail Skor per Kategori */}
+                    {kuesioner.scoreDetail && kuesioner.scoreDetail.categoryScores && (
+                      <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-white rounded-lg border border-purple-200">
+                        <h4 className="font-semibold text-gray-900 mb-3 text-sm flex items-center">
+                          <Star className="w-4 h-4 mr-2 text-yellow-500" />
+                          Detail Skor per Kategori
+                        </h4>
+                        <div className="grid grid-cols-1 gap-2 text-xs">
+                          {Object.entries(kuesioner.scoreDetail.categoryScores).map(([key, scoreObj]) => (
+                            <div key={key} className="flex justify-between items-center py-2 px-3 bg-white rounded border border-purple-100">
+                              <span className="font-medium text-gray-700">
+                                {scoreObj.label || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </span>
+                              <span className="text-purple-700 font-bold">
+                                {typeof scoreObj.weightedScore === 'number' ? 
+                                  scoreObj.weightedScore.toFixed(2) : 
+                                  scoreObj.weightedScore || '0.00'
+                                }
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Belum ada data kuesioner untuk feature ini</p>
+                <button
+                  onClick={() => setShowKuesionerModal(true)}
+                  className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors inline-flex items-center gap-2 no-print"
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  Isi Kuesioner Sekarang
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Feature Properties */}
         {feature?.props && (
           <div className="mt-6 content-card">
@@ -1706,6 +1917,21 @@ export default function FeatureDetailPage() {
         </div>
         {/* End of content to be exported */}
       </div>
+
+      {/* Kuesioner Modal */}
+      {showKuesionerModal && (
+        <KuesionerModal
+          isOpen={showKuesionerModal}
+          onClose={() => setShowKuesionerModal(false)}
+          featureData={feature}
+          onSubmit={(result) => {
+            console.log('✅ Kuesioner saved:', result)
+            alert(result.message || 'Kuesioner berhasil disimpan! 🎉')
+            fetchFeatureDetail() // Reload data
+            setShowKuesionerModal(false)
+          }}
+        />
+      )}
     </Layout>
   )
 }

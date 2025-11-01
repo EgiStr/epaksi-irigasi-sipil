@@ -1,0 +1,101 @@
+{
+  "version": "v1.0",
+  "scheme": "tersier",
+  "title": "Kuesioner Penilaian Saluran Tersier",
+  "description": "Form kuesioner untuk penilaian kondisi saluran tersier dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "S15",
+      "label": "SALURAN TERSIER",
+      "weight": 12.6,
+      "subs": [
+        {
+          "key": "S15_01",
+          "label": "a. Kapasitas Saluran membawa debit kebutuhan (Rencana Maksimum)",
+          "weight": 7,
+          "subs": [
+            {
+              "key": "S15_01_01",
+              "label": "1. Profil saluran terhadap kapasitas rencana",
+              "weight": 50,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "S15_01_02",
+              "label": "2. Efisiensi saluran karena pengaruh sadap liar dan bocoran",
+              "weight": 40,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "S15_01_03",
+              "label": "3. Pengaruh endapan dan erosi terhadap kapasitas saluran",
+              "weight": 10,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "S15_02",
+          "label": "b. Tinggi tanggul terhadap limpahan selama pengoperasian",
+          "weight": 2.8,
+          "subs": [
+            {
+              "key": "S15_02_01",
+              "label": "1. Stabilitas tanggul dan tinggi jagaan untuk menjaga air melimpah (over topping)",
+              "weight": 90,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "S15_02_02",
+              "label": "2. Kondisi lereng/dinding tanggul luar dan dalam",
+              "weight": 10,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "S15_03",
+          "label": "c. Pelaksanaan perbaikan atau pemeliharaan Saluran Tersier",
+          "weight": 2.8,
+          "subs": [
+            {
+              "key": "S15_03_01",
+              "label": "1. Progres Pekerjaan",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

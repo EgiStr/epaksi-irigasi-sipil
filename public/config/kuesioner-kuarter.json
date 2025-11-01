@@ -1,0 +1,109 @@
+{
+  "scheme": "kuarter",
+  "name": "Kuesioner Saluran Kuarter",
+  "description": "Form penilaian untuk saluran kuarter (S16)",
+  "grading": {
+    "BAIK": {
+      "min": 70,
+      "max": 100,
+      "label": "BAIK",
+      "color": "green"
+    },
+    "SEDANG": {
+      "min": 40,
+      "max": 69.99,
+      "label": "SEDANG",
+      "color": "yellow"
+    },
+    "BURUK": {
+      "min": 0,
+      "max": 39.99,
+      "label": "BURUK",
+      "color": "red"
+    }
+  },
+  "categories": [
+    {
+      "key": "S16",
+      "label": "SALURAN KUARTER",
+      "weight": 12.6,
+      "subs": [
+        {
+          "key": "S16_01",
+          "label": "a. Kapasitas Saluran membawa debit kebutuhan (Rencana Maksimum)",
+          "weight": 7,
+          "subs": [
+            {
+              "key": "S16_01_01",
+              "label": "1. Profil saluran terhadap kapasitas rencana",
+              "type": "numerik",
+              "weight": 50,
+              "min": 1,
+              "max": 100,
+              "unit": ""
+            },
+            {
+              "key": "S16_01_02",
+              "label": "2. Efisiensi saluran karena pengaruh sadap liar dan bocoran",
+              "type": "numerik",
+              "weight": 40,
+              "min": 1,
+              "max": 100,
+              "unit": ""
+            },
+            {
+              "key": "S16_01_03",
+              "label": "3. Pengaruh endapan dan erosi terhadap kapasitas saluran",
+              "type": "numerik",
+              "weight": 10,
+              "min": 1,
+              "max": 100,
+              "unit": ""
+            }
+          ]
+        },
+        {
+          "key": "S16_02",
+          "label": "b. Tinggi tanggul terhadap limpahan selama pengoperasian",
+          "weight": 2.8,
+          "subs": [
+            {
+              "key": "S16_02_01",
+              "label": "1. Stabilitas tanggul dan tinggi jagaan untuk menjaga air melimpah (over topping)",
+              "type": "numerik",
+              "weight": 90,
+              "min": 1,
+              "max": 100,
+              "unit": ""
+            },
+            {
+              "key": "S16_02_02",
+              "label": "2. Kondisi lereng/dinding tanggul luar dan dalam",
+              "type": "numerik",
+              "weight": 10,
+              "min": 1,
+              "max": 100,
+              "unit": ""
+            }
+          ]
+        },
+        {
+          "key": "S16_03",
+          "label": "c. Pelaksanaan perbaikan atau pemeliharaan Saluran Kuarter",
+          "weight": 2.8,
+          "subs": [
+            {
+              "key": "S16_03_01",
+              "label": "1. Progres Pekerjaan",
+              "type": "numerik",
+              "weight": 100,
+              "min": 1,
+              "max": 100,
+              "unit": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
