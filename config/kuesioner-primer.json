@@ -1,0 +1,152 @@
+{
+  "version": "v1.0",
+  "scheme": "primer",
+  "title": "Kuesioner Penilaian Saluran Primer",
+  "description": "Form kuesioner untuk penilaian kondisi saluran primer dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "S01",
+      "label": "SALURAN PRIMER",
+      "weight": 10,
+      "subs": [
+        {
+          "key": "S01_01",
+          "label": "a. Kapasitas Saluran membawa debit kebutuhan (Rencana Maksimum)",
+          "weight": 5,
+          "subs": [
+            {
+              "key": "S01_01_01",
+              "label": "1. Profil saluran terhadap kapasitas rencana",
+              "weight": 50,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "S01_01_02",
+              "label": "2. Efisiensi saluran karena pengaruh sadap liar dan bocoran",
+              "weight": 40,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "S01_01_03",
+              "label": "3. Pengaruh endapan dan erosi terhadap kapasitas saluran",
+              "weight": 10,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "S01_02",
+          "label": "b. Tinggi tanggul terhadap limpahan selama pengoperasian",
+          "weight": 2,
+          "subs": [
+            {
+              "key": "S01_02_01",
+              "label": "1. Stabilitas tanggul dan tinggi jagaan untuk menjaga air melimpah (over topping)",
+              "weight": 90,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "S01_02_02",
+              "label": "2. Kondisi lereng/dinding tanggul luar dan dalam",
+              "weight": 10,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "S01_03",
+          "label": "c. Pelaksanaan perbaikan atau pemeliharaan",
+          "weight": 3,
+          "subs": [
+            {
+              "key": "S01_03_01",
+              "label": "1. Progres Pekerjaan",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "S21",
+      "label": "JALAN AKSES",
+      "weight": 2,
+      "subs": [
+        {
+          "key": "S21_02",
+          "label": "b. Jalan inspeksi dan setapak",
+          "weight": 1,
+          "subs": [
+            {
+              "key": "S21_02_01",
+              "label": "1. Kondisi kerusakan",
+              "weight": 70,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "S21_02_02",
+              "label": "2. Tanaman dan bangunan liar",
+              "weight": 30,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "S21_03",
+          "label": "c. Aksesibilitas inspeksi dan setapak",
+          "weight": 1,
+          "subs": [
+            {
+              "key": "S21_03_01",
+              "label": "1. Prosentase jumlah bangunan dan saluran",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

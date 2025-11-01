@@ -31,6 +31,7 @@ model User {
   surveys       Survey[]
   auditLogs     AuditLog[]
   pai           PAI[]     // Relasi ke PAI
+  kuesioner     Kuesioner[] // Relasi ke Kuesioner
   
   @@map("users")
 }
@@ -87,7 +88,8 @@ model Feature {
   updatedAt   DateTime @updatedAt @map("updated_at")
   
   surveys     Survey[]
-  pai         PAI[]    // Relasi ke PAI
+  pai         PAI[]      // Relasi ke PAI
+  kuesioner   Kuesioner[] // Relasi ke Kuesioner
   
   @@map("features")
   @@index([sourceLayer])
@@ -113,6 +115,31 @@ model Survey {
   
   @@map("surveys")
   @@unique([featureId, scheme, tahun]) // Unique constraint: 1 survey per feature+scheme+tahun
+  @@index([featureId])
+  @@index([scheme])
+  @@index([scoreClass])
+  @@index([tahun])
+  @@index([createdAt])
+}
+
+model Kuesioner {
+  id          String   @id @default(cuid())
+  featureId   String   @map("feature_id")
+  scheme      String   // 'primer' | 'sekunder' | 'tersier'
+  tahun       Int      @default(2025) // Tahun penilaian kuesioner
+  values      Json     @map("values") // Nilai input per field
+  scoreTotal  Float?   @map("score_total") // Nilai Final (%)
+  scoreClass  String?  @map("score_class") // 'BAIK' | 'SEDANG' | 'JELEK'
+  scoreDetail Json?    @map("score_detail") // Detail perhitungan per kategori
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String   @map("created_by")
+  
+  feature     Feature  @relation(fields: [featureId], references: [featureId], onDelete: Cascade)
+  user        User     @relation(fields: [createdBy], references: [id])
+  
+  @@map("kuesioner")
+  @@unique([featureId, scheme, tahun]) // Unique constraint: 1 kuesioner per feature+scheme+tahun
   @@index([featureId])
   @@index([scheme])
   @@index([scoreClass])
