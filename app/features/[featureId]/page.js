@@ -1698,11 +1698,31 @@ export default function FeatureDetailPage() {
                           <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
                             kuesioner.scheme === 'primer' ? 'bg-blue-100 text-blue-700 border border-blue-300' :
                             kuesioner.scheme === 'sekunder' ? 'bg-green-100 text-green-700 border border-green-300' :
-                            'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                            kuesioner.scheme === 'tersier' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' :
+                            kuesioner.scheme === 'kuarter' ? 'bg-purple-100 text-purple-700 border border-purple-300' :
+                            // Building schemes
+                            kuesioner.scheme === 'jembatan' ? 'bg-indigo-100 text-indigo-700 border border-indigo-300' :
+                            kuesioner.scheme === 'gudang' ? 'bg-pink-100 text-pink-700 border border-pink-300' :
+                            kuesioner.scheme === 'bendung-tetap' ? 'bg-red-100 text-red-700 border border-red-300' :
+                            kuesioner.scheme === 'box-tersier' ? 'bg-orange-100 text-orange-700 border border-orange-300' :
+                            'bg-gray-100 text-gray-700 border border-gray-300'
                           }`}>
-                            {kuesioner.scheme === 'primer' && '🔵 Primer'}
-                            {kuesioner.scheme === 'sekunder' && '🟢 Sekunder'}
-                            {kuesioner.scheme === 'tersier' && '🟡 Tersier'}
+                            {kuesioner.scheme === 'primer' && '🔵 Saluran Primer'}
+                            {kuesioner.scheme === 'sekunder' && '🟢 Saluran Sekunder'}
+                            {kuesioner.scheme === 'tersier' && '🟡 Saluran Tersier'}
+                            {kuesioner.scheme === 'kuarter' && '🟣 Saluran Kuarter'}
+                            {kuesioner.scheme === 'jembatan' && '🌉 Jembatan'}
+                            {kuesioner.scheme === 'gudang' && '🏭 Gudang'}
+                            {kuesioner.scheme === 'bendung-tetap' && '🏗️ Bendung Tetap'}
+                            {kuesioner.scheme === 'box-tersier' && '📦 Box Tersier'}
+                            {kuesioner.scheme === 'syphon' && '🌊 Syphon'}
+                            {kuesioner.scheme === 'gorong-gorong' && '🚇 Gorong-gorong'}
+                            {kuesioner.scheme === 'pelimpah-samping' && '💧 Pelimpah Samping'}
+                            {kuesioner.scheme === 'terjunan' && '🏞️ Terjunan'}
+                            {kuesioner.scheme === 'tempat-cuci' && '🧽 Tempat Cuci'}
+                            {kuesioner.scheme === 'sadap' && '🚰 Sadap'}
+                            {kuesioner.scheme === 'bagi-sadap' && '🔀 Bagi Sadap'}
+                            {!['primer', 'sekunder', 'tersier', 'kuarter', 'jembatan', 'gudang', 'bendung-tetap', 'box-tersier', 'syphon', 'gorong-gorong', 'pelimpah-samping', 'terjunan', 'tempat-cuci', 'sadap', 'bagi-sadap'].includes(kuesioner.scheme) && kuesioner.scheme}
                           </span>
                         </div>
                         <div className="text-sm text-gray-500">{formatDate(kuesioner.createdAt)}</div>

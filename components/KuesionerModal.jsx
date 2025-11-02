@@ -13,6 +13,7 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [existingKuesioner, setExistingKuesioner] = useState(null);
+  const [allExistingKuesioners, setAllExistingKuesioners] = useState([]);
   const [isLoadingKuesioner, setIsLoadingKuesioner] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [expandedSubs, setExpandedSubs] = useState({});
@@ -212,6 +213,7 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
       setScore(null);
       setErrors({});
       setExistingKuesioner(null);
+      setAllExistingKuesioners([]);
 
       // Load new config and check for existing data
       const featureId = featureData?.properties?.featureId;
@@ -239,10 +241,21 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
     try {
       console.log(`🔍 Loading existing kuesioner for feature: ${featureId}, scheme: ${scheme}`);
       
+      // Load all kuesioners for this feature
+      const allResponse = await fetch(`/api/kuesioner?featureId=${featureId}`);
+      if (allResponse.ok) {
+        const allData = await allResponse.json();
+        if (allData.kuesioner && allData.kuesioner.length > 0) {
+          setAllExistingKuesioners(allData.kuesioner);
+          console.log('📊 All existing kuesioners for feature:', allData.kuesioner);
+        }
+      }
+      
+      // Load specific kuesioner for selected scheme
       const response = await fetch(`/api/kuesioner?featureId=${featureId}&scheme=${scheme}`);
       
       if (!response.ok) {
-        console.log('No existing kuesioner found');
+        console.log('No existing kuesioner found for scheme:', scheme);
         return null;
       }
 
@@ -257,7 +270,7 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
         return latestKuesioner;
       }
       
-      console.log('ℹ️ No existing kuesioner found');
+      console.log('ℹ️ No existing kuesioner found for scheme:', scheme);
       return null;
     } catch (error) {
       console.error('❌ Error loading kuesioner:', error);
@@ -749,6 +762,36 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
                     })}
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* All existing kuesioners for this feature */}
+            {allExistingKuesioners.length > 0 && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <div className="flex items-center space-x-2 mb-2">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  <span className="text-sm font-medium text-amber-900">Kuesioner yang Sudah Ada untuk Feature Ini</span>
+                </div>
+                <div className="space-y-1">
+                  {allExistingKuesioners.map((kuesioner) => (
+                    <div key={kuesioner.id} className="text-xs text-amber-700 flex justify-between items-center">
+                      <span>
+                        {getSchemeInfo(kuesioner.scheme)?.label || kuesioner.scheme} 
+                        ({kuesioner.tahun})
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        kuesioner.scoreClass === 'BAIK' ? 'bg-green-100 text-green-800' :
+                        kuesioner.scoreClass === 'SEDANG' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {kuesioner.scoreTotal?.toFixed(1) || 'N/A'}% - {kuesioner.scoreClass || 'N/A'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-amber-600 mt-2">
+                  💡 Anda dapat membuat kuesioner dengan skema berbeda untuk feature yang sama
+                </p>
               </div>
             )}
 
