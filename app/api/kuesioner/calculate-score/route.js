@@ -3,27 +3,7 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// Load kuesioner configuration from database
-async function loadKuesionerConfig(scheme) {
-  try {
-    // Load from database like survey configs
-    const config = await prisma.config.findFirst({
-      where: {
-        scheme: scheme,
-        active: true
-      }
-    })
-
-    if (!config) {
-      throw new Error(`Konfigurasi kuesioner untuk scheme '${scheme}' tidak ditemukan atau tidak aktif`)
-    }
-
-    return config.json
-  } catch (error) {
-    console.error('Error loading kuesioner config from database:', error)
-    throw new Error(`Config file not found for scheme: ${scheme}`)
-  }
-}
+import { calculateKuesionerScore } from '../../../../lib/kuesioner-scoring'
 
 // Calculate score for a field (lowest level)
 function calculateFieldScore(value, weight) {
@@ -122,57 +102,11 @@ export async function POST(request) {
       )
     }
     
-    // Validate scheme
-    const validSchemes = [
-      'primer', 'sekunder', 'tersier', 'kuarter', // saluran
-      'bendung-tetap', 'jembatan', 'gudang', 'perumahan', 'box-tersier', 
-      'syphon', 'gorong-gorong', 'pelimpah-samping', 'terjunan', 
-      'tempat-cuci', 'sadap', 'bagi-sadap' // bangunan
-    ];
-    if (!validSchemes.includes(scheme)) {
-      return NextResponse.json(
-        { error: `scheme harus salah satu: ${validSchemes.join(', ')}` },
-        { status: 400 }
-      )
-    }
-    
-    // Load config
-    const config = await loadKuesionerConfig(scheme)
-    
-    if (!config || !config.categories) {
-      return NextResponse.json(
-        { error: 'Konfigurasi kuesioner tidak valid' },
-        { status: 500 }
-      )
-    }
-    
-    // Calculate scores for each category
-    let totalScore = 0
-    const categoryScores = {}
-    
-    for (const category of config.categories) {
-      const categoryResult = calculateCategoryScore(category, values)
-      totalScore += categoryResult.weightedScore
-      
-      categoryScores[category.key] = {
-        label: category.label,
-        score: categoryResult.score,
-        weight: categoryResult.weight,
-        weightedScore: categoryResult.weightedScore,
-        subs: categoryResult.subs
-      }
-    }
-    
-    // Determine quality class
-    const qualityClass = determineQualityClass(totalScore, config.grading)
+    // Calculate score using shared utility
+    const result = await calculateKuesionerScore(scheme, values)
     
     // Return result
-    return NextResponse.json({
-      score: parseFloat(totalScore.toFixed(2)),
-      qualityClass,
-      categoryScores,
-      grading: config.grading
-    })
+    return NextResponse.json(result)
     
   } catch (error) {
     console.error('Error calculating kuesioner score:', error)

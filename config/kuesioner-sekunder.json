@@ -12,12 +12,12 @@
     {
       "key": "S02",
       "label": "SALURAN SEKUNDER",
-      "weight": 10,
+      "weight": 83.33,
       "subs": [
         {
           "key": "S02_01",
           "label": "a. Kapasitas Saluran membawa debit kebutuhan (Rencana Maksimum)",
-          "weight": 5,
+          "weight": 50,
           "subs": [
             {
               "key": "S02_01_01",
@@ -54,7 +54,7 @@
         {
           "key": "S02_02",
           "label": "b. Tinggi tanggul terhadap limpahan selama pengoperasian",
-          "weight": 2,
+          "weight": 20,
           "subs": [
             {
               "key": "S02_02_01",
@@ -81,7 +81,7 @@
         {
           "key": "S02_03",
           "label": "c. Pelaksanaan perbaikan atau pemeliharaan",
-          "weight": 3,
+          "weight": 30,
           "subs": [
             {
               "key": "S02_03_01",
@@ -100,12 +100,12 @@
     {
       "key": "S21",
       "label": "JALAN AKSES",
-      "weight": 2,
+      "weight": 16.67,
       "subs": [
         {
           "key": "S21_02",
           "label": "b. Jalan inspeksi dan setapak",
-          "weight": 1,
+          "weight": 50,
           "subs": [
             {
               "key": "S21_02_01",
@@ -132,7 +132,7 @@
         {
           "key": "S21_03",
           "label": "c. Aksesibilitas inspeksi dan setapak",
-          "weight": 1,
+          "weight": 50,
           "subs": [
             {
               "key": "S21_03_01",
