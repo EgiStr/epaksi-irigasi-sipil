@@ -1,0 +1,119 @@
+{
+  "version": "v1.0",
+  "scheme": "gudang",
+  "title": "Kuesioner Penilaian Gudang",
+  "description": "Form kuesioner untuk penilaian kondisi gudang dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "GD_01",
+      "label": "1. Struktur Utama",
+      "weight": 40,
+      "subs": [
+        {
+          "key": "GD_01_01",
+          "label": "a. Kolom",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "GD_01_01_01",
+              "label": "1. Kondisi kolom",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "GD_01_02",
+          "label": "b. Balok",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "GD_01_02_01",
+              "label": "1. Kondisi balok",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "GD_01_03",
+          "label": "c. Rangka Atap",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "GD_01_03_01",
+              "label": "1. Kondisi rangka atap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "GD_02",
+      "label": "2. Dinding",
+      "weight": 30,
+      "subs": [
+        {
+          "key": "GD_02_01",
+          "label": "a. Dinding",
+          "weight": 100,
+          "subs": [
+            {
+              "key": "GD_02_01_01",
+              "label": "1. Kondisi dinding",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "GD_03",
+      "label": "3. Atap",
+      "weight": 30,
+      "subs": [
+        {
+          "key": "GD_03_01",
+          "label": "a. Atap",
+          "weight": 100,
+          "subs": [
+            {
+              "key": "GD_03_01_01",
+              "label": "1. Kondisi atap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

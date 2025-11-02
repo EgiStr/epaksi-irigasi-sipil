@@ -11,7 +11,9 @@
     "db:generate": "prisma generate",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "node scripts/seed-all-configs.js",
+    "db:seed:old": "node scripts/seed-configs.js"
   },
   "dependencies": {
     "@mapbox/togeojson": "^0.16.2",

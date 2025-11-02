@@ -18,15 +18,15 @@ async function createAdminUser() {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash('admin123', 12);
+    const hashedPassword = await bcrypt.hash('superadmin123', 12);
 
     // Create admin user
     const adminUser = await prisma.user.create({
       data: {
-        email: 'admin@sipil-irigasi.com',
+        email: 'superadmin@sintara.id',
         password: hashedPassword,
         name: 'Administrator Sistem',
-        role: 'ADMIN',
+        role: 'SUPERADMIN',
         org: 'Dinas Pengairan'
       }
     });

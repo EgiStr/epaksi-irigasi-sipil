@@ -1,0 +1,112 @@
+{
+  "version": "v1.0",
+  "scheme": "pelimpah_samping",
+  "title": "Kuesioner Penilaian Pelimpah Samping",
+  "description": "Form kuesioner untuk penilaian kondisi pelimpah samping dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "PS_01",
+      "label": "1. Tubuh Pelimpah",
+      "weight": 60,
+      "subs": [
+        {
+          "key": "PS_01_01",
+          "label": "a. Dinding Pelimpah",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "PS_01_01_01",
+              "label": "1. Kondisi dinding pelimpah",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "PS_01_02",
+          "label": "b. Lantai Pelimpah",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "PS_01_02_01",
+              "label": "1. Kondisi lantai pelimpah",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "PS_01_03",
+          "label": "c. Atap Pelimpah",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "PS_01_03_01",
+              "label": "1. Kondisi atap pelimpah",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "PS_02",
+      "label": "2. Mekanisme Pelimpah",
+      "weight": 40,
+      "subs": [
+        {
+          "key": "PS_02_01",
+          "label": "a. Pintu Pelimpah",
+          "weight": 60,
+          "subs": [
+            {
+              "key": "PS_02_01_01",
+              "label": "1. Kondisi pintu pelimpah",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "PS_02_02",
+          "label": "b. Mekanisme Operasi",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "PS_02_02_01",
+              "label": "1. Kondisi mekanisme operasi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

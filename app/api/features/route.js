@@ -29,7 +29,7 @@ export async function GET(request) {
     const scheme = searchParams.get('scheme')
     const format = searchParams.get('format') // 'geojson' (default) or 'management'
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '5000')
+    const limit = parseInt(searchParams.get('limit') || '10000')
 
     // Management format - for admin tables
     if (format === 'management') {

@@ -1,0 +1,327 @@
+{
+  "version": "v1.0",
+  "scheme": "bendung_tetap",
+  "title": "Kuesioner Penilaian Bendung Tetap",
+  "description": "Form kuesioner untuk penilaian kondisi bendung tetap dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "BT_01",
+      "label": "1. Tubuh Bendung",
+      "weight": 70,
+      "subs": [
+        {
+          "key": "BT_01_01",
+          "label": "a. Mercu",
+          "weight": 25,
+          "subs": [
+            {
+              "key": "BT_01_01_01",
+              "label": "1. Mercu dan tubuh bendung",
+              "weight": 60,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_01_02",
+              "label": "2. Bocoran",
+              "weight": 10,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_01_03",
+              "label": "3. Lapisan permukaan",
+              "weight": 20,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_01_04",
+              "label": "4. Pilar pada pintu penguras",
+              "weight": 10,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_01_02",
+          "label": "b. Sayap",
+          "weight": 20,
+          "subs": [
+            {
+              "key": "BT_01_02_01",
+              "label": "1. Tembok penahan (abutment) kiri dan kanan, tembok transmisi (kirmir), dan sayap",
+              "weight": 70,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_02_02",
+              "label": "2. Lapisan permukaan",
+              "weight": 30,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_01_03",
+          "label": "c. Lantai Bendung",
+          "weight": 25,
+          "subs": [
+            {
+              "key": "BT_01_03_01",
+              "label": "1. Lantai hulu, kolam olak dan lantai hilir / riprap",
+              "weight": 50,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_03_02",
+              "label": "2. Degradasi dasar sungai",
+              "weight": 20,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_03_03",
+              "label": "3. Bocoran/piping",
+              "weight": 20,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_03_04",
+              "label": "4. Lapisan permukaan",
+              "weight": 10,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_01_04",
+          "label": "d. Tanggul Penutup Hulu dan Hilir",
+          "weight": 20,
+          "subs": [
+            {
+              "key": "BT_01_04_01",
+              "label": "1. Seepage, retakan melintang, memanjang, dan alur rembesan",
+              "weight": 40,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_04_02",
+              "label": "2. Lereng/dinding tanggul luar",
+              "weight": 30,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_04_03",
+              "label": "3. Puncak tanggul",
+              "weight": 30,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_01_05",
+          "label": "e. Jembatan (diatas mercu/pelayanan)",
+          "weight": 5,
+          "subs": [
+            {
+              "key": "BT_01_05_01",
+              "label": "1. Pelayanan dan dimensi jembatan",
+              "weight": 50,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_05_02",
+              "label": "2. Kondisi struktur jembatan",
+              "weight": 50,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_01_06",
+          "label": "f. Papan Operasi",
+          "weight": 2,
+          "subs": [
+            {
+              "key": "BT_01_06_01",
+              "label": "1. Kondisi papan operasi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_01_07",
+          "label": "g. Mistar Ukur",
+          "weight": 1,
+          "subs": [
+            {
+              "key": "BT_01_07_01",
+              "label": "1. Kondisi mistar ukur",
+              "weight": 50,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_01_07_02",
+              "label": "2. Akurasi pembacaan",
+              "weight": 50,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_01_08",
+          "label": "h. Pagar Pengaman",
+          "weight": 1,
+          "subs": [
+            {
+              "key": "BT_01_08_01",
+              "label": "1. Kondisi pagar pengaman",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "BT_02",
+      "label": "2. Pintu-pintu Bendung dan Roda Gigi",
+      "weight": 30,
+      "subs": [
+        {
+          "key": "BT_02_01",
+          "label": "a. Pintu Pengambilan (Intake)",
+          "weight": 50,
+          "subs": [
+            {
+              "key": "BT_02_01_01",
+              "label": "1. Kondisi pintu pengambilan",
+              "weight": 60,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_02_01_02",
+              "label": "2. Mekanisme operasi",
+              "weight": 40,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BT_02_02",
+          "label": "b. Pintu Penguras Bendung",
+          "weight": 50,
+          "subs": [
+            {
+              "key": "BT_02_02_01",
+              "label": "1. Kondisi pintu penguras",
+              "weight": 60,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            },
+            {
+              "key": "BT_02_02_02",
+              "label": "2. Mekanisme operasi",
+              "weight": 40,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

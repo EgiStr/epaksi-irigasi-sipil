@@ -1,0 +1,136 @@
+{
+  "version": "v1.0",
+  "scheme": "tempat_cuci",
+  "title": "Kuesioner Penilaian Tempat Cuci",
+  "description": "Form kuesioner untuk penilaian kondisi tempat cuci dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "TC_01",
+      "label": "1. Struktur Utama",
+      "weight": 50,
+      "subs": [
+        {
+          "key": "TC_01_01",
+          "label": "a. Dinding",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "TC_01_01_01",
+              "label": "1. Kondisi dinding",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "TC_01_02",
+          "label": "b. Lantai",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "TC_01_02_01",
+              "label": "1. Kondisi lantai",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "TC_01_03",
+          "label": "c. Atap",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "TC_01_03_01",
+              "label": "1. Kondisi atap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "TC_02",
+      "label": "2. Fasilitas Cuci",
+      "weight": 30,
+      "subs": [
+        {
+          "key": "TC_02_01",
+          "label": "a. Pipa Air",
+          "weight": 50,
+          "subs": [
+            {
+              "key": "TC_02_01_01",
+              "label": "1. Kondisi pipa air",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "TC_02_02",
+          "label": "b. Kran Air",
+          "weight": 50,
+          "subs": [
+            {
+              "key": "TC_02_02_01",
+              "label": "1. Kondisi kran air",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "TC_03",
+      "label": "3. Drainase",
+      "weight": 20,
+      "subs": [
+        {
+          "key": "TC_03_01",
+          "label": "a. Sistem Drainase",
+          "weight": 100,
+          "subs": [
+            {
+              "key": "TC_03_01_01",
+              "label": "1. Kondisi sistem drainase",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

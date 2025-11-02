@@ -1,33 +1,26 @@
 import { NextResponse } from 'next/server'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { PrismaClient } from '@prisma/client'
 
-/**
- * Calculate kuesioner score based on hierarchical weights
- * Formula: Weighted Sum with nested categories
- * 
- * Structure:
- * - Main Category (e.g., S01, S21) -> weight (e.g., 10%)
- *   - Sub Category (e.g., S01_01) -> weight (e.g., 5%)
- *     - Field (e.g., S01_01_01) -> weight (e.g., 50%) + input value (1-100)
- * 
- * Calculation:
- * 1. Field Score = (input_value * field_weight) / 100
- * 2. Sub Category Score = Sum of all field scores
- * 3. Category Score = (sub_category_score * sub_weight) / sum_of_sub_weights
- * 4. Total Score = Sum of all weighted category scores
- */
+const prisma = new PrismaClient()
 
-// Load kuesioner configuration
+// Load kuesioner configuration from database
 async function loadKuesionerConfig(scheme) {
   try {
-    // Read from file system directly (server-side)
-    const configPath = join(process.cwd(), 'config', `kuesioner-${scheme}.json`)
-    const fileContent = readFileSync(configPath, 'utf-8')
-    const config = JSON.parse(fileContent)
-    return config
+    // Load from database like survey configs
+    const config = await prisma.config.findFirst({
+      where: {
+        scheme: scheme,
+        active: true
+      }
+    })
+
+    if (!config) {
+      throw new Error(`Konfigurasi kuesioner untuk scheme '${scheme}' tidak ditemukan atau tidak aktif`)
+    }
+
+    return config.json
   } catch (error) {
-    console.error('Error loading kuesioner config:', error)
+    console.error('Error loading kuesioner config from database:', error)
     throw new Error(`Config file not found for scheme: ${scheme}`)
   }
 }
@@ -130,9 +123,15 @@ export async function POST(request) {
     }
     
     // Validate scheme
-    if (!['primer', 'sekunder', 'tersier', 'kuarter'].includes(scheme)) {
+    const validSchemes = [
+      'primer', 'sekunder', 'tersier', 'kuarter', // saluran
+      'bendung-tetap', 'jembatan', 'gudang', 'perumahan', 'box-tersier', 
+      'syphon', 'gorong-gorong', 'pelimpah-samping', 'terjunan', 
+      'tempat-cuci', 'sadap', 'bagi-sadap' // bangunan
+    ];
+    if (!validSchemes.includes(scheme)) {
       return NextResponse.json(
-        { error: 'scheme harus: primer, sekunder, tersier, atau kuarter' },
+        { error: `scheme harus salah satu: ${validSchemes.join(', ')}` },
         { status: 400 }
       )
     }

@@ -7,7 +7,7 @@ export default function PhotoUpload({
   photos = [], 
   onChange, 
   maxFiles = 10, 
-  acceptedTypes = ['image/jpeg', 'image/png', 'image/webp'] 
+  acceptedTypes = ['image/jpeg', 'image/png', 'image/webp','image/*'] 
 }) {
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef(null)

@@ -1,0 +1,136 @@
+{
+  "version": "v1.0",
+  "scheme": "box_tersier",
+  "title": "Kuesioner Penilaian Box Tersier",
+  "description": "Form kuesioner untuk penilaian kondisi box tersier dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "BX_01",
+      "label": "1. Struktur Utama",
+      "weight": 50,
+      "subs": [
+        {
+          "key": "BX_01_01",
+          "label": "a. Dinding",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "BX_01_01_01",
+              "label": "1. Kondisi dinding",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BX_01_02",
+          "label": "b. Lantai",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "BX_01_02_01",
+              "label": "1. Kondisi lantai",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BX_01_03",
+          "label": "c. Atap",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "BX_01_03_01",
+              "label": "1. Kondisi atap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "BX_02",
+      "label": "2. Pintu dan Jendela",
+      "weight": 30,
+      "subs": [
+        {
+          "key": "BX_02_01",
+          "label": "a. Pintu",
+          "weight": 50,
+          "subs": [
+            {
+              "key": "BX_02_01_01",
+              "label": "1. Kondisi pintu",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BX_02_02",
+          "label": "b. Jendela",
+          "weight": 50,
+          "subs": [
+            {
+              "key": "BX_02_02_01",
+              "label": "1. Kondisi jendela",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "BX_03",
+      "label": "3. Mekanisme Operasi",
+      "weight": 20,
+      "subs": [
+        {
+          "key": "BX_03_01",
+          "label": "a. Mekanisme Operasi",
+          "weight": 100,
+          "subs": [
+            {
+              "key": "BX_03_01_01",
+              "label": "1. Kondisi mekanisme operasi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

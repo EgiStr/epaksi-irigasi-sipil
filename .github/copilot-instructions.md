@@ -71,9 +71,10 @@ npx prisma studio    # GUI database browser
 - **Middleware**: `middleware.js` - Role-based route protection + unauthorized redirects
 - **Permissions**: `lib/permissions.js` - RBAC with 4-tier hierarchy:
   - `VIEWER` (0): Read-only access to maps/reports
-  - `SURVEYOR` (1): Create surveys + features
-  - `ADMIN` (2): User management + system config
+  - `SURVEYOR` (1): Create surveys + features + PAI + Kuesioner
+  - `ADMIN` (2): User management + system config + priority management
   - `SUPERADMIN` (3): Full access including role assignment
+  - **Note**: PAI-specific permissions (`PAI_VIEW`, `PAI_CREATE`, etc.) need to be added to `lib/permissions.js`
 - **Session**: JWT strategy, 24-hour expiry, `user.role` + `user.id` in token
 
 **Permission Check Pattern** (REQUIRED in all API routes):
@@ -147,7 +148,7 @@ const features = await prisma.$queryRaw`
 `
 ```
 
-### 4. Dual Scoring Systems
+### 4. Three Assessment Systems
 
 #### IKSI Survey (Existing)
 - **Model**: `Survey` - Weighted scoring with A/B/C/D classification
@@ -167,20 +168,44 @@ const features = await prisma.$queryRaw`
 - **API**: `app/api/surveys/route.js` - CRUD + `/calculate-score` endpoint
 
 #### PAI Asset Profiling (Sprint 2)
-- **Model**: `PAI` - Structured asset data with photo support
+- **Model**: `PAI` - Structured asset data with photo support and priority scoring
 - **Types**: `'saluran'` (channel) or `'bangunan'` (structure)
 - **Photos**: `Photo` model → Supabase Storage integration (`lib/supabase.js`)
   - Max 5MB per photo, stored as `{paiId}/photo_{timestamp}.jpg`
   - Public URLs returned in API responses
 - **Priority System**: 
-  - `priorityScore` (1-5): 1=lowest, 5=critical
+  - `priorityScore` (0-1): Calculated priority for repair needs
   - `priorityStatus`: 'pending' | 'approved' | 'in_progress' | 'completed'
   - `priorityNotes`: Text explanation for priority decision
-- **API**: `app/api/pai/route.js` - Separate from surveys
-- **API Priority**: `app/api/pai/[id]/priority/route.js` - PATCH for updating priority scores
+- **API**: `app/api/pai/route.js` - CRUD + `/[id]/priority/route.js` for priority updates
 - **Forms**: `components/forms/PAIFormFields.jsx` + `PhotoManager.jsx`
 - **Priority Modal**: `components/PriorityScoreModal.jsx` - UI for setting repair priorities
-- **Admin Page**: `app/admin/priorities/page.js` - Dashboard for viewing all priorities
+- **Admin Page**: `app/admin/pai/page.js` - Dashboard for viewing all PAI data
+
+#### Kuesioner Assessment System
+- **Model**: `Kuesioner` - Alternative assessment system with BAIK/SEDANG/BURUK grading
+- **Schemes**: `'primer'`, `'sekunder'`, `'tersier'`, `'kuarter'`, `'bangunan'` for different irrigation levels and building types
+- **Grading**: BAIK (70-100), SEDANG (40-69.99), BURUK (0-39.99) - different from IKSI A/B/C/D
+- **Input Type**: Numeric values (1-100) for each assessment criterion
+- **Config**: `config/kuesioner-*.json` files with weighted scoring structure
+- **API**: `app/api/kuesioner/route.js` - CRUD + `/calculate-score` endpoint
+- **UI**: `components/KuesionerModal.jsx` - Accordion-based form with real-time scoring
+- **Integration**: Feature detail pages (`app/features/[featureId]/page.js`)
+
+**Bangunan Building Types**:
+- **B01**: Bendung Tetap (Fixed Weir) - 15% weight
+- **C06**: Jembatan (Bridge) - 12% weight  
+- **F02**: Perumahan (Housing) - 8% weight
+- **F03**: Gudang (Warehouse) - 10% weight
+- **P21**: Box Tersier (Tertiary Box) - 8% weight
+
+**Scoring Algorithm** (3-level hierarchy):
+1. **Field Score** = (input_value × field_weight) ÷ 100
+2. **Sub-Category Score** = Sum of field scores, then × sub_weight ÷ 100  
+3. **Category Score** = Sum of sub-category scores, then × category_weight ÷ 100
+4. **Total Score** = Sum of all weighted category scores
+
+**Auto-Detection Logic**: Determines scheme from feature properties (sourceLayer, name, etc.)
 
 ### 5. Audit Trail System
 - **Logger**: `lib/audit.js::AuditLogger` - Tracks all user actions
@@ -303,36 +328,58 @@ export async function POST(request) {
 }
 ```
 
-### Data Fetching Hook Template
+### Kuesioner System Patterns
+
+**Scheme Auto-Detection** (in `KuesionerModal.jsx`):
 ```javascript
-export function useEntityData() {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  const reload = useCallback(async () => {
-    try {
-      setLoading(true)
-      const res = await fetch('/api/entity')
-      if (!res.ok) throw new Error(await res.text())
-      setData(await res.json())
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { reload() }, [reload])
-  return { data, loading, error, reload }
+const getSchemeType = (featureData) => {
+  // Check all fields: sourceLayer, name, properties, etc.
+  // Priority: kuarter > sekunder > tersier > primer (default)
+  if (text.includes('kuarter') || text.includes('s16')) return 'kuarter'
+  // ... similar checks for other schemes
 }
 ```
 
+**Real-time Score Calculation** (debounced 500ms):
+```javascript
+useEffect(() => {
+  const timer = setTimeout(async () => {
+    const response = await fetch('/api/kuesioner/calculate-score', {
+      method: 'POST',
+      body: JSON.stringify({ scheme, values })
+    })
+    const result = await response.json()
+    setScore(result.score)
+  }, 500)
+  return () => clearTimeout(timer)
+}, [values])
+```
+
+**Hierarchical Form Structure**:
+```javascript
+// 3-level accordion: Category > Sub-Category > Fields
+{categories.map(category => (
+  <Accordion key={category.key}>
+    {category.subs.map(sub => (
+      <Accordion key={sub.key}>
+        {sub.subs.map(field => (
+          <input key={field.key} type="number" min="1" max="100" />
+        ))}
+      </Accordion>
+    ))}
+  </Accordion>
+))}
+```
+
 ## 📚 Key Files to Reference
-- `prisma/schema.prisma` - Full data model
-- `lib/permissions.js` - All roles & permissions
+- `prisma/schema.prisma` - Full data model (User, Feature, Survey, PAI, Kuesioner, Photo, AuditLog)
+- `lib/permissions.js` - All roles & permissions (needs PAI permissions added)
 - `lib/scoring/engine.js` - Survey calculation logic
 - `lib/kml-parser.js` - Geospatial data processing
 - `components/LeafletMap.jsx` - Map implementation patterns
 - `middleware.js` - Route protection logic
+- `config/` - All survey/kuesioner configuration files
 - `docs/PRD.md` + `docs/PRD_SPRINT2.md` - Feature requirements
+- `lib/pai/utils.js` - PAI data processing utilities
+- `components/KuesionerModal.jsx` - Kuesioner form implementation
+- `docs/KUESIONER_FEATURE.md` - Complete Kuesioner documentation

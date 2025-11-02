@@ -1,0 +1,112 @@
+{
+  "version": "v1.0",
+  "scheme": "sadap",
+  "title": "Kuesioner Penilaian Sadap",
+  "description": "Form kuesioner untuk penilaian kondisi sadap dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "SD_01",
+      "label": "1. Struktur Sadap",
+      "weight": 60,
+      "subs": [
+        {
+          "key": "SD_01_01",
+          "label": "a. Dinding Sadap",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "SD_01_01_01",
+              "label": "1. Kondisi dinding sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "SD_01_02",
+          "label": "b. Lantai Sadap",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "SD_01_02_01",
+              "label": "1. Kondisi lantai sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "SD_01_03",
+          "label": "c. Atap Sadap",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "SD_01_03_01",
+              "label": "1. Kondisi atap sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "SD_02",
+      "label": "2. Mekanisme Sadap",
+      "weight": 40,
+      "subs": [
+        {
+          "key": "SD_02_01",
+          "label": "a. Pintu Sadap",
+          "weight": 60,
+          "subs": [
+            {
+              "key": "SD_02_01_01",
+              "label": "1. Kondisi pintu sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "SD_02_02",
+          "label": "b. Mekanisme Operasi",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "SD_02_02_01",
+              "label": "1. Kondisi mekanisme operasi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

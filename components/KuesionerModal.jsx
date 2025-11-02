@@ -16,6 +16,9 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
   const [isLoadingKuesioner, setIsLoadingKuesioner] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [expandedSubs, setExpandedSubs] = useState({});
+  const [showSchemeDropdown, setShowSchemeDropdown] = useState(false);
+  const [isChangingScheme, setIsChangingScheme] = useState(false);
+  const [selectedScheme, setSelectedScheme] = useState(null);
 
   // Handle modal close with animation
   const handleClose = useCallback(() => {
@@ -26,46 +29,77 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
     }, 300);
   }, [onClose]);
 
-  // Determine scheme based on feature data
+  // Determine scheme based on feature data (auto-detection fallback)
   const getSchemeType = useCallback((featureData) => {
     if (!featureData) return 'primer';
-    
+
     // Helper function to check for kuarter indicators
     const isKuarter = (text) => {
       if (!text) return false;
       const lowerText = text.toLowerCase();
-      return lowerText.includes('kuarter') || 
-             lowerText.includes('quarter') || 
+      return lowerText.includes('kuarter') ||
+             lowerText.includes('quarter') ||
              lowerText.includes('s16') ||
              lowerText.includes('s 16') ||
              lowerText.includes('s15') ||
              lowerText.includes('s 15');
     };
-    
+
+    // Helper function to check for bangunan indicators and return specific type
+    const getBangunanType = (text) => {
+      if (!text) return null;
+      const upperText = text.toUpperCase();
+      if (upperText.includes('B01')) return 'bendung-tetap';
+      if (upperText.includes('C06')) return 'jembatan';
+      if (upperText.includes('F02')) return 'perumahan';
+      if (upperText.includes('F03')) return 'gudang';
+      if (upperText.includes('P21')) return 'box-tersier';
+      // Remove the generic 'bangunan' fallback
+      return null;
+    };
+
     // Helper function to check for other schemes
     const checkScheme = (text, schemeType) => {
       if (!text) return false;
       return text.toLowerCase().includes(schemeType);
     };
-    
+
     // Check all possible fields for kuarter (highest priority)
     const allFields = [
       featureData.scheme,
-      featureData.properties?.scheme,
       featureData.sourceLayer,
-      featureData.properties?.sourceLayer,
       featureData.name,
+      JSON.stringify(featureData.props || {}), // Check props JSON
+      featureData.properties?.scheme,
+      featureData.properties?.sourceLayer,
       featureData.properties?.nama,
       featureData.properties?.n_di,
       featureData.properties?.description,
-      JSON.stringify(featureData.props || {}), // Check props JSON
       JSON.stringify(featureData.properties || {}) // Check all properties
     ];
-    
+
     // First check for kuarter in any field
     if (allFields.some(field => isKuarter(field))) {
       console.log('🎯 Detected scheme: KUARTER (S15)');
       return 'kuarter';
+    }
+
+    // Then check for specific bangunan types
+    for (const field of allFields) {
+      const bangunanType = getBangunanType(field);
+      if (bangunanType) {
+        console.log(`🎯 Detected scheme: ${bangunanType.toUpperCase()}`);
+        return bangunanType;
+      }
+    }
+
+    // Check if any field contains building indicators (fallback to bendung-tetap)
+    const hasBuildingIndicators = allFields.some(field => 
+      field && (field.toUpperCase().includes('BANGUNAN') || field.toUpperCase().includes('BUILDING'))
+    );
+    if (hasBuildingIndicators) {
+      console.log('🎯 Detected scheme: BENDUNG-TETAP (building fallback)');
+      return 'bendung-tetap';
     }
     
     // Then check for other schemes
@@ -88,6 +122,111 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
     console.log('🎯 Detected scheme: PRIMER (default)');
     return 'primer';
   }, []);
+
+  // Kuesioner scheme options based on PAI type
+  const getKuesionerSchemes = useCallback(() => {
+    // Determine paiType from featureData or infer from scheme
+    let paiType = featureData?.paiType;
+
+    // If paiType is not set, try to infer from the current scheme or detected scheme
+    if (!paiType && selectedScheme) {
+      const saluranSchemes = ['primer', 'sekunder', 'tersier', 'kuarter'];
+      paiType = saluranSchemes.includes(selectedScheme) ? 'saluran' : 'bangunan';
+    }
+
+    // If still not determined, try to infer from auto-detected scheme
+    if (!paiType && featureData) {
+      const autoDetectedScheme = getSchemeType(featureData);
+      const saluranSchemes = ['primer', 'sekunder', 'tersier', 'kuarter'];
+      paiType = saluranSchemes.includes(autoDetectedScheme) ? 'saluran' : 'bangunan';
+    }
+
+    if (paiType === 'saluran') {
+      return [
+        { key: 'primer', label: 'Saluran Primer', description: 'Saluran utama dari sumber', icon: '🏗️' },
+        { key: 'sekunder', label: 'Saluran Sekunder', description: 'Pembagi dari primer', icon: '🌊' },
+        { key: 'tersier', label: 'Saluran Tersier', description: 'Langsung ke sawah', icon: '🌾' },
+        { key: 'kuarter', label: 'Saluran Kuarter', description: 'Pembagi terkecil', icon: '💧' }
+      ];
+    } else if (paiType === 'bangunan') {
+      return [
+        { key: 'bendung-tetap', label: 'Bendung Tetap', description: 'Bangunan pengatur tinggi muka air', icon: '🏗️' },
+        { key: 'jembatan', label: 'Jembatan', description: 'Bangunan penyeberangan', icon: '🌉' },
+        { key: 'gudang', label: 'Gudang', description: 'Bangunan penyimpanan peralatan', icon: '🏭' },
+        { key: 'perumahan', label: 'Perumahan', description: 'Bangunan tempat tinggal', icon: '🏠' },
+        { key: 'box-tersier', label: 'Box Tersier', description: 'Bangunan pengatur saluran tersier', icon: '📦' },
+        { key: 'syphon', label: 'Syphon', description: 'Bangunan saluran bawah tanah', icon: '🔧' },
+        { key: 'gorong-gorong', label: 'Gorong-gorong', description: 'Saluran pembuangan silang', icon: '🌊' },
+        { key: 'pelimpah-samping', label: 'Pelimpah Samping', description: 'Bangunan pelimpah banjir', icon: '💦' },
+        { key: 'terjunan', label: 'Terjunan', description: 'Bangunan pengatur debit jatuh', icon: '🏞️' },
+        { key: 'tempat-cuci', label: 'Tempat Cuci', description: 'Fasilitas pencucian peralatan', icon: '🧽' },
+        { key: 'sadap', label: 'Sadap', description: 'Bangunan pengambilan air', icon: '🚰' },
+        { key: 'bagi-sadap', label: 'Bagi Sadap', description: 'Bangunan pembagian pengambilan', icon: '🔀' }
+      ];
+    }
+
+    // Fallback: return all schemes if paiType cannot be determined
+    return [
+      { key: 'primer', label: 'Saluran Primer', description: 'Saluran utama dari sumber', icon: '🏗️' },
+      { key: 'sekunder', label: 'Saluran Sekunder', description: 'Pembagi dari primer', icon: '🌊' },
+      { key: 'tersier', label: 'Saluran Tersier', description: 'Langsung ke sawah', icon: '🌾' },
+      { key: 'kuarter', label: 'Saluran Kuarter', description: 'Pembagi terkecil', icon: '💧' },
+      { key: 'bendung-tetap', label: 'Bendung Tetap', description: 'Bangunan pengatur tinggi muka air', icon: '🏗️' },
+      { key: 'jembatan', label: 'Jembatan', description: 'Bangunan penyeberangan', icon: '🌉' },
+      { key: 'gudang', label: 'Gudang', description: 'Bangunan penyimpanan peralatan', icon: '🏭' },
+      { key: 'perumahan', label: 'Perumahan', description: 'Bangunan tempat tinggal', icon: '🏠' },
+      { key: 'box-tersier', label: 'Box Tersier', description: 'Bangunan pengatur saluran tersier', icon: '📦' },
+      { key: 'syphon', label: 'Syphon', description: 'Bangunan saluran bawah tanah', icon: '🔧' },
+      { key: 'gorong-gorong', label: 'Gorong-gorong', description: 'Saluran pembuangan silang', icon: '🌊' },
+      { key: 'pelimpah-samping', label: 'Pelimpah Samping', description: 'Bangunan pelimpah banjir', icon: '💦' },
+      { key: 'terjunan', label: 'Terjunan', description: 'Bangunan pengatur debit jatuh', icon: '🏞️' },
+      { key: 'tempat-cuci', label: 'Tempat Cuci', description: 'Fasilitas pencucian peralatan', icon: '🧽' },
+      { key: 'sadap', label: 'Sadap', description: 'Bangunan pengambilan air', icon: '🚰' },
+      { key: 'bagi-sadap', label: 'Bagi Sadap', description: 'Bangunan pembagian pengambilan', icon: '🔀' }
+    ];
+  }, [featureData, selectedScheme, getSchemeType]);
+
+  const kuesionerSchemes = getKuesionerSchemes();
+
+  // Get scheme display info
+  const getSchemeInfo = (schemeKey) => {
+    return kuesionerSchemes.find(s => s.key === schemeKey) || {
+      key: schemeKey,
+      label: schemeKey.charAt(0).toUpperCase() + schemeKey.slice(1),
+      description: 'Skema kuesioner',
+      icon: '📋'
+    };
+  };
+
+  // Handle scheme change
+  const handleChangeScheme = useCallback(async (newScheme) => {
+    if (newScheme === selectedScheme) return;
+
+    setIsChangingScheme(true);
+    setShowSchemeDropdown(false);
+
+    try {
+      // Clear existing data
+      setKuesionerConfig(null);
+      setFormValues({});
+      setScore(null);
+      setErrors({});
+      setExistingKuesioner(null);
+
+      // Load new config and check for existing data
+      const featureId = featureData?.properties?.featureId;
+      const existingData = await loadExistingKuesioner(featureId, newScheme);
+      await loadKuesionerConfig(newScheme, existingData);
+      setSelectedScheme(newScheme);
+
+      console.log(`✅ Changed kuesioner scheme to: ${newScheme}`);
+    } catch (error) {
+      console.error('❌ Error changing scheme:', error);
+      setErrors({ general: 'Gagal mengubah skema kuesioner' });
+    } finally {
+      setIsChangingScheme(false);
+    }
+  }, [selectedScheme, featureData]);
 
   // Load existing kuesioner data
   const loadExistingKuesioner = useCallback(async (featureId, scheme) => {
@@ -131,12 +270,18 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
   // Load kuesioner configuration
   const loadKuesionerConfig = useCallback(async (scheme, existingData = null) => {
     try {
-      const configResponse = await fetch(`/config/kuesioner-${scheme}.json`);
+      const configResponse = await fetch(`/api/kuesioner-configs?scheme=${scheme}`);
       if (!configResponse.ok) {
         throw new Error(`Failed to load config: ${configResponse.status}`);
       }
-      const configData = await configResponse.json();
-      
+      const responseData = await configResponse.json();
+
+      if (!responseData.success || !responseData.data || responseData.data.length === 0) {
+        throw new Error('Konfigurasi kuesioner tidak ditemukan');
+      }
+
+      const configData = responseData.data[0].json; // Get the config from database
+
       setKuesionerConfig(configData);
       
       // Initialize form values
@@ -187,18 +332,21 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
 
   // Effect to load config and existing data
   useEffect(() => {
-    if (isOpen && featureData) {
-      const scheme = getSchemeType(featureData);
-      const featureId = featureData.properties?.featureId;
-      
+    if (isOpen && featureData && !selectedScheme) {
+      // Auto-detect initial scheme, but allow user to change it
+      const autoDetectedScheme = getSchemeType(featureData);
+      setSelectedScheme(autoDetectedScheme);
+
+      const featureId = featureData.featureId;
+
       const loadData = async () => {
-        const existingData = await loadExistingKuesioner(featureId, scheme);
-        await loadKuesionerConfig(scheme, existingData);
+        const existingData = await loadExistingKuesioner(featureId, autoDetectedScheme);
+        await loadKuesionerConfig(autoDetectedScheme, existingData);
       };
-      
+
       loadData();
     }
-  }, [isOpen, featureData, getSchemeType, loadKuesionerConfig, loadExistingKuesioner]);
+  }, [isOpen, featureData, getSchemeType, loadKuesionerConfig, loadExistingKuesioner, selectedScheme]);
 
   // Handle ESC key
   useEffect(() => {
@@ -279,6 +427,30 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
     }
   };
 
+  // Click outside handler for dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSchemeDropdown && !event.target.closest('.scheme-dropdown-container')) {
+        setShowSchemeDropdown(false);
+      }
+    };
+
+    if (showSchemeDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSchemeDropdown]);
+
+  // Close dropdown when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowSchemeDropdown(false);
+    }
+  }, [isOpen]);
+
   // Toggle category expansion
   const toggleCategory = (categoryKey) => {
     setExpandedCategories(prev => ({
@@ -329,7 +501,7 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
       return;
     }
 
-    if (!featureData?.properties?.featureId) {
+    if (!featureData?.featureId) {
       setErrors({ general: 'Data feature tidak valid' });
       return;
     }
@@ -349,7 +521,7 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
     setIsSubmitting(true);
     try {
       const kuesionerData = {
-        featureId: featureData.properties.featureId,
+        featureId: featureData.featureId,
         scheme: kuesionerConfig.scheme,
         values: formValues
       };
@@ -472,16 +644,77 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
                   Form Kuesioner
                 </h2>
                 {kuesionerConfig && (
-                  <span className={`
-                    px-2.5 py-0.5 text-xs font-semibold rounded-full
-                    ${kuesionerConfig.scheme === 'primer' ? 'bg-blue-100 text-blue-700 border border-blue-300' : ''}
-                    ${kuesionerConfig.scheme === 'sekunder' ? 'bg-green-100 text-green-700 border border-green-300' : ''}
-                    ${kuesionerConfig.scheme === 'tersier' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' : ''}
-                  `}>
-                    {kuesionerConfig.scheme === 'primer' && '🔵 Primer'}
-                    {kuesionerConfig.scheme === 'sekunder' && '🟢 Sekunder'}
-                    {kuesionerConfig.scheme === 'tersier' && '🟡 Tersier'}
-                  </span>
+                  <div className="relative scheme-dropdown-container">
+                    <button
+                      onClick={() => setShowSchemeDropdown(!showSchemeDropdown)}
+                      disabled={isChangingScheme}
+                      className={`
+                        px-2.5 py-0.5 text-xs font-semibold rounded-full
+                        transition-all duration-200 flex items-center gap-1
+                        ${kuesionerConfig.scheme === 'primer' ? 'bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200' : ''}
+                        ${kuesionerConfig.scheme === 'sekunder' ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' : ''}
+                        ${kuesionerConfig.scheme === 'tersier' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200' : ''}
+                        ${kuesionerConfig.scheme === 'kuarter' ? 'bg-cyan-100 text-cyan-700 border border-cyan-300 hover:bg-cyan-200' : ''}
+                        ${kuesionerConfig.scheme === 'bangunan' ? 'bg-purple-100 text-purple-700 border border-purple-300 hover:bg-purple-200' : ''}
+                        ${isChangingScheme ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'}
+                      `}
+                      title="Klik untuk mengubah skema kuesioner"
+                    >
+                      {isChangingScheme ? (
+                        <span className="flex items-center gap-1">
+                          <span className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                          Mengubah...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          {getSchemeInfo(kuesionerConfig.scheme).icon} {getSchemeInfo(kuesionerConfig.scheme).label}
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {showSchemeDropdown && !isChangingScheme && (
+                      <div
+                        className="absolute top-full left-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                      >
+                        <div className="p-2">
+                          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            Pilih Skema Kuesioner
+                          </div>
+                          <div className="max-h-64 overflow-y-auto">
+                            {kuesionerSchemes.map((scheme) => (
+                              <button
+                                key={scheme.key}
+                                onClick={() => handleChangeScheme(scheme.key)}
+                                disabled={kuesionerConfig.scheme === scheme.key}
+                                className={`
+                                  w-full text-left px-3 py-2.5 rounded-md transition-colors
+                                  ${kuesionerConfig.scheme === scheme.key
+                                    ? 'bg-gray-50 text-gray-700 cursor-default'
+                                    : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                                  }
+                                `}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{scheme.icon}</span>
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm">{scheme.label}</div>
+                                    <div className="text-xs text-gray-500">{scheme.description}</div>
+                                  </div>
+                                  {kuesionerConfig.scheme === scheme.key && (
+                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                  )}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
               <p className="text-sm text-gray-600 mt-0.5">

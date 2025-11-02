@@ -1,0 +1,112 @@
+{
+  "version": "v1.0",
+  "scheme": "bagi_sadap",
+  "title": "Kuesioner Penilaian Bagi Sadap",
+  "description": "Form kuesioner untuk penilaian kondisi bagi sadap dengan input nilai 1-100",
+  "grading": {
+    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
+    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
+    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+  },
+  "categories": [
+    {
+      "key": "BS_01",
+      "label": "1. Struktur Bagi Sadap",
+      "weight": 60,
+      "subs": [
+        {
+          "key": "BS_01_01",
+          "label": "a. Dinding Bagi Sadap",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "BS_01_01_01",
+              "label": "1. Kondisi dinding bagi sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BS_01_02",
+          "label": "b. Lantai Bagi Sadap",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "BS_01_02_01",
+              "label": "1. Kondisi lantai bagi sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BS_01_03",
+          "label": "c. Atap Bagi Sadap",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "BS_01_03_01",
+              "label": "1. Kondisi atap bagi sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "BS_02",
+      "label": "2. Mekanisme Bagi Sadap",
+      "weight": 40,
+      "subs": [
+        {
+          "key": "BS_02_01",
+          "label": "a. Pintu Bagi Sadap",
+          "weight": 60,
+          "subs": [
+            {
+              "key": "BS_02_01_01",
+              "label": "1. Kondisi pintu bagi sadap",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "BS_02_02",
+          "label": "b. Mekanisme Operasi",
+          "weight": 40,
+          "subs": [
+            {
+              "key": "BS_02_02_01",
+              "label": "1. Kondisi mekanisme operasi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

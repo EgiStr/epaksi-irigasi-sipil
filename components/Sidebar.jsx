@@ -138,22 +138,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onMenuChange }) => {
       path: '/admin/audit-logs',
       permission: PERMISSIONS.AUDIT_VIEW,
       isAdmin: true
-    },
-    {
-      id: 'admin-settings',
-      label: 'System Settings',
-      icon: Database,
-      path: '/admin/settings',
-      permission: PERMISSIONS.SYSTEM_CONFIG,
-      isAdmin: true
-    },
-    {
-      id: 'admin-analytics',
-      label: 'Analytics & Reports',
-      icon: BarChart3,
-      path: '/admin/analytics',
-      permission: PERMISSIONS.ANALYTICS_VIEW,
-      isAdmin: true
     }
   ];
 
