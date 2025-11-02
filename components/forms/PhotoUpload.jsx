@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { X, Upload, ImageIcon } from 'lucide-react'
 
 export default function PhotoUpload({ 
@@ -157,9 +158,11 @@ export default function PhotoUpload({
                   {/* Image Preview */}
                   <div className="flex-shrink-0">
                     {photo.data_uri ? (
-                      <img
+                      <Image
                         src={photo.data_uri}
                         alt={photo.name}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 object-cover rounded"
                       />
                     ) : (

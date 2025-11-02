@@ -81,7 +81,6 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
 
     // First check for kuarter in any field
     if (allFields.some(field => isKuarter(field))) {
-      console.log('🎯 Detected scheme: KUARTER (S15)');
       return 'kuarter';
     }
 
@@ -89,7 +88,6 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
     for (const field of allFields) {
       const bangunanType = getBangunanType(field);
       if (bangunanType) {
-        console.log(`🎯 Detected scheme: ${bangunanType.toUpperCase()}`);
         return bangunanType;
       }
     }
@@ -99,28 +97,23 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
       field && (field.toUpperCase().includes('BANGUNAN') || field.toUpperCase().includes('BUILDING'))
     );
     if (hasBuildingIndicators) {
-      console.log('🎯 Detected scheme: BENDUNG-TETAP (building fallback)');
       return 'bendung-tetap';
     }
     
     // Then check for other schemes
     if (allFields.some(field => checkScheme(field, 'sekunder'))) {
-      console.log('🎯 Detected scheme: SEKUNDER');
       return 'sekunder';
     }
     
     if (allFields.some(field => checkScheme(field, 'tersier'))) {
-      console.log('🎯 Detected scheme: TERSIER');
       return 'tersier';
     }
     
     if (allFields.some(field => checkScheme(field, 'primer'))) {
-      console.log('🎯 Detected scheme: PRIMER');
       return 'primer';
     }
     
     // Default to primer
-    console.log('🎯 Detected scheme: PRIMER (default)');
     return 'primer';
   }, []);
 
@@ -221,7 +214,6 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
       await loadKuesionerConfig(newScheme, existingData);
       setSelectedScheme(newScheme);
 
-      console.log(`✅ Changed kuesioner scheme to: ${newScheme}`);
     } catch (error) {
       console.error('❌ Error changing scheme:', error);
       setErrors({ general: 'Gagal mengubah skema kuesioner' });
@@ -233,13 +225,11 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
   // Load existing kuesioner data
   const loadExistingKuesioner = useCallback(async (featureId, scheme) => {
     if (!featureId) {
-      console.log('No featureId provided');
       return null;
     }
 
     setIsLoadingKuesioner(true);
     try {
-      console.log(`🔍 Loading existing kuesioner for feature: ${featureId}, scheme: ${scheme}`);
       
       // Load all kuesioners for this feature
       const allResponse = await fetch(`/api/kuesioner?featureId=${featureId}`);
@@ -247,7 +237,6 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
         const allData = await allResponse.json();
         if (allData.kuesioner && allData.kuesioner.length > 0) {
           setAllExistingKuesioners(allData.kuesioner);
-          console.log('📊 All existing kuesioners for feature:', allData.kuesioner);
         }
       }
       
@@ -255,22 +244,18 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
       const response = await fetch(`/api/kuesioner?featureId=${featureId}&scheme=${scheme}`);
       
       if (!response.ok) {
-        console.log('No existing kuesioner found for scheme:', scheme);
         return null;
       }
 
       const data = await response.json();
-      console.log('📊 Kuesioner API response:', data);
       
       if (data.kuesioner && data.kuesioner.length > 0) {
         const latestKuesioner = data.kuesioner[0];
-        console.log('✅ Found existing kuesioner:', latestKuesioner);
         
         setExistingKuesioner(latestKuesioner);
         return latestKuesioner;
       }
       
-      console.log('ℹ️ No existing kuesioner found for scheme:', scheme);
       return null;
     } catch (error) {
       console.error('❌ Error loading kuesioner:', error);
@@ -570,7 +555,6 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
         throw new Error('Response tidak valid - data kuesioner tidak ditemukan');
       }
 
-      console.log('✅ Kuesioner saved successfully:', result);
 
       onSubmit({
         ...result.kuesioner,

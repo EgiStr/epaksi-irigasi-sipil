@@ -13,25 +13,25 @@ export default function PAIPopup({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const fetchPAI = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/pai?featureId=${feature.featureId}&latest=true`)
+        if (response.ok) {
+          const data = await response.json()
+          setPai(data.pai)
+        }
+      } catch (error) {
+        console.error('Error fetching PAI:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (feature?.featureId) {
       fetchPAI()
     }
   }, [feature])
-
-  const fetchPAI = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/pai?featureId=${feature.featureId}&latest=true`)
-      if (response.ok) {
-        const data = await response.json()
-        setPai(data.pai)
-      }
-    } catch (error) {
-      console.error('Error fetching PAI:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('id-ID', {

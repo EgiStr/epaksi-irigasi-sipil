@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { Camera, Upload, X, AlertCircle, Loader2 } from 'lucide-react'
 import { uploadFile, getPublicUrl, generateFilePath, validateImageFile, deleteFile } from '@/lib/supabase'
 
@@ -197,9 +198,11 @@ export default function PhotoUpload({
             <div key={photo.id} className="relative border rounded-lg overflow-hidden">
               {/* Photo Display */}
               <div className="relative">
-                <img
+                <Image
                   src={photo.url}
                   alt={photo.caption || 'Foto PAI'}
+                  width={400}
+                  height={300}
                   className="w-full h-48 object-cover"
                   onError={(e) => {
                     e.target.src = '/api/placeholder/400/300'

@@ -1945,7 +1945,6 @@ export default function FeatureDetailPage() {
           onClose={() => setShowKuesionerModal(false)}
           featureData={feature}
           onSubmit={(result) => {
-            console.log('✅ Kuesioner saved:', result)
             alert(result.message || 'Kuesioner berhasil disimpan! 🎉')
             fetchFeatureDetail() // Reload data
             setShowKuesionerModal(false)

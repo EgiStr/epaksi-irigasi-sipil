@@ -67,35 +67,29 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
   // Load existing survey data for the feature
   const loadExistingSurvey = useCallback(async (featureId, surveyType) => {
     if (!featureId) {
-      console.log('No featureId provided, skipping survey load');
       return null;
     }
 
     setIsLoadingSurvey(true);
     try {
-      console.log(`🔍 Loading existing survey for feature: ${featureId}, scheme: ${surveyType}`);
       
       const response = await fetch(`/api/surveys?featureId=${featureId}&scheme=${surveyType}`);
       
       if (!response.ok) {
-        console.log('No existing survey found or error loading');
         return null;
       }
 
       const data = await response.json();
-      console.log('📊 Survey API response:', data);
       
       // Check if we have surveys in the response
       if (data.surveys && data.surveys.length > 0) {
         // Get the most recent survey (first one, as API returns sorted by date)
         const latestSurvey = data.surveys[0];
-        console.log('✅ Found existing survey:', latestSurvey);
         
         setExistingSurvey(latestSurvey);
         return latestSurvey;
       }
       
-      console.log('ℹ️ No existing survey found for this feature');
       return null;
     } catch (error) {
       console.error('❌ Error loading existing survey:', error);
@@ -172,7 +166,6 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         }
       });
       
-      console.log('📝 Initialized form values:', initialValues);
       setFormValues(initialValues);
       
       // If we have existing survey data with score, set it
@@ -448,15 +441,12 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         values: formValues
       };
 
-      console.log('💾 Submitting survey:', surveyData);
-      console.log('📝 Existing survey:', existingSurvey);
 
       // Determine if this is an update or new survey
       const isUpdate = existingSurvey && existingSurvey.id;
       const apiUrl = isUpdate ? `/api/surveys/${existingSurvey.id}` : '/api/surveys';
       const method = isUpdate ? 'PUT' : 'POST';
 
-      console.log(`📤 ${method} request to: ${apiUrl}`);
 
       // Save or update survey to database using API
       const response = await fetch(apiUrl, {
@@ -487,7 +477,6 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
         throw new Error('Response tidak valid - data survey tidak ditemukan');
       }
 
-      console.log('✅ Survey saved successfully:', result);
 
       // Call the callback with the result
       onSurveySubmit({
