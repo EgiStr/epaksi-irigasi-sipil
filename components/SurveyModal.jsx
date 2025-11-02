@@ -679,7 +679,7 @@ const SurveyModal = ({ isOpen, onClose, featureData, onSurveySubmit }) => {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Survey Penilaian Irigasi
+                  IKSI Penilaian Irigasi
                 </h2>
                 {surveyConfig && (
                   <div className="relative scheme-dropdown-container">

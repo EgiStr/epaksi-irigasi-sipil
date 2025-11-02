@@ -25,6 +25,134 @@ L.Icon.Default.mergeOptions({
 const MAP_CONFIG = {
   center: [-4.75, 105.0],
   zoom: 11,
+  // Color palette berdasarkan scheme (bukan sourceLayer)
+  schemeColors: {
+    // Saluran (Channels) - Blue to Purple gradient
+    'primer': {
+      color: '#1e40af', // Blue-800
+      fillColor: '#3b82f6', // Blue-500
+      fillOpacity: 0.7,
+      weight: 2,
+      label: 'Saluran Primer',
+      icon: '🔵'
+    },
+    'sekunder': {
+      color: '#166534', // Green-800
+      fillColor: '#22c55e', // Green-500
+      fillOpacity: 0.7,
+      weight: 2,
+      label: 'Saluran Sekunder',
+      icon: '🟢'
+    },
+    'tersier': {
+      color: '#92400e', // Orange-800
+      fillColor: '#f97316', // Orange-500
+      fillOpacity: 0.7,
+      weight: 2,
+      label: 'Saluran Tersier',
+      icon: '🟠'
+    },
+    'kuarter': {
+      color: '#6b21a8', // Purple-800
+      fillColor: '#a855f7', // Purple-500
+      fillOpacity: 0.7,
+      weight: 2,
+      label: 'Saluran Kuarter',
+      icon: '🟣'
+    },
+
+    // Bangunan (Buildings) - Distinct colors for each type
+    'jembatan': {
+      color: '#0f766e', // Teal-800
+      fillColor: '#14b8a6', // Teal-500
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Jembatan',
+      icon: '🌉'
+    },
+    'gudang': {
+      color: '#9a3412', // Orange-800
+      fillColor: '#ea580c', // Orange-600
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Gudang',
+      icon: '🏭'
+    },
+    'bendung-tetap': {
+      color: '#1e3a8a', // Blue-800
+      fillColor: '#3b82f6', // Blue-500
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Bendung Tetap',
+      icon: '🏗️'
+    },
+    'box-tersier': {
+      color: '#c2410c', // Orange-700
+      fillColor: '#fb923c', // Orange-400
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Box Tersier',
+      icon: '📦'
+    },
+    'syphon': {
+      color: '#0369a1', // Sky-700
+      fillColor: '#0ea5e9', // Sky-500
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Syphon',
+      icon: '🌊'
+    },
+    'gorong-gorong': {
+      color: '#374151', // Gray-700
+      fillColor: '#6b7280', // Gray-500
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Gorong-gorong',
+      icon: '🚇'
+    },
+    'pelimpah-samping': {
+      color: '#0891b2', // Cyan-600
+      fillColor: '#22d3ee', // Cyan-400
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Pelimpah Samping',
+      icon: '💧'
+    },
+    'terjunan': {
+      color: '#14532d', // Green-800
+      fillColor: '#16a34a', // Green-600
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Terjunan',
+      icon: '🏞️'
+    },
+    'tempat-cuci': {
+      color: '#166534', // Green-700
+      fillColor: '#4ade80', // Green-400
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Tempat Cuci',
+      icon: '🧽'
+    },
+    'sadap': {
+      color: '#dc2626', // Red-600
+      fillColor: '#ef4444', // Red-500
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Sadap',
+      icon: '🚰'
+    },
+    'bagi-sadap': {
+      color: '#991b1b', // Red-800
+      fillColor: '#dc2626', // Red-600
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Bagi Sadap',
+      icon: '🔀'
+    }
+  },
+
+  // Fallback colors for old sourceLayer-based coloring
   colors: {
     "Bangunan_Irigasi Way Rarem": { color: "#666666", fillColor: "#999999" },
     "Bangunan.kml": { color: "#0000FF", fillColor: "#4444FF" },
@@ -717,16 +845,101 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     return colors[index % colors.length] || { color: "#999999", fillColor: "#CCCCCC" };
   }, []);
 
+  // Determine scheme from feature properties (for color coding)
+  const getFeatureScheme = useCallback((feature) => {
+    if (!feature?.properties) return null;
+
+    const props = feature.properties;
+
+    // Helper function to check for kuarter indicators
+    const isKuarter = (text) => {
+      if (!text) return false;
+      const lowerText = text.toLowerCase();
+      return lowerText.includes('kuarter') ||
+             lowerText.includes('quarter') ||
+             lowerText.includes('s16') ||
+             lowerText.includes('s 16') ||
+             lowerText.includes('s15') ||
+             lowerText.includes('s 15');
+    };
+
+    // Helper function to check for bangunan indicators and return specific type
+    const getBangunanType = (text) => {
+      if (!text) return null;
+      const upperText = text.toUpperCase();
+      if (upperText.includes('B01')) return 'bendung-tetap';
+      if (upperText.includes('C06')) return 'jembatan';
+      if (upperText.includes('F02')) return 'perumahan';
+      if (upperText.includes('F03')) return 'gudang';
+      if (upperText.includes('P21')) return 'box-tersier';
+      return null;
+    };
+
+    // Helper function to check for other schemes
+    const checkScheme = (text, schemeType) => {
+      if (!text) return false;
+      return text.toLowerCase().includes(schemeType);
+    };
+
+    // Check all possible fields for scheme detection
+    const allFields = [
+      props.scheme,
+      props.sourceLayer,
+      props.name,
+      props.nama,
+      props.n_di,
+      props.description,
+      JSON.stringify(props) // Check all properties as fallback
+    ];
+
+    // First check for kuarter in any field (highest priority)
+    if (allFields.some(field => isKuarter(field))) {
+      return 'kuarter';
+    }
+
+    // Then check for specific bangunan types
+    for (const field of allFields) {
+      const bangunanType = getBangunanType(field);
+      if (bangunanType) {
+        return bangunanType;
+      }
+    }
+
+    // Check if any field contains building indicators (fallback to bendung-tetap)
+    const hasBuildingIndicators = allFields.some(field =>
+      field && (field.toUpperCase().includes('BANGUNAN') || field.toUpperCase().includes('BUILDING'))
+    );
+    if (hasBuildingIndicators) {
+      return 'bendung-tetap';
+    }
+
+    // Then check for other schemes
+    if (allFields.some(field => checkScheme(field, 'sekunder'))) {
+      return 'sekunder';
+    }
+
+    if (allFields.some(field => checkScheme(field, 'tersier'))) {
+      return 'tersier';
+    }
+
+    if (allFields.some(field => checkScheme(field, 'primer'))) {
+      return 'primer';
+    }
+
+    // Default to primer for channels
+    return 'primer';
+  }, []);
+
   // Optimized style functions
   const getFeatureStyle = useCallback((feature) => {
     const sourceLayer = feature.properties?.sourceLayer;
     const featureId = feature.properties?.featureId;
     const categoryIndex = categories.indexOf(sourceLayer);
     const geomType = feature.geometry?.type;
-    
+
     // Check if this feature has a survey score and survey layer is visible
     const surveyColor = (featureId && showSurveyLayer) ? getFeatureQualityColor(featureId) : null;
-    
+
     let colorConfig;
     if (surveyColor && surveyColor !== '#6b7280') {
       // Use survey-based color if available (excluding gray/no survey)
@@ -735,10 +948,21 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         fillColor: surveyColor
       };
     } else {
-      // Use default layer colors
-      colorConfig = generateLayerColor(sourceLayer, categoryIndex);
+      // Use scheme-based colors from MAP_CONFIG
+      const scheme = getFeatureScheme(feature);
+      const schemeConfig = MAP_CONFIG.schemeColors[scheme];
+
+      if (schemeConfig) {
+        colorConfig = {
+          color: schemeConfig.color,
+          fillColor: schemeConfig.fillColor
+        };
+      } else {
+        // Fallback to old layer-based colors if scheme not found
+        colorConfig = generateLayerColor(sourceLayer, categoryIndex);
+      }
     }
-    
+
     const baseStyle = {
       color: colorConfig.color,
       fillColor: colorConfig.fillColor,
@@ -748,7 +972,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     };
 
     return geomType === "Point" ? { ...baseStyle, radius: 8 } : baseStyle;
-  }, [categories, getFeatureQualityColor, showSurveyLayer]);
+  }, [categories, getFeatureQualityColor, showSurveyLayer, getFeatureScheme]);
 
   const pointToLayer = useCallback((feature, latlng) => {
     const style = getFeatureStyle(feature);
@@ -783,10 +1007,11 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
   const buildPopupContent = useCallback((props, detailData, feature) => {
     let content = '<div style="font-family: Arial, sans-serif; max-width: 420px;">';
     
-    // Header with sourceLayer
+    // Header with sourceLayer - use scheme-based color
     if (props.sourceLayer) {
-      const categoryIndex = categories.indexOf(props.sourceLayer);
-      const categoryColor = generateLayerColor(props.sourceLayer, categoryIndex)?.color || "#333";
+      const scheme = getFeatureScheme(feature);
+      const schemeConfig = MAP_CONFIG.schemeColors[scheme];
+      const categoryColor = schemeConfig?.color || "#333";
       content += `<h3 style="margin: 0 0 12px 0; color: ${categoryColor}; font-size: 16px; font-weight: bold; border-bottom: 2px solid ${categoryColor}; padding-bottom: 6px;">${props.sourceLayer}</h3>`;
     }
     
@@ -824,8 +1049,9 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     });
     
     if (Object.keys(allDetailData).length > 0) {
-      const categoryIndex = categories.indexOf(props.sourceLayer);
-      const categoryColor = generateLayerColor(props.sourceLayer, categoryIndex)?.color || '#10b981';
+      const scheme = getFeatureScheme(feature);
+      const schemeConfig = MAP_CONFIG.schemeColors[scheme];
+      const categoryColor = schemeConfig?.color || '#10b981';
       content += `<div style="margin: 12px 0; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid ${categoryColor};">`;
       content += `<div style="font-weight: bold; margin-bottom: 8px; color: #047857;">� Detail Properti Lengkap</div>`;
       
@@ -968,7 +1194,7 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
     }
     
     return content + '</div>';
-  }, [categories, generateLayerColor, getSurveyForFeature, getFeatureQualityColor]);
+  }, [categories, getFeatureScheme, getSurveyForFeature, getFeatureQualityColor]);
 
   // Optimized event handler
   const onEachFeature = useCallback((feature, layer) => {
@@ -1393,109 +1619,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
         </LayersControl>
         )}
       </MapContainer>
-      
-      {/* Compact legend */}
-      {!isSurveyModalOpen && (
-      <div style={{
-        position: 'absolute',
-        bottom: '15px',
-        left: '15px',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        padding: '8px 12px',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        zIndex: 1000,
-        fontSize: '11px',
-        maxWidth: '200px'
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Legend</div>
-        
-        {boundaryData && (
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-            <div style={{
-              width: '12px', height: '12px', 
-              background: '#E6E6FA', 
-              border: '1px dashed #800080',
-              marginRight: '6px'
-            }}></div>
-            Batas Wilayah
-          </div>
-        )}
-        
-        {Object.entries(layerDataMap).map(([sourceLayer, layerData]) => {
-          const categoryIndex = categories.indexOf(sourceLayer);
-          const colorConfig = generateLayerColor(sourceLayer, categoryIndex);
-          const displayName = sourceLayer
-            .replace(/_/g, ' ')
-            .replace(/\b\w/g, l => l.toUpperCase())
-            .replace('Way Rarem', 'WR');
-          
-          return (
-            <div key={sourceLayer} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-              <div style={{
-                width: '12px', height: '12px',
-                backgroundColor: colorConfig.fillColor,
-                border: `1px solid ${colorConfig.color}`,
-                marginRight: '6px'
-              }}></div>
-              {displayName} ({layerData.features.length})
-            </div>
-          );
-        })}
-        
-        {/* Survey Status Legend */}
-        {showSurveyLayer && (
-          <>
-            <div style={{ 
-              borderTop: '1px solid #e5e7eb', 
-              marginTop: '8px', 
-              paddingTop: '6px',
-              fontWeight: 'bold',
-              fontSize: '10px'
-            }}>
-              Status Survey:
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
-              <div style={{
-                width: '12px', height: '12px',
-                backgroundColor: '#10b981',
-                border: '1px solid #059669',
-                marginRight: '6px'
-              }}></div>
-              Baik (≥80)
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
-              <div style={{
-                width: '12px', height: '12px',
-                backgroundColor: '#f59e0b',
-                border: '1px solid #d97706',
-                marginRight: '6px'
-              }}></div>
-              Sedang (50-79)
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
-              <div style={{
-                width: '12px', height: '12px',
-                backgroundColor: '#ef4444',
-                border: '1px solid #dc2626',
-                marginRight: '6px'
-              }}></div>
-              Buruk (&lt;50)
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
-              <div style={{
-                width: '12px', height: '12px',
-                backgroundColor: '#6b7280',
-                border: '1px solid #4b5563',
-                marginRight: '6px'
-              }}></div>
-              Belum Disurvei
-            </div>
-          </>
-        )}
-        
-      </div>
-      )}
 
       {/* Survey Modal */}
       <SurveyModal
