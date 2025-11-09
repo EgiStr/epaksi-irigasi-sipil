@@ -1,8 +1,8 @@
 {
   "version": "v1.0",
-  "scheme": "gorong_gorong",
-  "title": "Kuesioner Penilaian Gorong-Gorong",
-  "description": "Form kuesioner untuk penilaian kondisi gorong-gorong dengan input nilai 1-100",
+  "scheme": "talang",
+  "title": "Kuesioner Penilaian Talang",
+  "description": "Form kuesioner untuk penilaian kondisi talang dengan input nilai 1-100",
   "grading": {
     "BAIK_SEKALI": {
       "min": 80,
@@ -27,17 +27,17 @@
   },
   "categories": [
     {
-      "key": "C03_01",
-      "label": "Kondisi Bangunan",
-      "weight": 16,
+      "key": "C04_01",
+      "label": "1. Kondisi Bangunan",
+      "weight": 80,
       "subs": [
         {
-          "key": "C03_01_01",
+          "key": "C04_01_01",
           "label": "1. Bocoran",
           "weight": 20,
           "subs": [
             {
-              "key": "C03_01_01_01",
+              "key": "C04_01_01_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -49,12 +49,12 @@
           ]
         },
         {
-          "key": "C03_01_02",
+          "key": "C04_01_02",
           "label": "2. Fasilitas Penguras",
           "weight": 10,
           "subs": [
             {
-              "key": "C03_01_02_01",
+              "key": "C04_01_02_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -66,12 +66,12 @@
           ]
         },
         {
-          "key": "C03_01_03",
+          "key": "C04_01_03",
           "label": "3. Kisi-kisi penyaring sampah (trashtrack)",
           "weight": 10,
           "subs": [
             {
-              "key": "C03_01_03_01",
+              "key": "C04_01_03_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -83,12 +83,12 @@
           ]
         },
         {
-          "key": "C03_01_04",
+          "key": "C04_01_04",
           "label": "4. Konstruksi Sayap",
           "weight": 10,
           "subs": [
             {
-              "key": "C03_01_04_01",
+              "key": "C04_01_04_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -100,12 +100,12 @@
           ]
         },
         {
-          "key": "C03_01_05",
+          "key": "C04_01_05",
           "label": "5. Kerusakan di lantai hilir",
           "weight": 15,
           "subs": [
             {
-              "key": "C03_01_05_01",
+              "key": "C04_01_05_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -117,12 +117,12 @@
           ]
         },
         {
-          "key": "C03_01_06",
+          "key": "C04_01_06",
           "label": "6. Tanda-tanda retak dan longsor",
           "weight": 20,
           "subs": [
             {
-              "key": "C03_01_06_01",
+              "key": "C04_01_06_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -134,12 +134,12 @@
           ]
         },
         {
-          "key": "C03_01_07",
+          "key": "C04_01_07",
           "label": "7. Kondisi lantai pengaman bangunan",
           "weight": 15,
           "subs": [
             {
-              "key": "C03_01_07_01",
+              "key": "C04_01_07_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -153,17 +153,17 @@
       ]
     },
     {
-      "key": "C03_02",
-      "label": "Sumbatan Sampah dan Sedimen",
-      "weight": 25,
+      "key": "C04_02",
+      "label": "2. Sumbatan Sampah dan Sedimen",
+      "weight": 120,
       "subs": [
         {
-          "key": "C03_02_01",
+          "key": "C04_02_01",
           "label": "Gangguan terhadap aliran air",
           "weight": 100,
           "subs": [
             {
-              "key": "C03_02_01_01",
+              "key": "C04_02_01_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -177,42 +177,18 @@
       ]
     },
     {
-      "key": "C03_03",
-      "label": "Pelaksanaan Perbaikan dan Pemeliharaan",
-      "weight": 8,
+      "key": "C04_03",
+      "label": "3. Pelaksanaan Perbaikan dan Pemeliharaan",
+      "weight": 38,
       "subs": [
         {
-          "key": "C03_03_01",
+          "key": "C04_03_01",
           "label": "1. Progres Pekerjaan",
           "weight": 100,
           "subs": [
             {
-              "key": "C03_03_01_01",
+              "key": "C04_03_01_01",
               "label": "Nilai progres",
-              "weight": 100,
-              "type": "numerik",
-              "min": 1,
-              "max": 100,
-              "description": "Input nilai 1-100",
-              "required": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "key": "C03_51",
-      "label": "4. Kondisi Gorong-Gorong",
-      "weight": 51,
-      "subs": [
-        {
-          "key": "C03_51_01",
-          "label": "Kondisi Bangunan",
-          "weight": 100,
-          "subs": [
-            {
-              "key": "C03_51_01_01",
-              "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
               "min": 1,

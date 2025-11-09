@@ -1,25 +1,27 @@
-{
+  {
   "scheme": "kuarter",
   "name": "Kuesioner Saluran Kuarter",
   "description": "Form penilaian untuk saluran kuarter (S16)",
   "grading": {
+    "BAIK_SEKALI": {
+      "min": 80,
+      "max": 100,
+      "color": "#10b981"
+    },
     "BAIK": {
       "min": 70,
-      "max": 100,
-      "label": "BAIK",
-      "color": "green"
+      "max": 79.99,
+      "color": "#22c55e"
     },
-    "SEDANG": {
-      "min": 40,
+    "KURANG": {
+      "min": 55,
       "max": 69.99,
-      "label": "SEDANG",
-      "color": "yellow"
+      "color": "#eab308"
     },
-    "BURUK": {
+    "JELEK": {
       "min": 0,
-      "max": 39.99,
-      "label": "BURUK",
-      "color": "red"
+      "max": 54.99,
+      "color": "#ef4444"
     }
   },
   "categories": [

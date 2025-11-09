@@ -1,8 +1,8 @@
 {
   "version": "v1.0",
-  "scheme": "sadap",
-  "title": "Kuesioner Penilaian Sadap",
-  "description": "Form kuesioner untuk penilaian kondisi sadap dengan input nilai 1-100",
+  "scheme": "box_kuarter",
+  "title": "Kuesioner Penilaian Box Kuarter",
+  "description": "Form kuesioner untuk penilaian kondisi box kuarter dengan input nilai 1-100",
   "grading": {
     "BAIK_SEKALI": {
       "min": 80,
@@ -27,17 +27,17 @@
   },
   "categories": [
     {
-      "key": "P03_01",
-      "label": "Bangunan Sadap Lengkap dan Berfungsi",
-      "weight": 25,
+      "key": "P22_01",
+      "label": "Bangunan Box Kuarter Lengkap dan Berfungsi",
+      "weight": 20,
       "subs": [
         {
-          "key": "P03_01_01",
-          "label": "1. Pengoperasian pintu pembagi dan/atau bagi sadap",
+          "key": "P22_01_01",
+          "label": "1. Box Kuarter berfungsi dan kondisi pintu kecil",
           "weight": 30,
           "subs": [
             {
-              "key": "P03_01_01_01",
+              "key": "P22_01_01_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -49,12 +49,12 @@
           ]
         },
         {
-          "key": "P03_01_02",
-          "label": "2. Kondisi tubuh bangunan dan tingkat bocoran",
-          "weight": 30,
+          "key": "P22_01_02",
+          "label": "2. Bocoran",
+          "weight": 20,
           "subs": [
             {
-              "key": "P03_01_02_01",
+              "key": "P22_01_02_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -66,12 +66,12 @@
           ]
         },
         {
-          "key": "P03_01_04",
-          "label": "3. Kondisi sayap",
+          "key": "P22_01_03",
+          "label": "3. Petunjuk manual dan tabel operasi pintu",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_01_04_01",
+              "key": "P22_01_03_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -83,12 +83,12 @@
           ]
         },
         {
-          "key": "P03_01_05",
-          "label": "4. Bekas gerusan di lantai hilir yang membahayakan konstruksi",
+          "key": "P22_01_04",
+          "label": "4. Konstruksi sayap",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_01_05_01",
+              "key": "P22_01_04_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -100,12 +100,12 @@
           ]
         },
         {
-          "key": "P03_01_06",
-          "label": "5. Stabilitas tanggul, retakan melintang, memanjang dan amblesan",
+          "key": "P22_01_05",
+          "label": "5. Lubang drainase (wheep holes) pada sayap muka dan belakang",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_01_06_01",
+              "key": "P22_01_05_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -117,12 +117,29 @@
           ]
         },
         {
-          "key": "P03_01_07",
-          "label": "6. Papan operasi dan pengisian data operasi",
+          "key": "P22_01_06",
+          "label": "6. Stabilitas tanggul dan tinggi jagaan untuk mencegah air melimpah (overtopping) selama masa operasi dan musim hujan",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_01_07_01",
+              "key": "P22_01_06_01",
+              "label": "Nilai kondisi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "P22_01_07",
+          "label": "7. Tanda-tanda retak dan longsor pada bangunan",
+          "weight": 10,
+          "subs": [
+            {
+              "key": "P22_01_07_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -136,17 +153,17 @@
       ]
     },
     {
-      "key": "P03_02",
-      "label": "Pada setiap sadap tersier",
-      "weight": 25,
+      "key": "P22_02",
+      "label": "b. Box Kuarter berfungsi untuk pengukuran debit",
+      "weight": 20,
       "subs": [
         {
-          "key": "P03_02_01",
-          "label": "1. Pengoperasian pintu pembagi dan/atau bagi sadap",
-          "weight": 30,
+          "key": "P22_02_01",
+          "label": "1. Bangunan Pengatur",
+          "weight": 20,
           "subs": [
             {
-              "key": "P03_02_01_01",
+              "key": "P22_02_01_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -158,29 +175,12 @@
           ]
         },
         {
-          "key": "P03_02_02",
-          "label": "2. Kondisi tubuh bangunan dan tingkat bocoran",
-          "weight": 30,
-          "subs": [
-            {
-              "key": "P03_02_02_01",
-              "label": "Nilai kondisi",
-              "weight": 100,
-              "type": "numerik",
-              "min": 1,
-              "max": 100,
-              "description": "Input nilai 1-100",
-              "required": true
-            }
-          ]
-        },
-        {
-          "key": "P03_02_04",
-          "label": "3. Kondisi sayap",
+          "key": "P22_02_02",
+          "label": "2. Papan Duga",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_02_04_01",
+              "key": "P22_02_02_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -192,12 +192,12 @@
           ]
         },
         {
-          "key": "P03_02_05",
-          "label": "4. Bekas gerusan di lantai hilir yang membahayakan konstruksi",
+          "key": "P22_02_03",
+          "label": "3. Tabel Pembacaan Debit",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_02_05_01",
+              "key": "P22_02_03_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -209,12 +209,12 @@
           ]
         },
         {
-          "key": "P03_02_06",
-          "label": "5. Stabilitas tanggul, retakan melintang, memanjang dan amblesan",
+          "key": "P22_02_04",
+          "label": "4. Bocoran pada bangunan atau ambang",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_02_06_01",
+              "key": "P22_02_04_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -226,12 +226,80 @@
           ]
         },
         {
-          "key": "P03_02_07",
-          "label": "6. Papan operasi dan pengisian data operasi",
+          "key": "P22_02_05",
+          "label": "5. Konstruksi Sayap",
           "weight": 10,
           "subs": [
             {
-              "key": "P03_02_07_01",
+              "key": "P22_02_05_01",
+              "label": "Nilai kondisi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "P22_02_06",
+          "label": "6. Lubang drainase (wheep holes) pada sayap muka dan belakang",
+          "weight": 10,
+          "subs": [
+            {
+              "key": "P22_02_06_01",
+              "label": "Nilai kondisi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "P22_02_07",
+          "label": "7. Tingkat Kerusakan",
+          "weight": 10,
+          "subs": [
+            {
+              "key": "P22_02_07_01",
+              "label": "Nilai kondisi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "P22_02_08",
+          "label": "8. Stabilitas tanggul dan tinggi jagaan untuk mencegah air melimpah (overtopping) selama masa operasi dan musim hujan",
+          "weight": 10,
+          "subs": [
+            {
+              "key": "P22_02_08_01",
+              "label": "Nilai kondisi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "P22_02_09",
+          "label": "9. Tanda-tanda retak dan longsor pada bangunan",
+          "weight": 10,
+          "subs": [
+            {
+              "key": "P22_02_09_01",
               "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
@@ -245,17 +313,17 @@
       ]
     },
     {
-      "key": "P03_03",
+      "key": "P22_03",
       "label": "c. Perbaikan Bangunan Pengatur",
-      "weight": 25,
+      "weight": 20,
       "subs": [
         {
-          "key": "P03_03_01",
-          "label": "1. Progres Pelaksanaan Pekerjaan",
+          "key": "P22_03_01",
+          "label": "1. Progres Pekerjaan",
           "weight": 100,
           "subs": [
             {
-              "key": "P03_03_01_01",
+              "key": "P22_03_01_01",
               "label": "Nilai progres",
               "weight": 100,
               "type": "numerik",
@@ -269,17 +337,41 @@
       ]
     },
     {
-      "key": "P03_04",
+      "key": "P22_04",
       "label": "d. Perbaikan Papan Operasi",
-      "weight": 25,
+      "weight": 20,
       "subs": [
         {
-          "key": "P03_04_01",
-          "label": "1. Progres Pelaksanaan Pekerjaan",
+          "key": "P22_04_01",
+          "label": "1. Progres Pekerjaan",
           "weight": 100,
           "subs": [
             {
-              "key": "P03_04_01_01",
+              "key": "P22_04_01_01",
+              "label": "Nilai progres",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "P22_05",
+      "label": "e. Kondisi Box Kuarter",
+      "weight": 20,
+      "subs": [
+        {
+          "key": "P22_05_01",
+          "label": "1. Progres Pekerjaan",
+          "weight": 100,
+          "subs": [
+            {
+              "key": "P22_05_01_01",
               "label": "Nilai progres",
               "weight": 100,
               "type": "numerik",

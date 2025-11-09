@@ -4,24 +4,41 @@
   "title": "Kuesioner Penilaian Perumahan",
   "description": "Form kuesioner untuk penilaian kondisi perumahan dengan input nilai 1-100",
   "grading": {
-    "BAIK": { "min": 70, "max": 100, "color": "#22c55e" },
-    "SEDANG": { "min": 40, "max": 69.99, "color": "#eab308" },
-    "BURUK": { "min": 0, "max": 39.99, "color": "#ef4444" }
+    "BAIK_SEKALI": {
+      "min": 80,
+      "max": 100,
+      "color": "#10b981"
+    },
+    "BAIK": {
+      "min": 70,
+      "max": 79.99,
+      "color": "#22c55e"
+    },
+    "KURANG": {
+      "min": 55,
+      "max": 69.99,
+      "color": "#eab308"
+    },
+    "JELEK": {
+      "min": 0,
+      "max": 54.99,
+      "color": "#ef4444"
+    }
   },
   "categories": [
     {
-      "key": "PR_01",
-      "label": "1. Struktur Utama",
-      "weight": 40,
+      "key": "F02_01",
+      "label": "1. Ranting/Pengamat/UPTD",
+      "weight": 17,
       "subs": [
         {
-          "key": "PR_01_01",
-          "label": "a. Kolom",
-          "weight": 30,
+          "key": "F02_01_01",
+          "label": "Kondisi Kantor",
+          "weight": 70,
           "subs": [
             {
-              "key": "PR_01_01_01",
-              "label": "1. Kondisi kolom",
+              "key": "F02_01_01_01",
+              "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
               "min": 1,
@@ -32,30 +49,13 @@
           ]
         },
         {
-          "key": "PR_01_02",
-          "label": "b. Balok",
+          "key": "F02_01_02",
+          "label": "Kondisi Peralatan Kantor",
           "weight": 30,
           "subs": [
             {
-              "key": "PR_01_02_01",
-              "label": "1. Kondisi balok",
-              "weight": 100,
-              "type": "numerik",
-              "min": 1,
-              "max": 100,
-              "description": "Input nilai 1-100",
-              "required": true
-            }
-          ]
-        },
-        {
-          "key": "PR_01_03",
-          "label": "c. Rangka Atap",
-          "weight": 40,
-          "subs": [
-            {
-              "key": "PR_01_03_01",
-              "label": "1. Kondisi rangka atap",
+              "key": "F02_01_02_01",
+              "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
               "min": 1,
@@ -68,18 +68,35 @@
       ]
     },
     {
-      "key": "PR_02",
-      "label": "2. Dinding",
-      "weight": 30,
+      "key": "F02_02",
+      "label": "2. Mantri / juru pengairan",
+      "weight": 17,
       "subs": [
         {
-          "key": "PR_02_01",
-          "label": "a. Dinding",
-          "weight": 100,
+          "key": "F02_02_01",
+          "label": "Kondisi Kantor",
+          "weight": 70,
           "subs": [
             {
-              "key": "PR_02_01_01",
-              "label": "1. Kondisi dinding",
+              "key": "F02_02_01_01",
+              "label": "Nilai kondisi",
+              "weight": 100,
+              "type": "numerik",
+              "min": 1,
+              "max": 100,
+              "description": "Input nilai 1-100",
+              "required": true
+            }
+          ]
+        },
+        {
+          "key": "F02_02_02",
+          "label": "Kondisi Peralatan Kantor",
+          "weight": 30,
+          "subs": [
+            {
+              "key": "F02_02_02_01",
+              "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
               "min": 1,
@@ -92,18 +109,18 @@
       ]
     },
     {
-      "key": "PR_03",
-      "label": "3. Atap",
-      "weight": 30,
+      "key": "F02_51",
+      "label": "3. Perumahan",
+      "weight": 67,
       "subs": [
         {
-          "key": "PR_03_01",
-          "label": "a. Atap",
+          "key": "F02_51_01",
+          "label": "Kondisi Perumahan",
           "weight": 100,
           "subs": [
             {
-              "key": "PR_03_01_01",
-              "label": "1. Kondisi atap",
+              "key": "F02_51_01_01",
+              "label": "Nilai kondisi",
               "weight": 100,
               "type": "numerik",
               "min": 1,
