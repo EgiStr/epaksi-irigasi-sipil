@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "scheme": "box_kuarter",
+  "scheme": "box-kuarter",
   "title": "Kuesioner Penilaian Box Kuarter",
   "description": "Form kuesioner untuk penilaian kondisi box kuarter dengan input nilai 1-100",
   "grading": {

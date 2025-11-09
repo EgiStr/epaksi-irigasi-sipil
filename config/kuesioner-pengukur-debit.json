@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "scheme": "pengukur_debit",
+  "scheme": "pengukur-debit",
   "title": "Kuesioner Penilaian Pengukur Debit",
   "description": "Form kuesioner untuk penilaian kondisi pengukur debit dengan input nilai 1-100",
   "grading": {
