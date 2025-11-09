@@ -43,9 +43,9 @@ export async function GET(request) {
     if (scheme) {
       const validSchemes = [
         'primer', 'sekunder', 'tersier', 'kuarter', // saluran
-        'bendung-tetap', 'jembatan', 'gudang', 'perumahan', 'box-tersier', 
-        'syphon', 'gorong-gorong', 'pelimpah-samping', 'terjunan', 
-        'tempat-cuci', 'sadap', 'bagi-sadap' // bangunan
+        'bendung-tetap', 'jembatan', 'gudang', 'perumahan', 'box-tersier', 'box-kuarter',
+        'syphon', 'gorong-gorong', 'gorong-gorong-silang', 'pelimpah-samping', 'terjunan',
+        'tempat-cuci', 'sadap', 'bagi-sadap', 'talang', 'pengukur-debit' // bangunan
       ];
       if (!validSchemes.includes(scheme)) {
         return NextResponse.json(
