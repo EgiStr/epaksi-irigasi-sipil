@@ -52,9 +52,14 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
       const upperText = text.toUpperCase();
       if (upperText.includes('B01')) return 'bendung-tetap';
       if (upperText.includes('C06')) return 'jembatan';
+      if (upperText.includes('C09')) return 'tempat-cuci';
+      if (upperText.includes('C13')) return 'terjunan';
       if (upperText.includes('F02')) return 'perumahan';
       if (upperText.includes('F03')) return 'gudang';
+      if (upperText.includes('P02')) return 'bagi-sadap';
+      if (upperText.includes('P03')) return 'sadap';
       if (upperText.includes('P21')) return 'box-tersier';
+      if (upperText.includes('P22')) return 'box-kuarter';
       // Remove the generic 'bangunan' fallback
       return null;
     };
@@ -149,13 +154,17 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
         { key: 'gudang', label: 'Gudang', description: 'Bangunan penyimpanan peralatan', icon: '🏭' },
         { key: 'perumahan', label: 'Perumahan', description: 'Bangunan tempat tinggal', icon: '🏠' },
         { key: 'box-tersier', label: 'Box Tersier', description: 'Bangunan pengatur saluran tersier', icon: '📦' },
+        { key: 'box-kuarter', label: 'Box Kuarter', description: 'Bangunan pengatur saluran kuarter', icon: '📦' },
         { key: 'syphon', label: 'Syphon', description: 'Bangunan saluran bawah tanah', icon: '🔧' },
         { key: 'gorong-gorong', label: 'Gorong-gorong', description: 'Saluran pembuangan silang', icon: '🌊' },
+        { key: 'gorong-gorong-silang', label: 'Gorong-gorong Silang', description: 'Gorong-gorong persilangan', icon: '🌊' },
         { key: 'pelimpah-samping', label: 'Pelimpah Samping', description: 'Bangunan pelimpah banjir', icon: '💦' },
         { key: 'terjunan', label: 'Terjunan', description: 'Bangunan pengatur debit jatuh', icon: '🏞️' },
         { key: 'tempat-cuci', label: 'Tempat Cuci', description: 'Fasilitas pencucian peralatan', icon: '🧽' },
         { key: 'sadap', label: 'Sadap', description: 'Bangunan pengambilan air', icon: '🚰' },
-        { key: 'bagi-sadap', label: 'Bagi Sadap', description: 'Bangunan pembagian pengambilan', icon: '🔀' }
+        { key: 'bagi-sadap', label: 'Bagi Sadap', description: 'Bangunan pembagian pengambilan', icon: '🔀' },
+        { key: 'talang', label: 'Talang', description: 'Bangunan talang irigasi', icon: '🏗️' },
+        { key: 'pengukur-debit', label: 'Pengukur Debit', description: 'Bangunan pengukur debit air', icon: '📏' }
       ];
     }
 
@@ -170,13 +179,17 @@ const KuesionerModal = ({ isOpen, onClose, featureData, onSubmit }) => {
       { key: 'gudang', label: 'Gudang', description: 'Bangunan penyimpanan peralatan', icon: '🏭' },
       { key: 'perumahan', label: 'Perumahan', description: 'Bangunan tempat tinggal', icon: '🏠' },
       { key: 'box-tersier', label: 'Box Tersier', description: 'Bangunan pengatur saluran tersier', icon: '📦' },
+      { key: 'box-kuarter', label: 'Box Kuarter', description: 'Bangunan pengatur saluran kuarter', icon: '📦' },
       { key: 'syphon', label: 'Syphon', description: 'Bangunan saluran bawah tanah', icon: '🔧' },
       { key: 'gorong-gorong', label: 'Gorong-gorong', description: 'Saluran pembuangan silang', icon: '🌊' },
+      { key: 'gorong-gorong-silang', label: 'Gorong-gorong Silang', description: 'Gorong-gorong persilangan', icon: '🌊' },
       { key: 'pelimpah-samping', label: 'Pelimpah Samping', description: 'Bangunan pelimpah banjir', icon: '💦' },
       { key: 'terjunan', label: 'Terjunan', description: 'Bangunan pengatur debit jatuh', icon: '🏞️' },
       { key: 'tempat-cuci', label: 'Tempat Cuci', description: 'Fasilitas pencucian peralatan', icon: '🧽' },
       { key: 'sadap', label: 'Sadap', description: 'Bangunan pengambilan air', icon: '🚰' },
-      { key: 'bagi-sadap', label: 'Bagi Sadap', description: 'Bangunan pembagian pengambilan', icon: '🔀' }
+      { key: 'bagi-sadap', label: 'Bagi Sadap', description: 'Bangunan pembagian pengambilan', icon: '🔀' },
+      { key: 'talang', label: 'Talang', description: 'Bangunan talang irigasi', icon: '🏗️' },
+      { key: 'pengukur-debit', label: 'Pengukur Debit', description: 'Bangunan pengukur debit air', icon: '📏' }
     ];
   }, [featureData, selectedScheme, getSchemeType]);
 

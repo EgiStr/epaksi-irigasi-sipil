@@ -87,7 +87,7 @@ export async function POST(request) {
       'primer', 'sekunder', 'tersier', 'kuarter', // saluran
       'bendung-tetap', 'jembatan', 'gudang', 'perumahan', 'box-tersier', 
       'syphon', 'gorong-gorong', 'pelimpah-samping', 'terjunan', 
-      'tempat-cuci', 'sadap', 'bagi-sadap' // bangunan
+      'tempat-cuci', 'sadap', 'bagi-sadap', 'talang' // bangunan
     ];
     if (!validSchemes.includes(scheme)) {
       return NextResponse.json(

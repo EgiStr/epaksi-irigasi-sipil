@@ -4,28 +4,28 @@
   "title": "Formulir Penilaian Irigasi Tersier ",
   "description": "Penilaian kondisi jaringan irigasi untuk sistem irigasi tersier dengan sistem persentase 0-100% untuk semua parameter",
   "grading": {
-    "A": {
+    "BAIK_SEKALI": {
       "min": 85,
       "max": 100,
-      "label": "Baik",
+      "label": "Baik Sekali",
       "color": "#22c55e"
     },
-    "B": {
+    "BAIK": {
       "min": 70,
       "max": 84.99,
-      "label": "Sedang",
+      "label": "Baik",
       "color": "#eab308"
     },
-    "C": {
+    "KURANG": {
       "min": 55,
       "max": 69.99,
       "label": "Kurang",
       "color": "#f97316"
     },
-    "D": {
+    "JELEK": {
       "min": 0,
       "max": 54.99,
-      "label": "Buruk",
+      "label": "Jelek",
       "color": "#ef4444"
     }
   },

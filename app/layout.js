@@ -3,8 +3,8 @@ import NextAuthProvider from '../components/NextAuthProvider'
 import { SidebarProvider } from '../contexts/SidebarContext'
 
 export const metadata = {
-  title: 'Sistem Pemetaan Irigasi Sipil',
-  description: 'Sistem informasi pemetaan daerah irigasi',
+  title: 'Sistem Pengelolaan Irigasi Daerah',
+  description: 'Sistem informasi Pengelolaan daerah irigasi',
 }
 
 export default function RootLayout({ children }) {

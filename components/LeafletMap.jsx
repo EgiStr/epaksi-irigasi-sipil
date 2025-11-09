@@ -94,6 +94,14 @@ const MAP_CONFIG = {
       label: 'Box Tersier',
       icon: '📦'
     },
+    'box-kuarter': {
+      color: '#7c2d12', // Orange-900
+      fillColor: '#fdba74', // Orange-300
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Box Kuarter',
+      icon: '📦'
+    },
     'syphon': {
       color: '#0369a1', // Sky-700
       fillColor: '#0ea5e9', // Sky-500
@@ -110,6 +118,22 @@ const MAP_CONFIG = {
       label: 'Gorong-gorong',
       icon: '🚇'
     },
+    'gorong-gorong-silang': {
+      color: '#4b5563', // Gray-600
+      fillColor: '#9ca3af', // Gray-400
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Gorong-gorong Silang',
+      icon: '🚇'
+    },
+    'pengukur-debit': {
+      color: '#7c3aed', // Violet-600
+      fillColor: '#a78bfa', // Violet-400
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Pengukur Debit',
+      icon: '📏'
+    },
     'pelimpah-samping': {
       color: '#0891b2', // Cyan-600
       fillColor: '#22d3ee', // Cyan-400
@@ -125,6 +149,14 @@ const MAP_CONFIG = {
       weight: 3,
       label: 'Terjunan',
       icon: '🏞️'
+    },
+    'talang': {
+      color: '#7c2d12', // Orange-900
+      fillColor: '#ea580c', // Orange-600
+      fillOpacity: 0.8,
+      weight: 3,
+      label: 'Talang',
+      icon: '🏗️'
     },
     'tempat-cuci': {
       color: '#166534', // Green-700
@@ -868,10 +900,18 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
       if (!text) return null;
       const upperText = text.toUpperCase();
       if (upperText.includes('B01')) return 'bendung-tetap';
+      if (upperText.includes('C01')) return 'pengukur-debit';
+      if (upperText.includes('C04')) return 'talang';
       if (upperText.includes('C06')) return 'jembatan';
+      if (upperText.includes('C09')) return 'tempat-cuci';
+      if (upperText.includes('C12')) return 'gorong-gorong-silang';
+      if (upperText.includes('C13')) return 'terjunan';
       if (upperText.includes('F02')) return 'perumahan';
       if (upperText.includes('F03')) return 'gudang';
+      if (upperText.includes('P02')) return 'bagi-sadap';
+      if (upperText.includes('P03')) return 'sadap';
       if (upperText.includes('P21')) return 'box-tersier';
+      if (upperText.includes('P22')) return 'box-kuarter';
       return null;
     };
 
@@ -1406,9 +1446,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
               <option value="all">Semua</option>
               <option value="surveyed">Sudah Disurvei</option>
               <option value="not-surveyed">Belum Disurvei</option>
-              <option value="baik">Kualitas Baik (≥80)</option>
-              <option value="sedang">Kualitas Sedang (50-79)</option>
-              <option value="buruk">Kualitas Buruk (&lt;50)</option>
             </select>
             
             {/* Survey Statistics */}
@@ -1420,41 +1457,6 @@ const LeafletMap = ({ geoJsonData, boundaryData, layersData, onDataReload }) => 
           </div>
         )}
       </div>
-      )}
-
-      {/* Survey Statistics Panel - moved to right side */}
-      {!isSurveyModalOpen && statistics.total > 0 && showSurveyLayer && (
-        <div style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          padding: '10px 12px',
-          borderRadius: '6px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          fontSize: '12px',
-          fontWeight: '500',
-          minWidth: '180px'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>
-            📈 Statistik Kualitas
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ backgroundColor: '#10b981', width: '12px', height: '12px', borderRadius: '2px' }}></span>
-              <span>Baik: {statistics.qualityBreakdown?.baik || 0}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ backgroundColor: '#f59e0b', width: '12px', height: '12px', borderRadius: '2px' }}></span>
-              <span>Sedang: {statistics.qualityBreakdown?.sedang || 0}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ backgroundColor: '#ef4444', width: '12px', height: '12px', borderRadius: '2px' }}></span>
-              <span>Buruk: {statistics.qualityBreakdown?.buruk || 0}</span>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Survey Statistics Panel */}
