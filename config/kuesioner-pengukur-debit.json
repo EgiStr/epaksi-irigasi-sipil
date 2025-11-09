@@ -1,7 +1,7 @@
 {
   "version": "v1.0",
   "scheme": "pengukur-debit",
-  "title": "Kuesioner Penilaian Pengukur Debit",
+  "title": "Kuesioner Penilaian Pengukur Debit (Normalized 0-100 Scoring)",
   "description": "Form kuesioner untuk penilaian kondisi pengukur debit dengan input nilai 1-100",
   "grading": {
     "BAIK_SEKALI": {
@@ -29,7 +29,7 @@
     {
       "key": "C01_01",
       "label": "1. Informasi Bangunan",
-      "weight": 100,
+      "weight": 72,
       "subs": [
         {
           "key": "C01_01_01",
@@ -87,7 +87,7 @@
     {
       "key": "C01_02",
       "label": "2. Pelaksanaan Perbaikan dan Pemeliharaan",
-      "weight": 38,
+      "weight": 28,
       "subs": [
         {
           "key": "C01_02_01",

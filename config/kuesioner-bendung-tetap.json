@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "scheme": "bendung_tetap",
+  "scheme": "bendung-tetap",
   "title": "Kuesioner Penilaian Bendung Tetap",
   "description": "Form kuesioner untuk penilaian kondisi bendung tetap dengan input nilai 1-100",
   "grading": {
@@ -29,12 +29,12 @@
     {
       "key": "B01_01",
       "label": "1. Tubuh bendung",
-      "weight": 38,
+      "weight": 40,
       "subs": [
         {
           "key": "B01_01_01",
           "label": "a. Mercu",
-          "weight": 1,
+          "weight": 8,
           "subs": [
             {
               "key": "B01_01_01_01",
@@ -81,7 +81,7 @@
         {
           "key": "B01_01_02",
           "label": "b. Sayap",
-          "weight": 0.75,
+          "weight": 15,
           "subs": [
             {
               "key": "B01_01_02_01",
@@ -108,7 +108,7 @@
         {
           "key": "B01_01_03",
           "label": "c. Lantai Bendung",
-          "weight": 1,
+          "weight": 20,
           "subs": [
             {
               "key": "B01_01_03_02",
@@ -155,7 +155,7 @@
         {
           "key": "B01_01_04",
           "label": "d. Tanggul penutup hulu dan hilir",
-          "weight": 1,
+          "weight": 20,
           "subs": [
             {
               "key": "B01_01_04_01",
@@ -192,7 +192,7 @@
         {
           "key": "B01_01_05",
           "label": "e. Jembatan (diatas mercu/pelayanan)",
-          "weight": 0.25,
+          "weight": 5,
           "subs": [
             {
               "key": "B01_01_05_01",
@@ -219,7 +219,7 @@
         {
           "key": "B01_01_06",
           "label": "f. Papan Operasi",
-          "weight": 0.5,
+          "weight": 10,
           "subs": [
             {
               "key": "B01_01_06_01",
@@ -246,7 +246,7 @@
         {
           "key": "B01_01_07",
           "label": "g. Mistar ukur",
-          "weight": 0.25,
+          "weight": 5,
           "subs": [
             {
               "key": "B01_01_07_01",
@@ -283,7 +283,7 @@
         {
           "key": "B01_01_08",
           "label": "h. Pagar pengaman",
-          "weight": 0.25,
+          "weight": 5,
           "subs": [
             {
               "key": "B01_01_08_01",
@@ -302,12 +302,12 @@
     {
       "key": "B01_02",
       "label": "2. Pintu-pintu bendung dan roda gigi",
-      "weight": 62,
+      "weight": 64.8,
       "subs": [
         {
           "key": "B01_02_01",
           "label": "a. Pintu pengambilan (Intake)",
-          "weight": 4,
+          "weight": 50,
           "subs": [
             {
               "key": "B01_02_01_01",
@@ -334,7 +334,7 @@
         {
           "key": "B01_02_02",
           "label": "b. Pintu penguras bendung",
-          "weight": 4,
+          "weight": 50,
           "subs": [
             {
               "key": "B01_02_02_01",

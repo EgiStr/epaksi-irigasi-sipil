@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "scheme": "bagi_sadap",
+  "scheme": "bagi-sadap",
   "title": "Kuesioner Penilaian Bagi Sadap",
   "description": "Form kuesioner untuk penilaian kondisi bagi sadap dengan input nilai 1-100",
   "grading": {
@@ -29,7 +29,7 @@
     {
       "key": "P02_01",
       "label": "Bangunan Bagi Sadap Lengkap dan Berfungsi",
-      "weight": 25,
+      "weight": 27,
       "subs": [
         {
           "key": "P02_01_01",
@@ -138,7 +138,7 @@
     {
       "key": "P02_02",
       "label": "Pada setiap sadap tersier",
-      "weight": 25,
+      "weight": 27,
       "subs": [
         {
           "key": "P02_02_01",
@@ -247,7 +247,7 @@
     {
       "key": "P02_03",
       "label": "c. Perbaikan Bangunan Pengatur",
-      "weight": 25,
+      "weight": 33,
       "subs": [
         {
           "key": "P02_03_01",
@@ -271,7 +271,7 @@
     {
       "key": "P02_04",
       "label": "d. Perbaikan Papan Operasi",
-      "weight": 25,
+      "weight": 13,
       "subs": [
         {
           "key": "P02_04_01",

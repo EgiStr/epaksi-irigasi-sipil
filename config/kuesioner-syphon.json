@@ -29,7 +29,7 @@
     {
       "key": "C02_01",
       "label": "1. Kondisi Bangunan",
-      "weight": 80,
+      "weight": 34,
       "subs": [
         {
           "key": "C02_01_01",
@@ -155,7 +155,7 @@
     {
       "key": "C02_02",
       "label": "2. Sumbatan Sampah dan Sedimen",
-      "weight": 120,
+      "weight": 51,
       "subs": [
         {
           "key": "C02_02_01",
@@ -179,7 +179,7 @@
     {
       "key": "C02_03",
       "label": "3. Pelaksanaan Perbaikan dan Pemeliharaan",
-      "weight": 38,
+      "weight": 16,
       "subs": [
         {
           "key": "C02_03_01",

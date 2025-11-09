@@ -1,7 +1,7 @@
 {
   "version": "v1.0",
-  "scheme": "pelimpah_samping",
-  "title": "Kuesioner Penilaian Pelimpah Samping",
+  "scheme": "pelimpah-samping",
+  "title": "Kuesioner Penilaian Pelimpah Samping (Normalized 0-100 Scoring)",
   "description": "Form kuesioner untuk penilaian kondisi pelimpah samping dengan input nilai 1-100",
   "grading": {
     "BAIK_SEKALI": {
@@ -29,7 +29,7 @@
     {
       "key": "C08_01",
       "label": "1. Kondisi Bangunan",
-      "weight": 80,
+      "weight": 68,
       "subs": [
         {
           "key": "C08_01_01",
@@ -104,7 +104,7 @@
     {
       "key": "C08_03",
       "label": "2. Pelaksanaan Perbaikan dan Pemeliharaan",
-      "weight": 38,
+      "weight": 32,
       "subs": [
         {
           "key": "C08_03_01",

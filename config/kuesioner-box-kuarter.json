@@ -338,7 +338,7 @@
     },
     {
       "key": "P22_04",
-      "label": "d. Perbaikan Papan Operasi",
+      "label": "d.  Pelaksanaan perbaikan atau pemeliharaan Mistar Ukur, Skalaliter dan Tanda Muka Air",
       "weight": 20,
       "subs": [
         {
@@ -362,7 +362,7 @@
     },
     {
       "key": "P22_05",
-      "label": "e. Kondisi Box Kuarter",
+      "label": "e. Pelaksanaan perbaikan atau pemeliharaan Papan Operasi",
       "weight": 20,
       "subs": [
         {

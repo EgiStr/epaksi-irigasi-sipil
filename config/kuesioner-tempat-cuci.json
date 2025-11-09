@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "scheme": "tempat_cuci",
+  "scheme": "tempat-cuci",
   "title": "Kuesioner Penilaian Tempat Cuci",
   "description": "Form kuesioner untuk penilaian kondisi tempat cuci dengan input nilai 1-100",
   "grading": {

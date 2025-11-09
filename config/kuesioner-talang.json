@@ -1,7 +1,7 @@
 {
   "version": "v1.0",
   "scheme": "talang",
-  "title": "Kuesioner Penilaian Talang",
+  "title": "Kuesioner Penilaian Talang (Normalized 0-100 Scoring)",
   "description": "Form kuesioner untuk penilaian kondisi talang dengan input nilai 1-100",
   "grading": {
     "BAIK_SEKALI": {
@@ -29,7 +29,7 @@
     {
       "key": "C04_01",
       "label": "1. Kondisi Bangunan",
-      "weight": 80,
+      "weight": 34,
       "subs": [
         {
           "key": "C04_01_01",
@@ -155,7 +155,7 @@
     {
       "key": "C04_02",
       "label": "2. Sumbatan Sampah dan Sedimen",
-      "weight": 120,
+      "weight": 50,
       "subs": [
         {
           "key": "C04_02_01",
@@ -179,7 +179,7 @@
     {
       "key": "C04_03",
       "label": "3. Pelaksanaan Perbaikan dan Pemeliharaan",
-      "weight": 38,
+      "weight": 16,
       "subs": [
         {
           "key": "C04_03_01",

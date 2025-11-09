@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "scheme": "gorong_gorong",
+  "scheme": "gorong-gorong",
   "title": "Kuesioner Penilaian Gorong-Gorong",
   "description": "Form kuesioner untuk penilaian kondisi gorong-gorong dengan input nilai 1-100",
   "grading": {

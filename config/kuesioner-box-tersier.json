@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "scheme": "box_tersier",
+  "scheme": "box-tersier",
   "title": "Kuesioner Penilaian Box Tersier",
   "description": "Form kuesioner untuk penilaian kondisi box tersier dengan input nilai 1-100",
   "grading": {
