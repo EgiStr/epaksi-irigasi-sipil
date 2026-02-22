@@ -1,27 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400 // Revalidate every 24 hours
 
-export async function GET(request) {
-  const cronSecret = process.env.CRON_SECRET_KEY
-  const authHeader = request.headers.get('authorization')
-
-  if (!cronSecret) {
-    console.error('[keep-alive] CRON_SECRET_KEY environment variable is not configured')
-    return NextResponse.json(
-      { status: 'error', message: 'Server misconfiguration.' },
-      { status: 500 }
-    )
-  }
-
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json(
-      { status: 'error', message: 'Tidak terautentikasi' },
-      { status: 401 }
-    )
-  }
-
+export async function GET() {
   try {
     const startTime = Date.now()
     await prisma.$queryRaw`SELECT 1`

@@ -10,7 +10,7 @@ export default withAuth(
     const isApiAuthRoute = req.nextUrl.pathname.startsWith('/api/auth')
     const isKeepAliveRoute = req.nextUrl.pathname === '/api/keep-alive'
 
-    // Allow API auth routes and keep-alive route (has its own auth)
+    // Allow API auth routes and keep-alive route (public monitoring endpoint)
     if (isApiAuthRoute || isKeepAliveRoute) {
       return NextResponse.next()
     }
@@ -70,7 +70,7 @@ export default withAuth(
           return true
         }
 
-        // Allow keep-alive route without token (has its own auth)
+        // Allow keep-alive route without token (public monitoring endpoint)
         if (req.nextUrl.pathname === '/api/keep-alive') {
           return true
         }
