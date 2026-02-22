@@ -7,7 +7,15 @@ export async function GET(request) {
   const cronSecret = process.env.CRON_SECRET_KEY
   const authHeader = request.headers.get('authorization')
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    console.error('[keep-alive] CRON_SECRET_KEY environment variable is not configured')
+    return NextResponse.json(
+      { status: 'error', message: 'Server misconfiguration.' },
+      { status: 500 }
+    )
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json(
       { status: 'error', message: 'Tidak terautentikasi' },
       { status: 401 }
@@ -26,6 +34,7 @@ export async function GET(request) {
       responseTime: `${duration}ms`
     })
   } catch (error) {
+    console.error('[keep-alive] Database ping failed:', error.message)
     return NextResponse.json(
       { status: 'error', message: 'Database connection failed.' },
       { status: 500 }
