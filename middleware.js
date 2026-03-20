@@ -8,9 +8,10 @@ export default withAuth(
     const isAuth = !!token
     const isAuthPage = req.nextUrl.pathname.startsWith('/login')
     const isApiAuthRoute = req.nextUrl.pathname.startsWith('/api/auth')
+    const isKeepAliveRoute = req.nextUrl.pathname === '/api/keep-alive'
 
-    // Allow API auth routes
-    if (isApiAuthRoute) {
+    // Allow API auth routes and keep-alive route (public monitoring endpoint)
+    if (isApiAuthRoute || isKeepAliveRoute) {
       return NextResponse.next()
     }
 
@@ -66,6 +67,11 @@ export default withAuth(
       authorized: ({ token, req }) => {
         // Allow API auth routes without token
         if (req.nextUrl.pathname.startsWith('/api/auth')) {
+          return true
+        }
+
+        // Allow keep-alive route without token (public monitoring endpoint)
+        if (req.nextUrl.pathname === '/api/keep-alive') {
           return true
         }
         
